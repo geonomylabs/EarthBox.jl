@@ -1,6 +1,5 @@
 # EarthBox Models
 
-- [Lithospheric Extension with Viscous Softening](@ref)
 - [Lithospheric Extension with Strong Lateral Zones](@ref)
 - [Lithospheric Extension with a Weak Fault](@ref)
 - [Lithospheric Extension with Viscous Softening](@ref)
@@ -14,4 +13,3 @@
 - [Sandbox Shortening Analogue Benchmark](@ref)
 - [Magma-poor Extension: Iberia](@ref)
 - [Magmatic Crust Formation: Central Atlantic](@ref)
-- [Magmatic Crust Formation: Southern South Atlantic](@ref)
