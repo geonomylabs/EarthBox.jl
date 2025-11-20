@@ -1,2 +1,6 @@
 EarthBox
-Copyright November 15 2025, Erik A. Kneller
+
+Copyright © 2025 Erik A. Kneller.
+All rights reserved.
+
+This product includes original work developed by Erik A. Kneller.
