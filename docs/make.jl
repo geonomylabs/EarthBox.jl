@@ -274,7 +274,7 @@ makedocs(
     remotes  = nothing,
     plugins  = [bib],
     pages    = PAGES,
-    repo     = "https://github.com/eakneller/EarthBox.jl"
+    repo     = "https://github.com/eakneller/EarthBox.jl",
     #warnonly = [:cross_references],
     #draft = false,        # set to true to speed things up
     #doctest = true,       # set to false to speed things up
