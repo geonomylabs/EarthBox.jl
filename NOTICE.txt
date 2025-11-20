@@ -1,6 +1,18 @@
-EarthBox
+EarthBox.jl
+Copyright © 2025 Erik A. Kneller
 
-Copyright © 2025 Erik A. Kneller.
-All rights reserved.
+This product includes software developed by
+Erik A. Kneller for the EarthBox.jl project.
 
-This product includes original work developed by Erik A. Kneller.
+If you use EarthBox.jl in academic, scientific, or technical work,
+please consider citing or referencing this project. While not
+required by the Apache License 2.0, citations help support and
+acknowledge ongoing development.
+
+
+Suggested citation:
+
+Kneller, E. A. (2025). *EarthBox.jl: A visco-elasto-plastic geodynamic
+modeling framework in Julia with marine and terrestrial sediment
+transport, melt intrusion and extrusion, and lava flow modeling.*
+https://github.com/eakneller/EarthBox.jl
