@@ -280,3 +280,9 @@ makedocs(
         search_size_threshold_warn = 1_000_000, # in bytes
     )
 )
+
+deploydocs(
+    repo      = "github.com/eakneller/EarthBox.jl.git",
+    devbranch = "main",               # your development branch
+    # push_preview = true,            # optional: PR previews
+)

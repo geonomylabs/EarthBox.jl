@@ -13,11 +13,13 @@
 
 ## EarthBox Overview
 
-EarthBox is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
+EarthBox.jl is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
 framework with melt generation, melt intrusion, melt extrusion, frictional-plastic melt 
-damage, lava flow modeling and marine and terrestrial sediment transport with compaction. This novel combination features enables Seaward-dipping-reflectors (SDR's) to modeled dynamically using realistic rheology and boundary conditions. 
+damage, lava flow modeling and marine and terrestrial sediment transport with compaction. 
+This novel combination features enables Seaward-dipping-reflectors (SDR's) to modeled 
+dynamically using realistic rheology and boundary conditions. 
 
-EarthBox discretizes the Stokes-continuity and heat transport equations on a staggered 
+EarthBox.jl discretizes the Stokes-continuity and heat transport equations on a staggered 
 grid using conservative finite differences and free-surface stabilization [[1](#ref1)]. 
 Advective processes are computed using a 4th-order Runge-Kutta scheme that includes 
 both grid-scale and sub-grid-scale changes in temperature and deviatoric stress. 
@@ -28,7 +30,7 @@ non-linear visco-elasto-plastic Stokes-continuity solver. Lava flows are modeled
 using a cellular automata method [[6](#ref6)] with probabilistic eruption locations 
 linked to regions of melt focusing.
 
-EarthBox integrates a range of additional geologic processes including gabbroic 
+EarthBox.jl integrates a range of additional geologic processes including gabbroic 
 melt fractionation, submarine hydrothermal cooling, exothermic serpentinization 
 and an isostatically realistic global sea level. The composite viscous flow law 
 includes dislocation creep, diffusion creep, Peierls creep, the effects of viscous 
@@ -37,13 +39,13 @@ The frictional plasticity model incorporates strain weakening and a novel
 probabilistic frictional-plastic melt damage model that activates above regions of 
 melt focusing in partially molten mantle.
 
-The goals of the EarthBox project are two-fold: 
+The goals of the EarthBox.jl project are two-fold: 
 1. To create an easy-to-use and easy-to-modify geodynamic modeling framework with 
     performance comparable to C++ and Fortran, optimized for multi-threaded shared 
     memory machines. 
 2. To provide an extensible system for building libraries of options and model cases. 
 
-EarthBox is currently 2D with an experimental 3D multigrid solver that will be integrated 
+EarthBox.jl is currently 2D with an experimental 3D multigrid solver that will be integrated 
 into the EarthBox system during a future release. EarthBox is developed using the 
 Julia programming language and includes arm's-length integration with the parallel 
 direct solver MUMPS [[7](#ref7)]. EarthBox prevents simulation failures that

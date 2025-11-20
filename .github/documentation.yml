@@ -1,0 +1,41 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main       # update to your dev branch name
+    tags: '*'
+  pull_request:
+
+jobs:
+  build:
+    # Permissions needed by Documenter and cache cleanup
+    permissions:
+      actions: write
+      contents: write
+      pull-requests: read
+      statuses: write
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'   # or a specific version like '1.11'
+
+      - uses: julia-actions/cache@v2
+
+      - name: Install dependencies
+        shell: julia --color=yes --project=docs {0}
+        run: |
+          using Pkg
+          Pkg.develop(PackageSpec(path=pwd()))
+          Pkg.instantiate()
+
+      - name: Build and deploy
+        run: julia --color=yes --project=docs docs/make.jl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}    # auth via Actions token
+          # DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}  # only needed if using SSH keys
