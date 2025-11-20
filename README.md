@@ -36,6 +36,20 @@ parallel direct solver MUMPS that manages the stochastic
 nature of this powerful parallel direct solver that if not properly addressed can
 lead to failed simulation runs.
 
+If you use EarthBox.jl in academic, scientific, or technical work,
+please consider citing or referencing this project. While not
+required by the Apache License 2.0, citations help support and
+acknowledge ongoing development.
+
+
+Suggested citation:
+
+Kneller, E. A. (2025). *EarthBox.jl: A visco-elasto-plastic geodynamic
+modeling framework in Julia with marine and terrestrial sediment
+transport, melt intrusion and extrusion, and lava flow modeling.*
+https://github.com/eakneller/EarthBox.jl
+
+
 ## Operating Systems
 
 Although the core functionality of Julia and EarthBox will work on Windows
