@@ -12,42 +12,56 @@
 
 ## EarthBox Overview
 
-EarthBox is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling program that 
-discretizes the Stokes-continuity and heat transport equations on a staggered grid using 
-conservative finite differences and free-surface stabilization. 
-Advective processes are modeled using a 4th-order Runge-Kutta scheme that includes both 
-grid and sub-grid changes in temperature and deviatoric stress. A variety of geologic 
-processes are integrated in the EarthBox modeling system including partial melting, 
-instantaneous melt extraction and transport, gabbroic melt fractionation, melt extrusion, 
-lava flow, submarine hydrothermal cooling, exothermic serpentinization and sediment 
-transport with erosion, deposition, compaction and an isostatically realistic global sea level.
-EarthBox uses a composite viscous flow law that includes dislocation creep, diffusion creep,
-Peierls creep, the effects of viscous softening associated with grain size reduction and the 
-effects of partial melting. The frictional plastic model used by EarthBox includes strain weakening
-and probabilistic melt damage associated with melt transport networks above zones of melt focusing.
+EarthBox is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
+framework with marine and terrestrial sediment transport with compaction, melt 
+generation, melt intrusion, melt extrusion, frictional-plastic melt 
+damage, and lava flow modeling. This novel combination features enables 
+Seaward-dipping-reflectors (SDR's) to modeled dynamically using realistic 
+rheology and boundary conditions. 
 
-The goals of the EarthBox project are two-fold: (1) create an easy-to-use and easy-to-modify 
-geodynamic modeling tool tuned for shared memory machines and small clusters with performance 
-comparable to C++ and Fortran and (2) develop a system that can be used to build
-easily extensible libraries of options and model cases. EarthBox is currently 2D with an experimental 
-3D multigrid solver that will be integrated into the EarthBox system during a future release.
-EarthBox is developed using the Julia programming language and includes arm's-length integration with the 
-parallel direct solver MUMPS that manages the stochastic 
-nature of this powerful parallel direct solver that if not properly addressed can
-lead to failed simulation runs.
+EarthBox discretizes the Stokes-continuity and heat transport equations on a staggered 
+grid using conservative finite differences and free-surface stabilization [[1](#ref1)]. 
+Advective processes are computed using a 4th-order Runge-Kutta scheme that includes 
+both grid-scale and sub-grid-scale changes in temperature and deviatoric stress. 
+EarthBox uses a visco-elasto-plastic thermo-mechanical algorithm that closely follows 
+the approaches described in [[2](#ref1), [3](#ref2) and [4](#ref3)], combined with 
+a node-based plasticity formulation from [[1](#ref1)] that improves convergence of the 
+non-linear visco-elasto-plastic Stokes-continuity solver. Lava flows are modeled 
+using a cellular automata method [[6](#ref6)] with probabilistic eruption locations 
+linked to regions of melt focusing.
+
+EarthBox integrates a range of additional geologic processes including gabbroic 
+melt fractionation, submarine hydrothermal cooling, exothermic serpentinization 
+and an isostatically realistic global sea level. The composite viscous flow law 
+includes dislocation creep, diffusion creep, Peierls creep, the effects of viscous 
+softening associated with grain size reduction and the effects of partial melting. 
+The frictional plasticity model incorporates strain weakening and a novel 
+probabilistic frictional-plastic melt damage model that activates above regions of 
+melt focusing in partially molten mantle.
+
+The goals of the EarthBox project are two-fold: 
+1. To create an easy-to-use and easy-to-modify geodynamic modeling framework with 
+    performance comparable to C++ and Fortran, optimized for multi-threaded shared 
+    memory machines. 
+2. To provide an extensible system for building libraries of options and model cases. 
+
+EarthBox is currently 2D with an experimental 3D multigrid solver that will be integrated 
+into the EarthBox system during a future release. EarthBox is developed using the 
+Julia programming language and includes arm's-length integration with the parallel 
+direct solver MUMPS [[7](#ref7)]. EarthBox prevents simulation failures that
+can be caused by the stochastic nature of the MUMPS solver.
 
 If you use EarthBox.jl in academic, scientific, or technical work,
 please consider citing or referencing this project. While not
 required by the Apache License 2.0, citations help support and
 acknowledge ongoing development.
 
-
 Suggested citation:
 
-Kneller, E. A. (2025). *EarthBox.jl: A visco-elasto-plastic geodynamic
-modeling framework in Julia with marine and terrestrial sediment
-transport, melt intrusion and extrusion, and lava flow modeling.*
-https://github.com/eakneller/EarthBox.jl
+Kneller, E. A. (2025). EarthBox.jl: A visco-elasto-plastic geodynamic
+modeling framework in Julia with marine and terrestrial sediment transport, 
+melt intrusion and extrusion, frictional-plastic melt damage and lava flow 
+modeling. https://github.com/eakneller/EarthBox.jl
 
 
 ## Operating Systems
@@ -494,3 +508,29 @@ the following:
 ```makefile
 OPTF    = -O -fopenmp -fallow-argument-mismatch $(FPIC_OPT)
 OPTC    = -O -fopenmp $(FPIC_OPT)
+```
+
+# References
+
+<a id="ref1"></a>
+[1] Gerya, T. (2019). Introduction to Numerical Geodynamic Modelling (Cambridge University Press).
+
+<a id="ref2"></a>
+[2] Harlow, F. H. and Welch, J. E. (1965). Numerical Calculation of Time‐Dependent Viscous Incompressible Flow of Fluid with Free Surface. The Physics of Fluids 8, 2182–2189.
+
+<a id="ref3"></a>
+[3] Gerya, T. V. and Yuen, D. A. (2003). Characteristics-based marker-in-cell method with conservative finite-differences schemes for modeling geological flows with strongly variable transport properties. Physics of the Earth and Planetary Interiors 140, 293–318.
+
+<a id="ref4"></a>
+[4] Gerya, T. V. and Yuen, D. A. (2007). Robust characteristics method for modelling multiphase visco-elasto-plastic thermo-mechanical problems. Physics of the Earth and Planetary Interiors 163, 83–105. Computational Challenges in the Earth Sciences.
+
+<a id="ref5"></a>
+[5] Gerya, T. (2010). Introduction to Numerical Geodynamic Modelling (Cambridge University Press).
+
+<a id="ref6"></a>
+[6] Dietterich, H. R.; Lev, E.; Chen, J.; Richardson, J. A. and Cashman, K. V. (2017). Benchmarking computational fluid dynamics models of lava flow simulation for hazard assessment, forecasting, and risk management. Journal of Applied Volcanology 6, 9.
+
+<a id="ref7"></a>
+[7] Amestoy, P.; Duff, I. S.; Koster, J. and L'Excellent, J.-Y. (2001). A Fully Asynchronous Multifrontal Solver Using Distributed Dynamic Scheduling. SIAM Journal on Matrix Analysis and Applications 23, 15–41.
+
+

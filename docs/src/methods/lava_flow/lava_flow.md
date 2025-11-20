@@ -1,7 +1,8 @@
 # Melt Extrusion and Lava Flow
 
 Volcanic extrusion and lava flow for a given eruption time step is modeled using a cellular automata 
-approach where the volume of magma available for extrusion in a melt drainage basin is divided into 
+approach [dietterich17](@cite) where the volume of magma available for extrusion in a melt 
+drainage basin is divided into 
 ``N_{flow}`` flow events that extrude from a probabilistic eruption location ``x_{e}``. Flow events occur at 
 an eruption interval ``\Delta t_e`` and involve the extrusion of all melt extracted during model time steps
 within the eruption interval. At the beginning of each 

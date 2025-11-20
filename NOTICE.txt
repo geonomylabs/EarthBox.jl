@@ -13,6 +13,6 @@ acknowledge ongoing development.
 Suggested citation:
 
 Kneller, E. A. (2025). *EarthBox.jl: A visco-elasto-plastic geodynamic
-modeling framework in Julia with marine and terrestrial sediment
-transport, melt intrusion and extrusion, and lava flow modeling.*
-https://github.com/eakneller/EarthBox.jl
+modeling framework in Julia with marine and terrestrial sediment transport, 
+melt intrusion and extrusion, frictional-plastic melt damage, and lava flow 
+modeling.* https://github.com/eakneller/EarthBox.jl
