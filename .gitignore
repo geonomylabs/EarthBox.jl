@@ -1,5 +1,6 @@
 # Julia
 Manifest.toml
+LocalPreferences.toml
 *.ji
 
 # Editors / OS
