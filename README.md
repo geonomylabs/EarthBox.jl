@@ -13,11 +13,8 @@
 ## EarthBox Overview
 
 EarthBox is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
-framework with marine and terrestrial sediment transport with compaction, melt 
-generation, melt intrusion, melt extrusion, frictional-plastic melt 
-damage, and lava flow modeling. This novel combination features enables 
-Seaward-dipping-reflectors (SDR's) to modeled dynamically using realistic 
-rheology and boundary conditions. 
+framework with melt generation, melt intrusion, melt extrusion, frictional-plastic melt 
+damage, lava flow modeling and marine and terrestrial sediment transport with compaction. This novel combination features enables Seaward-dipping-reflectors (SDR's) to modeled dynamically using realistic rheology and boundary conditions. 
 
 EarthBox discretizes the Stokes-continuity and heat transport equations on a staggered 
 grid using conservative finite differences and free-surface stabilization [[1](#ref1)]. 
