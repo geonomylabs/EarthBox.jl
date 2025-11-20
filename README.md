@@ -9,6 +9,7 @@
 - [EarthBox Installation for Development and Experimentation](#earthbox-installation-for-development-and-experimentation)
 - [Configuring MPI.jl to Use System Binaries](#configuring-mpijl-to-use-system-binaries)
 - [Installing Custom MUMPS Libraries](#installing-custom-mumps-libraries)
+- [References](#references)
 
 ## EarthBox Overview
 
@@ -473,13 +474,13 @@ well with `MUMPS.jl` version `1.5.1`:
 
 - Special care must be taken with the so-called optimized options. The following 
    optimization options in the `Makefile.inc` led to successful compilation:
-   
+
     ```makefile
     OPTF    = -O -fopenmp -fallow-argument-mismatch $(FPIC_OPT)
     OPTC    = -O -fopenmp $(FPIC_OPT)
     ```
 
-# References
+## References
 
 <a id="ref1"></a>
 [1] Gerya, T. (2019). Introduction to Numerical Geodynamic Modelling (Cambridge University Press).
