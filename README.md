@@ -471,41 +471,13 @@ well with `MUMPS.jl` version `1.5.1`:
    required libraries at runtime without needing to modify the `LD_LIBRARY_PATH` 
    environment variable.
 
-- Special care must be taken with the so-called optimized options. One 
-   approach is to use the edits described in [Optimization Options](#optimization-options).
-
-### Optimization Options
-
-The following optimization options in the `Makefile.inc` led to successful compilation:
-
-```makefile
-OPTF    = -O -fopenmp -fallow-argument-mismatch
-OPTL    = -O -fopenmp
-OPTC    = -O -fopenmp
-```
-
-However, this required also editing the `Makefile` in the src directory by changing
-`$(FPIC)` to `$(FPIC_OPT)` in the following lines starting at line 450:
-
-```makefile
-.SUFFIXES: .c .F .o
-.F.o:
-$(FC) $(OPTF) $(FPIC_OPT) -I. -I../include $(INCS) $(IORDERINGSF) $(ORDERINGSF) -c $*.F $(OUTF)$*.o
-.c.o:
-$(CC) $(OPTC) $(FPIC_OPT) -I../include $(INCS) $(CDEFS) $(IORDERINGSC) $(ORDERINGSC) -c $*.c $(OUTC)$*.o
-
-$(ARITH)mumps_c.o:	mumps_c.c
-$(CC) $(OPTC) $(FPIC_OPT) -I../include $(INCS) $(CDEFS) -DMUMPS_ARITH=MUMPS_ARITH_$(ARITH) \
-        $(IORDERINGSC) $(ORDERINGSC) -c mumps_c.c $(OUTC)$@
-```
-
-Alternatively, this could have been accomplished in the `Makefile.inc` by setting 
-the following:
-
-```makefile
-OPTF    = -O -fopenmp -fallow-argument-mismatch $(FPIC_OPT)
-OPTC    = -O -fopenmp $(FPIC_OPT)
-```
+- Special care must be taken with the so-called optimized options. The following 
+   optimization options in the `Makefile.inc` led to successful compilation:
+   
+    ```makefile
+    OPTF    = -O -fopenmp -fallow-argument-mismatch $(FPIC_OPT)
+    OPTC    = -O -fopenmp $(FPIC_OPT)
+    ```
 
 # References
 
