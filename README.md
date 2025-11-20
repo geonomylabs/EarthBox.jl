@@ -19,6 +19,10 @@ damage, lava flow modeling and marine and terrestrial sediment transport with co
 This novel combination features enables Seaward-dipping-reflectors (SDR's) to modeled 
 dynamically using realistic rheology and boundary conditions. 
 
+See documentation at [EarthBox.jl Docs](https://eakneller.github.io/EarthBox.jl/stable/) 
+including a detailed description of the EarthBox API, installation, methods, models
+and benchmark results.
+
 EarthBox.jl discretizes the Stokes-continuity and heat transport equations on a staggered 
 grid using conservative finite differences and free-surface stabilization [[1](#ref1)]. 
 Advective processes are computed using a 4th-order Runge-Kutta scheme that includes 

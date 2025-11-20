@@ -274,6 +274,11 @@ makedocs(
     remotes  = nothing,
     plugins  = [bib],
     pages    = PAGES,
+    repo     = "https://github.com/eakneller/EarthBox.jl"
+    #warnonly = [:cross_references],
+    #draft = false,        # set to true to speed things up
+    #doctest = true,       # set to false to speed things up
+    #clean = true,
     format   = Documenter.HTML(
         collapselevel = 1, 
         assets = ["assets/custom.css", "assets/equation-refs.js"],
@@ -285,4 +290,5 @@ deploydocs(
     repo      = "github.com/eakneller/EarthBox.jl.git",
     devbranch = "main",               # your development branch
     # push_preview = true,            # optional: PR previews
+    #forcepush = true,
 )

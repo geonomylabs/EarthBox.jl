@@ -3,9 +3,11 @@ name: Documentation
 on:
   push:
     branches:
-      - main       # update to your dev branch name
+      - main
+    paths:
+      - 'docs/**'
+      - '.github/workflows/documentation.yml'
     tags: '*'
-  pull_request:
 
 jobs:
   build:
