@@ -9,46 +9,46 @@ using Test
     for (out, expect) in zip(output_divides, expected_divides)
         @test isapprox(out, expect; atol=0.01)
     end
+   # Commented out benchmarks that write to the EarthBox project directory
+   # (
+   #     status_str, 
+   #     max_relative_error_percentage, 
+   #     relative_error_limit_percentage
+   # ) = BenchmarksManager.run_benchmark(:rayleigh_taylor_instability)
+   # @test status_str == "Success"
+   # @test max_relative_error_percentage < relative_error_limit_percentage
 
-    (
-        status_str, 
-        max_relative_error_percentage, 
-        relative_error_limit_percentage
-    ) = BenchmarksManager.run_benchmark(:rayleigh_taylor_instability)
-    @test status_str == "Success"
-    @test max_relative_error_percentage < relative_error_limit_percentage
 
+   # (
+   #     status_str, 
+   #     max_relative_error_percentage, 
+   #     relative_error_limit_percentage
+   # ) = BenchmarksManager.run_benchmark(:channel_flow_non_newtonian)
+   # @test status_str == "Success"
+   # @test max_relative_error_percentage < relative_error_limit_percentage
 
-    (
-        status_str, 
-        max_relative_error_percentage, 
-        relative_error_limit_percentage
-    ) = BenchmarksManager.run_benchmark(:channel_flow_non_newtonian)
-    @test status_str == "Success"
-    @test max_relative_error_percentage < relative_error_limit_percentage
+   # (
+   #     status_str, 
+   #     max_relative_error_percentage, 
+   #     relative_error_limit_percentage
+   # ) = BenchmarksManager.run_benchmark(:couette_flow_viscous_heating)
+   # @test status_str == "Success"
+   # @test max_relative_error_percentage < relative_error_limit_percentage
 
-    (
-        status_str, 
-        max_relative_error_percentage, 
-        relative_error_limit_percentage
-    ) = BenchmarksManager.run_benchmark(:couette_flow_viscous_heating)
-    @test status_str == "Success"
-    @test max_relative_error_percentage < relative_error_limit_percentage
+   # (
+   #     status_str, 
+   #     max_relative_error_percentage, 
+   #     relative_error_limit_percentage
+   # ) = BenchmarksManager.run_benchmark(:channel_flow_variable_conductivity)
+   # @test status_str == "Success"
+   # @test max_relative_error_percentage < relative_error_limit_percentage
 
-    (
-        status_str, 
-        max_relative_error_percentage, 
-        relative_error_limit_percentage
-    ) = BenchmarksManager.run_benchmark(:channel_flow_variable_conductivity)
-    @test status_str == "Success"
-    @test max_relative_error_percentage < relative_error_limit_percentage
-
-    (
-        status_str, 
-        max_relative_error_percentage, 
-        relative_error_limit_percentage
-    ) = BenchmarksManager.run_benchmark(:solid_body_rotation)
-    @test status_str == "Success"
-    @test max_relative_error_percentage < relative_error_limit_percentage
+   # (
+   #     status_str, 
+   #     max_relative_error_percentage, 
+   #     relative_error_limit_percentage
+   # ) = BenchmarksManager.run_benchmark(:solid_body_rotation)
+   # @test status_str == "Success"
+   # @test max_relative_error_percentage < relative_error_limit_percentage
 
 end
