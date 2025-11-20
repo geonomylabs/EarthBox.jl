@@ -1,0 +1,30 @@
+name: Elastic_Slab_Material_Model
+material_model_id: 5
+2:
+  mat_name: [IsoviscousFluid1AroundElasticSlab, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [FluidAroundElasticSlabA, None, ' Material domain ']
+  red_fraction: [0.5, None, ' red_fraction']
+  green_fraction: [0.5, None, ' green_fraction']
+  blue_fraction: [0.0, None, ' blue_fraction ']
+3:
+  mat_name: [IsoviscousFluid2AroundElasticSlab, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [FluidAroundElasticSlabB, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [1.0, None, ' green_fraction']
+  blue_fraction: [0.0, None, ' blue_fraction ']
+4:
+  mat_name: [ViscoelasticSlabMaterial1, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [ElasticSlabA, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [0.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']
+5:
+  mat_name: [ViscoelasticSlabMaterial2, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [ElasticSlabB, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [0.5, None, ' green_fraction']
+  blue_fraction: [0.5, None, ' blue_fraction ']

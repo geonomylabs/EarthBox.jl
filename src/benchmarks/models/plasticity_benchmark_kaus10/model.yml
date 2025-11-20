@@ -1,0 +1,70 @@
+EarthBoxDimensions:
+  xnum: [401, None, 'Basic grid resolution in x-direction']
+  ynum: [101, None, 'Basic grid resolution in y-direction']
+  xsize: [40000.0, m, 'Width of model']
+  ysize: [12000.0, m, 'Height of model']
+  nmarkers_cell_x: [3.0, None, 'Number of markers per cell in horizontal direction']
+  nmarkers_cell_y: [3.0, None, 'Number of markers per cell in vertical direction']
+StaggeredGrid:
+  stype_grid: [UniformGrid, None, 'Basic grid type']
+BoundaryConditions:
+  stype_bc: [ExtensionNoBottomInflow, None, 'Boundary condition type']
+  pressure_bc: [100000.0, Pa, 'Pressure boundary condition ']
+  temperature_top: [273.0, C, 'Temperature at the top of the model ']
+  temperature_bottom: [273.0, C, 'Temperature at the base of the model. ']
+  iuse_strain_rate: [1, None, ' 0 = use full extension velocity; 1 = use strain rate']
+  strain_rate_bc: [1.0e-15, 1/s, ' strain rate used for velocity boundary condition (stress buildup benchmark)']
+MarkerCoordinates:
+  iuse_random: [0, None, 'Randomize initial marker distribution: 0 = off; 1 = on']
+StickyAirGeometry:
+  thick_air: [2000.0, m, 'Thickness of sticky air']
+EarthLayeringGeometry:
+  thick_upper_crust: [1666.67, m, 'Thickness of upper crust']
+  thick_lower_crust: [1666.67, m, 'Thickness of lower crust']
+  thick_upper_lith: [1666.67, m, 'Thickness of upper mantle lithosphere']
+  thick_middle_lith: [1666.67, m, 'Thickness of middle mantle lithosphere']
+  thick_lower_lith: [1666.67, m, 'Thickness of lower mantle lithosphere']
+WeakSeedGeometry:
+  w_seed: [800.0, m, 'Width of weak seed']
+  x_seed: [20000.0, m, 'X-location of weak seed']
+  y_seed: [6166.67, m, 'Y-location of weak seed']
+MarkerMaterials:
+  stype_mat: [PlasticityBenchmarkWeakNotchKaus10, None, 'Material initialization type']
+  viscosity_min: [1.0e+19, Pa.s, 'Minimum viscosity.']
+  viscosity_max: [1.0e+25, Pa.s, 'Maximum viscosity.']
+  yield_stress_min: [2.0e+7, Pa, 'Minimum stress limit for plastic failure.']
+  yield_stress_max: [1.e+9, Pa, 'Maximum stress limit for plastic failure.']
+MarkerTemperature:
+  stype_temp: [Uniform, None, 'Integer ID for initial temperature type.']
+  temperature_uniform: [273.0, C, 'Uniform initial temperature.']
+RocksProps:
+  stype_density: [Liao14, None, 'Integer ID for density model.']
+  stype_conductivity: [Liao14, None, 'Integer ID for thermal conductivity model type.']
+HeatSolver:
+  iuse_heat: [1, None, ' Solve heat equation: 0 = off; 1 = on']
+  iuse_adiabatic_heating: [0, None, ' Adiabatic heating: 0 = off; 1 = on']
+  iuse_shear_heating: [0, None, ' Shear heating: 0 = off; 1 = on']
+  max_temp_change: [70.0, K, ' Maximal temperature change allowed for one time step']
+StokesContinuitySolver:
+  stype_velocity: [VelocityFromStokesSolver, None, 'Velocity type']
+  tolerance_picard: [0.001, None, ' Convergence criterion for Stokes iterations']
+  nglobal: [100, None, ' Maximum number of global Stokes iterations']
+  stype_global: [NodalPlasticityLoop, None, 'Global plasticity loop type']
+  stype_plasticity: [PureElasticStressForecast, None, 'Marker plasticity type']
+  gravity_x: [0.0, m/s/s, ' X-component of gravitational acceleration']
+  gravity_y: [10.0, m/s/s, ' Y-component of gravitational acceleration']
+TimeLoop:
+  ntimestep_max: [400, None, ' Maximum number of model time steps']
+  timestep_viscoelastic: [15000.0, yr, ' Viscoelastic time step']
+  timestep_out: [15000.0, yr, ' Output time step size']
+Stopping:
+  iuse_extensional_strain: [1, None, ' Displacement stopping options based on strain: 0 = off; 1 = off']
+  strain_limit: [0.02, None, ' Strain limit used for stopping criteria']
+Advection:
+  stype_move_markers: [RungeKutta4thOrder, None, 'Marker advection method']
+  marker_cell_displ_max: [0.5, fraction, ' Maximum marker displacement as a fraction of cell size']
+  subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient']
+  subgrid_diff_coef_temp: [1.0, None, ' Numerical subgrid temperature diffusion coefficient']
+Interpolate:
+  iuse_harmonic_avg_normal_viscosity: [1, None, ' Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+  iuse_initial_temp_interp: [1, None, ' Interpolate nodal temperatures back to markers at start: 0 = off; 1 = on']

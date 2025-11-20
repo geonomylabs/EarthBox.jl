@@ -1,0 +1,27 @@
+general:
+    make_files: True
+marker_output:
+    marker_x: True
+    marker_y: True
+    marker_matid: True
+    marker_GII: True
+    marker_meltfrac: True
+    marker_extractable_meltfrac: True
+    marker_pfailure: True
+    marker_TK: False
+    marker_xn: False
+    marker_yn: False
+    marker_sxx: False
+    marker_sxy: False
+    marker_eta: False
+    marker_exx: False
+    marker_exy: False
+    marker_pr: False
+    marker_sr_ratio: False
+    marker_extracted_meltfrac: False
+    marker_age: False
+    marker_fric_ini: False
+    marker_fric: False
+    marker_cohesion: False
+    marker_preexp: False  
+

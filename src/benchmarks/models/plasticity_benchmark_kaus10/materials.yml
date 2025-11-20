@@ -1,0 +1,58 @@
+name: PlasticityBenchmarkWeekNotchKaus10
+material_model_id: 11
+1:
+  mat_name: [StickyAirKaus10, None, ' Material name from material library ']
+  mat_type: [StickyAir, None, ' Material type ']
+  mat_domain: [Atmosphere, None, ' Material domain ']
+  red_fraction: [0.98039216, None, ' red_fraction']
+  green_fraction: [0.98039216, None, ' green_fraction']
+  blue_fraction: [0.98039216, None, ' blue_fraction ']
+3:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [UpperContinentalCrust, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.6, None, ' green_fraction']
+  blue_fraction: [0.6, None, ' blue_fraction ']
+4:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [LowerContinentalCrust, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.8627451, None, ' green_fraction']
+  blue_fraction: [0.8627451, None, ' blue_fraction ']
+5:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [UpperMantleLithosphere, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.6, None, ' green_fraction']
+  blue_fraction: [0.6, None, ' blue_fraction ']
+6:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [MiddleMantleLithosphere, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.8627451, None, ' green_fraction']
+  blue_fraction: [0.8627451, None, ' blue_fraction ']
+7:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [LowerMantleLithosphere, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.6, None, ' green_fraction']
+  blue_fraction: [0.6, None, ' blue_fraction ']
+8:
+  mat_name: [CrustKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [Asthenosphere, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.8627451, None, ' green_fraction']
+  blue_fraction: [0.8627451, None, ' blue_fraction ']
+9:
+  mat_name: [WeakSeedKaus10, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [WeakSeedMantle, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']

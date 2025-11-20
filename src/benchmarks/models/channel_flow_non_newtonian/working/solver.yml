@@ -1,0 +1,7 @@
+use_mumps: False
+nthreads: 1
+nproc: 2
+analysis_method: PARALLEL
+parallel_ordering_method: PTSCOTCH
+memory_relax_perc: 25
+verbose_output: 0

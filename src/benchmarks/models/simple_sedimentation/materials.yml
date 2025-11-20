@@ -1,0 +1,37 @@
+name: Simple_Sedimentation_Model
+material_model_id: 5
+1:
+  mat_name: [SimpleSedStickyWater, None, ' Material name from material library ']
+  mat_type: [StickyAir, None, ' Material type ']
+  mat_domain: [Atmosphere, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [1.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']
+2:
+  mat_name: [SimpleSedStickyWater, None, ' Material name from material library ']
+  mat_type: [StickyWater, None, ' Material type ']
+  mat_domain: [Ocean, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [1.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']
+3:
+  mat_name: [SimpleSedSedimentWetQuartziteGT95, None, ' Material name from material library ']
+  mat_type: [Sediment, None, ' Material type ']
+  mat_domain: [SedimentaryBasin, None, ' Material domain ']
+  red_fraction: [0.8, None, ' red_fraction']
+  green_fraction: [0.4, None, ' green_fraction']
+  blue_fraction: [0.0, None, ' blue_fraction ']
+4:
+  mat_name: [SimpleSedPeridotiteDryKK08, None, ' Material name from material library ']
+  mat_type: [UltramaficMantleFertile, None, ' Material type ']
+  mat_domain: [Asthenosphere, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [0.8, None, ' green_fraction']
+  blue_fraction: [0.4, None, ' blue_fraction ']
+5:
+  mat_name: [SimpleSedSalt, None, ' Material name from material library ']
+  mat_type: [Salt, None, ' Material type ']
+  mat_domain: [GeneralDomain, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.0, None, ' green_fraction']
+  blue_fraction: [0.0, None, ' blue_fraction ']

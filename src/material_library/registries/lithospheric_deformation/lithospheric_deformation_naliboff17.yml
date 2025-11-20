@@ -1,0 +1,333 @@
+description: |
+  
+  Thermal Conductivity and Density
+  ================================
+  Naliboff et al. (2017) used constant thermal conductivity. Here we use parameters for the 
+  Sekiguchi-Waples model.
+  
+  Naliboff et al. (2017) used a temperature dependent density model. Here we use parameters for a 
+  temperature and pressure dependent density model.
+  
+  Upper Crustal Rheology
+  ======================
+  Wet quartzite dislocation creep flow law parameters from Gleason and Tullis (1995). 
+
+  Lower Crustal Rheology
+  ======================
+  Wet anorthite dislocation creep flow law parameters from Rybacki et al. (2006) using the
+  corrected pre-exponential factor that includes water fugacity. 
+  
+  Mantle Rheology
+  ===============
+  Dislocation and diffusion creep flow law parameters from Hirth and Kohlstedt (2003) for 
+  dry and wet olivine aggregates. A grain size of 5 mm is assumed for the olivine diffusion creep flow 
+  law. A water content of 500 ppm H/Si is assumed for the wet olivine aggregates.
+
+  Naliboff et al. (2017) used a pre-exponential factor for dry diffusion creep of 1.58e9 1/s/Mpa/micron^p
+  instead of the correct va;ie of 1.5e9 1/s/MPa/micron^p from HK03. We note that this value is within 
+  the uncertainty of the value from HK03. This material collection uses corrected pre-exponential terms 
+  that differ from Naliboff et al. (2017).
+
+  Frictional Plastic Model
+  ========================
+  Cohesion: 20 to 10 MPa from plastic strain of 0.0 to 0.1.
+  Friction angles: 20 to 10 degrees from plastic strain of 0.0 to 0.1.
+
+  Radiogenic Heat Production
+  =============================
+  Naliboff et al. (1017) used uniform radiogenic heat production equal to 0.9e-6 microW/m^3 and
+  constant thermal conductivity to produce 600C at the Moho. Here we use an alternative non-uniform 
+  distribution to produce 600C at the Moho with a temperature-dependent conductivity model: 
+
+  - upper crust: 1.25 microW/m^3
+  - lower crust: 0.2 microW/m^3
+  
+  References:
+  - Escartin, J., Hirth, G., Evans, B., Strength of slightly serpentinized peridotites: Implications for the tectonics of oceanic lithosphere. Geology, 29, 1023-1026.
+  - Gerya, T., Introduction to Numerical Geodynamic Modeling. Cambridge University Press, 2010.
+  - Gleason, G. C., and Tullis, J. (1995). A flow law for dislocation creep of quartz aggregates determined with the molten salt cell. Tectonophysics, 247, 1-23.
+  - Hantschel, T., and Kauerauf, A. I. (2010). Fundamentals of Basin and Petroleum Systems Modeling. Springer-Verlag, Berlin.
+  - Hirth, G., and Kohlstedt, D. L. (2003). Rheology of the upper mantle and the mantle wedge: A view from the experimentalists. In Inside the Subduction Factory, Geophysical Monograph Series, 138, 83-105.
+  - Katz, R. F., M. Spiegelman, and C. H. Langmuir, A new parameterization of hydrous mantle melting, Geochem. Geophys. Geosyst.,4(9), 1073, doi:10.1029/2002GC000433, 2003.
+  - Lesher, C. E., Spera, F. J. (2015), Thermodynamic and transport properties of silicate melts and magma. in The Encyclopedia of Volcanoes, 2nd Edition.
+  - Liao, J., Gerya, T., Influence of lithospheric mantle stratification on craton extension: Insight from two-dimensional thermo-mechanical modeling. Tectonophysics, 631, 50-64.
+  - Naliboff, J. B., Buiter, S. H., Peron-Pinvidic, G., Osmundsen, P. T. and Tetreault, J. (2017). Complex Fault interaction controls continental rifting. Nature Communications, 8, 1-10.
+  - Theunissen, T., Huismans, R. S., Lu, G., Riel, N. (2022). Relative continent-mid-oceanic ridge elevation: A reference case for isostasy. Earth-Science Reviews, 233, 1-27.
+  - Rybacki, E., Gottschalk, M.,Wirth, R., Dresen, G., (2006). Influence of water fugacity on the strength of synthetic anorthite aggregates. JGR, 111, B03203.
+  - Stopler, E. et al. (1981). Melt Segregation from partially molten source regions: the importance of melt density and source region size. JGR, 86, 6261-6271.
+  - Schwartz, S., Allemand, P., Guillot, S., Numerical model of the effect of serpentinites on the exhumation of eclogite rocks: insights from the Monviso ophiolitic massif (Western Alps), Tectonophysics, 342, 193-206.
+  - Turcotte, D. L., and Schubert, G. (2014). Geodynamics. Cambridge University Press, Cambridge.
+nmats: 7
+Lithospheric_Deformation_Naliboff17:
+    StickyAir:
+      standard_density: [1.0, kg/m^3, ' Density at standard conditions. ']
+      thermal_expansion: [0.0, 1/K, ' Thermal expansion.']
+      compressibility: [0, 1/Pa, ' Compressibility.']
+      flow_stype: [Isoviscous, None, ' Flow law option.']
+      viscosity_iso: [1.0e+18, Pa.s, ' Viscosity for isoviscous models.']
+      shear_modulus: [1.0e+20, Pa, ' Shear modulus.']
+      heat_capacity: [100.0, J/kg/K, ' Heat capacity.']
+      thermal_conductivity_ref: [200.0, W/m/K, ' Reference thermal conductivity parameter k0.']
+      thermal_conductivity_a: [0.0, W/m, ' Reference thermal conductivity parameter a. ']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+    StickyWater:
+      standard_density: [1000.0, kg/m^3, ' Density at standard conditions. ']
+      thermal_expansion: [0.0, 1/K, ' Thermal expansion.']
+      compressibility: [0.0, 1/Pa, ' Compressibility.']
+      melt_density: [0.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Isoviscous, None, ' Flow law option.']
+      viscosity_iso: [1.0e+18, Pa.s, ' Viscosity for isoviscous models.']
+      shear_modulus: [1.0e+20, Pa, ' Shear modulus.']
+      heat_capacity: [100.0, J/kg/K, ' Heat capacity.']
+      thermal_conductivity_ref: [200.0, W/m/K, ' Reference thermal conductivity parameter k0.']
+      thermal_conductivity_a: [0.0, W/m, ' Reference thermal conductivity parameter a. ']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+    ClasticSediment:
+      standard_density: [2710.0, kg/m^3, ' Density at standard conditions: Shale50%:Sandstone50%, typical rocks from Hantschel and Kauerauf (2010).']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [1.8e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density at 1 bar used in linearized Birch-Murnagham density model (Dacite from Lesher and Spera, 2015, Fig5.1). ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [8.57e-4, 1/s/MPa^n, ' Tensor invariant pre-exponential factor for dislocation creep for wet quartzite (Gleason and Tullis, 1995). ']
+      stress_exponent_n_dc: [4.0, None, ' Stress exponent for dislocation creep for wet quartzite (Gleason and Tullis, 1995).']
+      activation_energy_dc: [223.0, kJ/mol, ' Activation energy for dislocation creep for wet Quartzite (Gleason and Tullis, 1995).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [3.6e+10, Pa, ' Shear modulus (Brune et al., 2014, Table S1).']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [890.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.3, W/m/K, ' Reference matrix thermal conductivity @ 20C: Shale50%:Sandstone50%, typical rocks from Hantschel and Kauerauf (2010).']
+      radiogenic_heat_production: [1.4e-6, W/m^3, ' Radiogenic heat production: Shale50%:Sandstone50%, typical rocks from Hantschel and Kauerauf (2010).']
+      stype_solidus: [SedimentGerya2010, None, ' Solidus model']
+      stype_liquidus: [SedimentGerya2010, None, ' Liquidus model']
+      latent_heat: [3.0e+5, J/kg, ' Latent heat (Liao and Gerya, 2014).']
+      porosity_initial: [0.4, fraction, ' Initial porosity.']
+      porosity_decay_depth: [2500.0, m, ' Porosity decay depth used in exponential decay law.']
+    FelsicContinentalCrust:
+      standard_density: [2860.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.8e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [8.57e-4, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Quartzite, (Gleason and Tullis, 1995). ']
+      stress_exponent_n_dc: [4.0, None, ' Stress exponent for dislocation creep (Wet Quartzite, Gleason and Tullis, 1995).']
+      activation_energy_dc: [223.0, kJ/mol, ' Activation energy for dislocation creep (Wet Quartzite, Gleason and Tullis, 1995).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [1.25e-6, W/m^3, ' Radiogenic heat production. ']
+    FelsicContinentalCrustStrongZone:
+      standard_density: [2860.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.8e-11, 1/Pa, ' Compressibility.']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [8.57e-4, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Quartzite, (Gleason and Tullis, 1995). ']
+      stress_exponent_n_dc: [4.0, None, ' Stress exponent for dislocation creep (Wet Quartzite, Gleason and Tullis, 1995).']
+      activation_energy_dc: [223.0, kJ/mol, ' Activation energy for dislocation creep (Wet Quartzite, Gleason and Tullis, 1995).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [20.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [20.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [1.25e-6, W/m^3, ' Radiogenic heat production. ']
+    MaficContinentalCrust:
+      standard_density: [2900.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.6e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [3.57e+3, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Anorthite (water fugacity = 500 MPa), (Rybacki et al., 2006). ']
+      stress_exponent_n_dc: [3.0, None, ' Stress exponent for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_energy_dc: [345.0, kJ/mol, ' Activation energy for dislocation creep: Wet Anorthite (Rybacki and Dresen, 2009).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.2e-6, W/m^3, ' Radiogenic heat production. ']
+    MaficContinentalCrustStrongZone:
+      standard_density: [2900.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.6e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [3.57e+3, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Anorthite (water fugacity = 500 MPa) (Rybacki et al., 2006). ']
+      stress_exponent_n_dc: [3.0, None, ' Stress exponent for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_energy_dc: [345.0, kJ/mol, ' Activation energy for dislocation creep: Wet Anorthite (Rybacki and Dresen, 2009).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [20.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [20.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.2e-6, W/m^3, ' Radiogenic heat production. ']
+    UltramaficContinentalLithosphere:
+      standard_density: [3291.0, kg/m^3, ' Density at standard conditions (Phanerozoic depleted model calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [7.9e-12, 1/Pa, ' Compressibility (Turcotte and Schubert. 2014, Table B.6, r=6151km).']
+      melt_density: [2750.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      viscosity_iso: [1.0e+21, Pa.s, ' Viscosity for isoviscous models.']
+      pre_exponential_dc: [6.51e+5, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Dry Olivine, (Hirth and Kohlstedt, 2003). ']
+      stress_exponent_n_dc: [3.5, None, ' Stress exponent for dislocation creep: Dry Olivine.']
+      activation_energy_dc: [530.0, kJ/mol, ' Activation energy for dislocation creep: Dry Olivine.']
+      activation_volume_dc: [18.0, J/MPa/mol, ' Activation volume for dislocation creep: Dry Olivine.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [4.0, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+      stype_solidus: [PeridotiteKatz2003, None, ' Solidus model']
+      stype_liquidus: [PeridotiteKatz2003, None, ' Liquidus model']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat.']
+    UltramaficContinentalLithosphereStrongZone:
+      standard_density: [3291.0, kg/m^3, ' Density at standard conditions (Phanerozoic depleted model calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [7.9e-12, 1/Pa, ' Compressibility (Turcotte and Schubert. 2014, Table B.6, r=6151km).']
+      melt_density: [2750.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      viscosity_iso: [1.0e+21, Pa.s, ' Viscosity for isoviscous models.']
+      pre_exponential_dc: [6.51e+5, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Dry Olivine, (Hirth and Kohlstedt, 2003). ']
+      stress_exponent_n_dc: [3.5, None, ' Stress exponent for dislocation creep: Dry Olivine.']
+      activation_energy_dc: [530.0, kJ/mol, ' Activation energy for dislocation creep: Dry Olivine.']
+      activation_volume_dc: [18.0, J/MPa/mol, ' Activation volume for dislocation creep: Dry Olivine.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [20.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [20.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [4.0, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+      stype_solidus: [PeridotiteKatz2003, None, ' Peridotite solidus model from Katz et al. (2003).']
+      stype_liquidus: [PeridotiteKatz2003, None, ' Peridotite Liquidus model from Katz et al. (2003).']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat (Turcotte and Schubert, 2014).']
+    UltramaficAsthenosphereDryFertile:
+      standard_density: [3311.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [7.9e-12, 1/Pa, ' Compressibility (Turcotte and Schubert. 2014, Table B.6, r=6151km).']
+      melt_density: [2750.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      viscosity_iso: [1.0e+21, Pa.s, ' Viscosity for isoviscous models.']
+      pre_exponential_dc: [6.51e+5, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Dry Olivine, (Hirth and Kohlstedt, 2003). ']
+      stress_exponent_n_dc: [3.5, None, ' Stress exponent for dislocation creep: Dry Olivine.']
+      activation_energy_dc: [530.0, kJ/mol, ' Activation energy for dislocation creep: Dry Olivine.']
+      activation_volume_dc: [18.0, J/MPa/mol, ' Activation volume for dislocation creep: Dry Olivine.']
+      pre_exponential_difc: [1.8e-2, 1/s/MPa^n, ' Pre-exponential factor for diffusion creep corrected for simple shear, Dry Olivine, grain size = 5mm (Hirth and Kohlstedt, 2003). ']
+      activation_energy_difc: [530.0, kJ/mol, ' Activation energy for diffusion creep: Dry Olivine.']
+      activation_volume_difc: [10.0, J/MPa/mol, ' Activation volume for diffusion creep: Dry Olivine.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [4.0, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+    OceanicGabbroicCrust:
+      standard_density: [2900.0, kg/m^3, ' Density at standard conditions (Calibrated by Theunissen et al, 2022). ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.6e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [3.57e+3, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Anorthite (water fugacity = 500 MPa), (Rybacki et al., 2006). ']
+      stress_exponent_n_dc: [3.0, None, ' Stress exponent for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_energy_dc: [345.0, kJ/mol, ' Activation energy for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+      stype_solidus: [GabbroGerya2010, None, ' Solidus model']
+      stype_liquidus: [GabbroGerya2010, None, ' Liquidus model']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat (Turcotte and Schubert, 2014).']
+    GabbroicMagma:
+      standard_density: [2750.0, kg/m^3, ' Density at standard conditions. Since magma is defined as a melt fraction of 1, the melt_density is used instead of standard density if melt properties are activated.']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [1.6e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2750.0, kg/m^3, ' Melt density at 1 bar (1e-4 GPa) used in linearized Birch-Murnagham EOS density model (Lesher and Spera, 2015). ']
+      flow_stype: [Isoviscous, None, ' Flow law option.']
+      viscosity_iso: [1.0e+18, Pa.s, ' Viscosity for isoviscous models.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      heat_capacity: [800.0, J/kg/K, ' Heat capacity.']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter k0.']
+      stype_solidus: [GabbroGerya2010, None, ' Solidus model']
+      stype_liquidus: [GabbroGerya2010, None, ' Liquidus model']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat (Turcotte and Schubert, 2014).']
+    LayeredGabbroicCrust:
+      standard_density: [2900.0, kg/m^3, ' Density at standard conditions. ']
+      thermal_expansion: [3.0e-5, 1/K, ' Thermal expansion.']
+      compressibility: [1.6e-11, 1/Pa, ' Compressibility (Brune et al., 2014).']
+      melt_density: [2400.0, kg/m^3, ' Melt density. ']
+      flow_stype: [Composite, None, ' Flow law option.']
+      pre_exponential_dc: [3.57e+3, 1/s/MPa^n, ' Pre-exponential factor for dislocation creep corrected for simple shear: Wet Anorthite (water fugacity = 500 MPa)(Rybacki et al., 2006). ']
+      stress_exponent_n_dc: [3.0, None, ' Stress exponent for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_energy_dc: [345.0, kJ/mol, ' Activation energy for dislocation creep: Wet Anorthite, (Rybacki and Dresen, 2009).']
+      activation_volume_dc: [0.0, J/MPa/mol, ' Activation volume for dislocation creep.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      cohesion_initial: [20.0e+6, Pa, ' Cohesion at initial strain. ']
+      cohesion_final: [10.0e+6, Pa, ' Cohesion at final strain. ']
+      friction_angle_initial: [20.0, Degrees, ' Friction angle at initial strain. ']
+      friction_angle_final: [10.0, Degrees, ' Friction angle at final strain. ']
+      strain_initial: [0.0, None, ' Initial strain used for cohesion and friction angle.']
+      strain_final: [0.1, None, ' Final strain used for cohesion and friction angle.']
+      heat_capacity: [800.0, J/kg/K, ' Reference heat capacity in Waples model (Hantschel and Kauerauf, 2010).']
+      thermal_conductivity_ref: [2.5, W/m/K, ' Reference thermal conductivity parameter for use in Sekiguchi-Waples model (Hantschel and Kauerauf, 2010).']
+      radiogenic_heat_production: [0.0, W/m^3, ' Radiogenic heat production. ']
+      stype_solidus: [GabbroGlacier, None, ' Solidus model']
+      stype_liquidus: [GabbroGlacier, None, ' Liquidus model']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat (Turcotte and Schubert, 2014).']
+    LayeredGabbroicMagma:
+      standard_density: [2750.0, kg/m^3, ' Density at standard conditions. ']
+      thermal_expansion: [3.0e-05, 1/K, ' Thermal expansion.']
+      compressibility: [1.06e-11, 1/Pa, ' Compressibility.']
+      melt_density: [2750.0, kg/m^3, ' Melt density at 1 bar (1e-4 GPa) used in linearized Birch-Murnagham EOS density model (Lesher and Spera, 2015). ']
+      flow_stype: [Isoviscous, None, ' Flow law option.']
+      viscosity_iso: [1.0e+18, Pa.s, ' Viscosity for isoviscous models.']
+      shear_modulus: [1.0e+11, Pa, ' Shear modulus.']
+      heat_capacity: [1200.0, J/kg/K, ' Heat capacity.']
+      thermal_conductivity_ref: [2.6, W/m/K, ' Reference thermal conductivity parameter k0.']
+      stype_solidus: [GabbroGlacier, None, ' Solidus model']
+      stype_liquidus: [GabbroGlacier, None, ' Liquidus model']
+      latent_heat: [4.0e+5, J/kg, ' Latent heat (Turcotte and Schubert, 2014).']

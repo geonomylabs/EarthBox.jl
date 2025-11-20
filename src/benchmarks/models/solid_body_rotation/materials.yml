@@ -1,0 +1,9 @@
+name: Material_Model_for_Solid_Body_Rotation_Benchmark
+material_model_id: 1
+1:
+  mat_name: [MaterialForSolidBodyRotation, None, ' Material name from material library ']
+  mat_type: [General, None, ' Material type ']
+  mat_domain: [GeneralDomain, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [0.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']

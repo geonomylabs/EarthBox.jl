@@ -1,0 +1,7 @@
+include("InitStructs.jl")
+include("SevenLayerEarthModel2D.jl")
+include("Plume.jl")
+include("StrongRegions.jl")
+include("WeakNotch.jl")
+include("WeakSeed.jl")
+include("LayeredSand.jl")

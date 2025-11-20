@@ -1,0 +1,6 @@
+include("MainTimeLoopGroup.jl")
+include("ThermalLoopGroup.jl")
+include("OutputStepsGroup.jl")
+include("SingleIncreaseGroup.jl")
+include("MultipleIncreaseGroup.jl")
+include("BoundaryDisplacementStoppingGroup.jl") 

@@ -1,0 +1,14 @@
+# Julia
+Manifest.toml
+*.ji
+
+# Editors / OS
+.vscode/
+.cursor/
+.cursorindexingignore
+
+#--------------------------
+# Documenter.jl build files
+#--------------------------
+# Local build of HTML documentation
+docs/build/

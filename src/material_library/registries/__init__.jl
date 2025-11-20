@@ -1,0 +1,7 @@
+include("benchmarks/BenchmarksRegistry.jl")
+include("gerya2019/Gerya2019Registry.jl")
+include("lithospheric_deformation/LithosphericDeformationRegistry.jl")
+include("seafloor_spreading/SeafloorSpreadingRegistry.jl")
+include("simple_mantle_melting/SimpleMantleMeltingRegistry.jl")
+include("viscoelastoplastic/ViscoElastoPlasticRegistry.jl")
+include("sandbox/SandboxRegistry.jl")

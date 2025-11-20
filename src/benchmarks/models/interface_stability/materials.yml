@@ -1,0 +1,30 @@
+name: Material_Model_Surface_Instability
+description: 'Material model for surface instability.'
+0:
+  mat_name: [Interface_Instability_StickyAir, None, ' Material name from material library ']
+  mat_type: [StickyAir, None, ' Material type ']
+  mat_domain: [Atmosphere, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [1.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']
+1:
+  mat_name: [Interface_Instability_StickyAir, None, ' Material name from material library ']
+  mat_type: [StickyWater, None, ' Material type ']
+  mat_domain: [Ocean, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [1.0, None, ' green_fraction']
+  blue_fraction: [1.0, None, ' blue_fraction ']
+2:
+  mat_name: [Interface_Instability_Mantle, None, ' Material name from material library ']
+  mat_type: [UltramaficMantleFertile, None, ' Material type ']
+  mat_domain: [Asthenosphere, None, ' Material domain ']
+  red_fraction: [0.0, None, ' red_fraction']
+  green_fraction: [0.78431373, None, ' green_fraction']
+  blue_fraction: [0.6, None, ' blue_fraction ']
+3:
+  mat_name: [Interface_Instability_Plume, None, ' Material name from material library ']
+  mat_type: [UltramaficMantleFertile, None, ' Material type ']
+  mat_domain: [MantlePlume, None, ' Material domain ']
+  red_fraction: [1.0, None, ' red_fraction']
+  green_fraction: [0.0, None, ' green_fraction']
+  blue_fraction: [0.0, None, ' blue_fraction ']

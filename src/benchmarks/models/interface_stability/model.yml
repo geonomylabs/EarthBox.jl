@@ -1,0 +1,67 @@
+EarthboxDimensions:
+  xnum: [51, None, ' Basic grid resolution in x-direction. ']
+  ynum: [51, None, ' Basic grid resolution in y-direction. ']
+  xsize: [500000.0, m, ' Width of model. ']
+  ysize: [500000.0, m, ' Height of model.']
+  nmarkers_cell_x: [4.0, None, ' Number of markers per cell in horizontal direction.']
+  nmarkers_cell_y: [4.0, None, ' Number of markers per cell in vertical direction. ']
+StaggeredGrid:
+  stype_grid: [UniformGrid, None, 'Basic grid type: T-typeRefinedGrid UniformGrid']
+BoundaryConditions:
+  stype_bc: [BoxConvection, None, 'Boundary condition type']
+  pressure_bc: [0.0, Pa, ' Pressure boundary condition ']
+  temperature_top: [0.0, C, ' Temperature at the top of the model ']
+  temperature_bottom: [0.0, C, ' Temperature at the base of the model. ']
+MarkerCoordinates:
+  iuse_random: [1, None, ' Randomize initial marker distribution: 0 = off; 1 = on.']
+StickyAirGeometry:
+  thick_air: [100000.0, m, ' Thickness of sticky air.']
+PlumeGeometry:
+  plume_radius: [100000.0, m, ' Radius of plume.']
+  plume_center_x: [250000.0, m, ' X-coordinate of plume center.']
+  plume_center_y: [250000.0, m, ' Y-coordinate of plume center.']
+MarkerMaterials:
+  stype_mat: [SimplePlume, None, 'Material initialization type']
+  viscosity_min: [1.0e+17, Pa.s, ' Minimum viscosity.']
+  viscosity_max: [1.0e+25, Pa.s, ' Maximum viscosity.']
+MarkerTemperature:
+  stype_temp: [Uniform, None, 'Initial temperature type']
+  temperature_uniform: [0.0, C, 'Initial uniform temperature.']
+RockProps:
+  stype_conductivity: [Liao14, None, 'Thermal conductivity model']
+  stype_density: [Liao14, None, 'Density model']
+HeatSolver:
+  iuse_heat: [0, None, ' Solve heat equation: 0 = off; 1 = on. ']
+  iuse_adiabatic_heating: [1, None, ' Adiabatic heating: 0 = off; 1 = on. ']
+  iuse_shear_heating: [1, None, ' Shear heating: 0 = off; 1 = on. ']
+  max_temp_change: [40.0, K, ' Maximal temperature change allowed for one time step.']
+StokesContinuitySolver:
+  stype_velocity: [VelocityFromStokesSolver, None, 'Velocity type']
+  tolerance_picard: [0.01, None, ' Convergence criterion for Stokes iterations.']
+  nglobal: [1, None, ' Maximum number of global Stokes iterations. ']
+  stype_global: [MarkerPlasticityLoop, None, 'Global plasticity loop type']
+  stype_plasticity: [ViscoelasticStressForecast, None, 'Marker plasticity type']
+  gravity_x: [0.0, m/s/s, ' X-component of gravitational acceleration.']
+  gravity_y: [10, m/s/s, ' Y-component of gravitational acceleration.']
+  iuse_interface_stabilization: [1, None, ' Interface stabilization: 0 = off; 1 = on.']
+TimeLoop:
+  ntimestep_max: [10, None, ' Maximum number of model time steps. ']
+  timestep_viscoelastic: [30000.0, yr, ' Viscoelastic time step. ']
+  timestep_out: [30000.0, yr, ' Output time step size.']
+Advection:
+  stype_move_markers: [RungeKutta4thOrder, None, 'Marker advection method']
+  marker_cell_displ_max: [0.5, fraction, ' Maximum marker displacement as a fraction of cell size.']
+  subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient. ']
+  subgrid_diff_coef_temp: [1.0, None, ' Numerical subgrid temperature diffusion coefficient.']
+Interpolate:
+  iuse_harmonic_avg_normal_viscosity: [1, None, ' Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+  iuse_initial_temp_interp: [1, None, ' Interpolate nodal temperatures back to markers at start: 0 = off; 1 = on.']
+Topography:
+  iuse_topo: [1, None, ' Calculate topography: 0 = off; 1 = on.']
+  stype_topo: [RungeKuttaWithInterp, None, 'Topography calculation type']
+  stype_sealevel: [Constant, None, 'Sealevel Type']
+  toponum: [1001, None, ' Number of nodes in x-direction for topography array']
+  topo_xsize: [500000.0, meters, ' Topography model size in horizontal direction.']
+  y_water_ini: [10000.0, m, ' Initial y-depth of water surface relative to top of model.']
+  erosion_rate: [0.0, mm/yr, ' Erosion rate above water level.']
+  sedimentation_rate: [0.0, mm/yr, ' Sedimentation rate below water level. ']

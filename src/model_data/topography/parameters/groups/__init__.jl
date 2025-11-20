@@ -1,0 +1,6 @@
+include("ModelOptionsGroup.jl")
+include("TopoGridGroup.jl")
+include("DepoAndErosionRatesGroup.jl")
+include("DownhillDiffusionGroup.jl")
+include("SeaLevelGroup.jl")
+include("ReferenceLithosphereGroup.jl")

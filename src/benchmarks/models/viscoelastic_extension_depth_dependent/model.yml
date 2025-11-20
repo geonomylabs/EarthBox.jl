@@ -1,0 +1,77 @@
+EarthboxDimensions:
+  xnum: [501, None, ' Basic grid resolution in x-direction. ']
+  ynum: [81, None, ' Basic grid resolution in y-direction. ']
+  xsize: [1000000.0, m, ' Width of model. ']
+  ysize: [160000.0, m, ' Height of model.']
+  nmarkers_cell_x: [16.0, None, ' Number of markers per cell in horizontal direction.']
+  nmarkers_cell_y: [16.0, None, ' Number of markers per cell in vertical direction. ']
+StaggeredGrid:
+  stype_grid: [UniformGrid, None, 'Basic grid type: T-typeRefinedGrid UniformGrid']
+BoundaryConditions:
+  stype_bc: [LithosphericExtensionDepthDependent, None, 'Boundary condition type']
+  pressure_bc: [100000.0, Pa, ' Pressure boundary condition ']
+  temperature_top: [0.0, C, ' Temperature at the top of the model ']
+  temperature_bottom: [0.0, C, ' Temperature at the base of the model. ']
+  full_velocity_extension: [1.0, cm/yr, ' Full extension rate.']
+  plate_thickness: [120000.0, m, ' Thickness of the plate.']
+VelocityStep:
+  iuse_velocity_step: [1, None, ' Increase/decrease full extension velocity: 0 = off; 1 = on.']
+  velocity_step_factor: [1.0e-38, None, ' Velocity factor for velocity step.']
+  velocity_step_time: [15.0, Myr, ' Time of velocity step.']
+MarkerCoordinates:
+  iuse_random: [0, None, ' Randomize initial marker distribution: 0 = off; 1 = on.']
+StickyAirGeometry:
+  thick_air: [10000.0, m, ' Thickness of sticky air.']
+EarthLayeringGeometry:
+  thick_upper_crust: [15000.0, m, ' Thickness of upper crust. ']
+  thick_lower_crust: [15000.0, m, ' Thickness of lower crust. ']
+  thick_upper_lith: [30000.0, m, ' Thickness of upper mantle lithosphere.']
+  thick_middle_lith: [30000.0, m, ' Thickness of middle mantle lithosphere.']
+  thick_lower_lith: [30000.0, m, ' Thickness of lower mantle lithosphere.']
+StrongZoneGeometry:
+  iuse_strong_zones: [1, None, ' Use strong zones: 0 = off; 1 = on.']
+  x_left_strong: [450000.0, m, ' X-location of the right-edge of the left-side strong zone.']
+  x_right_strong: [550000.0, m, ' X-location of the left-edge of the right-side strong zone.']
+MarkerMaterials:
+  stype_mat: [LithosphericExtensionLateralStrongZones, None, 'Material initialization type']
+  viscosity_min: [1.0e+18, Pa.s, ' Minimum viscosity.']
+  viscosity_max: [1.0e+26, Pa.s, ' Maximum viscosity.']
+MarkerTemperature:
+  stype_temp: [Uniform, None, 'Initial temperature type']
+  temperature_uniform: [0.0, C, ' Uniform initial temperature.']
+RockProps:
+  stype_conductivity: [Liao14, None, 'Thermal conductivity model']
+  stype_density: [Liao14, None, 'Density model']
+HeatSolver:
+  iuse_heat: [0, None, ' Solve heat equation: 0 = off; 1 = on. ']
+  iuse_adiabatic_heating: [0, None, ' Adiabatic heating: 0 = off; 1 = on. ']
+  iuse_shear_heating: [0, None, ' Shear heating: 0 = off; 1 = on. ']
+  max_temp_change: [40.0, K, ' Maximal temperature change allowed for one time step.']
+StokesContinuitySolver:
+  stype_velocity: [VelocityFromStokesSolver, None, 'Velocity type']
+  tolerance_picard: [0.01, None, ' Convergence criterion for Stokes iterations.']
+  nglobal: [1, None, ' Maximum number of global Stokes iterations. ']
+  stype_global: [MarkerPlasticityLoop, None, 'Global plasticity loop type']
+  stype_plasticity: [ViscoelasticStressForecast, None, 'Marker plasticity type']
+  gravity_x: [0.0, m/s/s, ' X-component of gravitational acceleration.']
+  gravity_y: [9.8, m/s/s, ' Y-component of gravitational acceleration.']
+  iuse_interface_stabilization: [1, None, ' Interface stabilization: 0 = off; 1 = on.']
+TimeLoop:
+  ntimestep_max: [400, None, ' Maximum number of model time steps. ']
+  timestep_viscoelastic: [50000.0, yr, ' Viscoelastic time step. ']
+  timestep_out: [500000.0, yr, ' Output time step size.']
+Advection:
+  stype_move_markers: [RungeKutta4thOrder, None, 'Marker advection method']
+  marker_cell_displ_max: [0.75, fraction, ' Maximum marker displacement as a fraction of cell size.']
+  subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient. ']
+Interpolate:
+  iuse_harmonic_avg_normal_viscosity: [1, None, ' Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+Topography:
+  iuse_topo: [1, None, ' Calculate topography: 0 = off; 1 = on.']
+  stype_topo: [RungeKuttaWithInterp, None, 'Topography calculation type']
+  stype_sealevel: [LeftEdge, None, 'Sealevel Type']
+  toponum: [2001, None, ' Number of nodes in x-direction for topography array']
+  topo_xsize: [1000000.0, meters, ' Topography model size in horizontal direction.']
+  y_water_ini: [10000.0, m, ' Initial y-depth of water surface relative to top of model.']
+  erosion_rate: [0.0, mm/yr, ' Erosion rate above water level.']
+  sedimentation_rate: [0.0, mm/yr, ' Sedimentation rate below water level. ']

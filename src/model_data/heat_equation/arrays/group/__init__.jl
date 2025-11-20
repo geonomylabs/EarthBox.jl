@@ -1,0 +1,7 @@
+include("RhsHeatGroup.jl")
+include("RadiogenicProductionGroup.jl")
+include("AdiabaticProductionGroup.jl")
+include("ThermalConductivityGroup.jl")
+include("TemperatureGroup.jl")
+include("RhoCpGroup.jl")
+include("HeatResidualGroup.jl") 

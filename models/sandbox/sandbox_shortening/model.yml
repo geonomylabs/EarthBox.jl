@@ -1,0 +1,89 @@
+EarthBoxDimensions:
+  xnum: [251, None, ' Basic grid resolution in x-direction. ']
+  ynum: [61, None, ' Basic grid resolution in y-direction. ']
+  xsize: [0.25, m, ' Width of model. ']
+  ysize: [0.06, m, ' Height of model.']
+  nmarkers_cell_x: [4.0, None, ' Number of markers per cell in horizontal direction.']
+  nmarkers_cell_y: [4.0, None, ' Number of markers per cell in vertical direction. ']
+StaggeredGrid:
+  stype_grid: [UniformGrid, None, 'Basic grid type']
+BoundaryConditions:
+  stype_bc: [SandboxShortening, None, 'Boundary condition type']
+  pressure_bc: [20.0, Pa, ' Pressure boundary condition ']
+  temperature_top: [273.0, C, ' Temperature at the top of the model ']
+  temperature_bottom: [273.0, C, ' Temperature at the base of the model. ']
+MarkerCoordinates:
+  iuse_random: [1, None, ' Randomize initial marker distribution: 0 = off; 1 = on.']
+MarkerMaterials:
+  stype_mat: [SandboxShortening, None, 'Material initialization']
+  viscosity_min: [1.0e+4, Pa.s, ' Minimum viscosity.']
+  viscosity_max: [1.0e+9, Pa.s, ' Maximum viscosity.']
+  yield_stress_min: [0.0, Pa, ' Minimum stress limit for plastic failure. ']
+  yield_stress_max: [1.0e+9, Pa, ' Maximum stress limit for plastic failure. ']
+MarkerTemperature:
+  stype_temp: [Linear, None, 'Initial temperature type.']
+RockProps:
+  stype_conductivity: [Liao14, None, 'Thermal conductivity model']
+  stype_density: [Liao14, None, 'Density model']
+HeatSolver:
+  iuse_heat: [1, None, ' Solve heat equation: 0 = off; 1 = on. ']
+  iuse_adiabatic_heating: [0, None, ' Adiabatic heating: 0 = off; 1 = on. ']
+  iuse_shear_heating: [0, None, ' Shear heating: 0 = off; 1 = on. ']
+  max_temp_change: [70.0, K, ' Maximal temperature change allowed for one time step.']
+StokesContinuitySolver:
+  stype_velocity: [VelocityFromStokesSolver, None, 'Velocity type']
+  tolerance_picard: [0.001, None, ' Convergence criterion for Stokes iterations.']
+  nglobal: [1, None, ' Maximum number of global Stokes iterations. ']
+  stype_global: [MarkerPlasticityLoop, None, 'Global plasticity loop type']
+  stype_plasticity: [ViscoelasticStressForecast, None, 'Marker plasticity type']
+  gravity_x: [0.0, m/s/s, ' X-component of gravitational acceleration.']
+  gravity_y: [9.8, m/s/s, ' Y-component of gravitational acceleration.']
+Interpolate:
+  iuse_harmonic_avg_normal_viscosity: [0, None, ' Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+  iuse_initial_temp_interp: [1, None, ' Interpolate nodal temperatures back to markers at start: 0 = off; 1 = on.']
+TimeLoop:
+  ntimestep_max: [550, None, ' Maximum number of model time steps. ']
+  timestep_viscoelastic: [1.9013e-09, yr, ' Viscoelastic time step. ']
+  timestep_out: [9.5064e-09, yr, ' Output time step size.']
+  iuse_boundary_displacement: [1, None, ' Calculate boundary displacement and stop on displacement limit: 0 = off; 1 = off.']
+  displ_limit: [0.02, m, ' Displacement limit used to stop calculation based on boundary displacement.']
+MultipleTimestepIncreaseModel:
+  iuse_multiple_timestep_increase: [1, None, ' Increases in time step and markmax multiple times: 0 = on; 1 = off.']
+  ntime_increase_1: [10, None, ' Number of time steps before first increase. ']
+  ntime_increase_2: [20, None, ' Number of time steps before second increase.']
+  ntime_increase_3: [30, None, ' Number of time steps before third increase. ']
+  ntime_increase_4: [40, None, ' Number of time steps before fourth increase.']
+  cell_displ_factor: [3.1623, None, ' Factor used to increase markmax.']
+  time_increase_factor: [3.1623, None, ' Factor used to increase time step.']
+Advection:
+  stype_move_markers: [RungeKutta4thOrder, None, 'Marker advection method']
+  marker_cell_displ_max: [0.1, fraction, ' Maximum marker displacement as a fraction of cell size.']
+  subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient. ']
+  subgrid_diff_coef_temp: [1.0, None, ' Numerical subgrid temperature diffusion coefficient.']
+MobileWall:
+  x_left_mobile_wall: [0.20, m, ' X-coordinate of left side of mobile wall.']
+  x_right_mobile_wall: [0.245, m, ' X-coordinate of right side of mobile wall.']
+  y_top_mobile_wall: [0.005, m, ' Y-coordinate of top side of mobile wall.']
+  y_bottom_mobile_wall: [0.058, m, ' Y-coordinate of bottom side of mobile wall.']
+Sandbox:
+  nsand_layers: [24, None, ' Number of sand layers.']
+  y_sand_air_interface: [0.025, m, ' Y-coordinate of the interface between sand and air along the left boundary.']
+  y_top_microbeads: [0.05, m, ' Y-coordinate of top of microbead layer.']
+  y_bottom_microbeads: [0.055, m, ' Y-coordinate of bottom of microbead layer.']
+  x_left_ramp: [0.10, m, ' X-coordinate of left side of ramp.']
+  x_right_ramp: [0.20, m, ' X-coordinate of right side of ramp.']
+  ramp_dip_deg: [10.0, Degrees, ' Dip of ramp.']
+BoundaryFriction:
+  boundary_friction_width: [0.002, m, 'Width of frictional boundary']
+  boundary_friction_angle: [19.0, Degrees, 'Coefficient of friction of frictional boundary']
+  boundary_cohesion: [0.0, Pa, 'Cohesion of frictional boundary']
+InternalVelocity:
+  velocity_internal_x: [-2.5, cm/hr, 'X-component of internal velocity.']
+  velocity_internal_y: [0.0, cm/hr, 'Y-component of internal velocity.']
+InternalVelocityZone:
+  x_vx_internal: [0.21, m, 'X-coordinate of internal velocity x zone.']
+  y_min_vx_internal: [0.005, m, 'Minimum y-coordinate of internal velocity x zone.']
+  y_max_vx_internal: [0.057, m, 'Maximum y-coordinate of internal velocity x zone.']
+  x_vy_internal: [0.21, m, 'X-coordinate of internal velocity y zone.']
+  y_min_vy_internal: [0.057, m, 'Minimum y-coordinate of internal velocity y zone.']
+  y_max_vy_internal: [0.057, m, 'Maximum y-coordinate of internal velocity y zone.']

@@ -1,0 +1,69 @@
+grid_type:
+  itype_grid: [0, None, ' Integer ID for grid type: 0 = uniform; 1,2,3 = non-uniform']
+grid_geometry:
+  xnum: [51, None, ' Basic grid resolution in x-direction. ']
+  xsize: [10000.0, m, ' Width of model. ']
+  ynum: [21, None, ' Basic grid resolution in y-direction. ']
+  ysize: [10000.0, m, ' Height of model.']
+time_step_for_main_loop:
+  ntimestep_max: [60, None, ' Maximum number of model time steps. ']
+  timestep_viscoelastic: [100000.0, yr, ' Viscoelastic time step. ']
+output_time_step:
+  timestep_out: [100000.0, yr, ' Output time step size.']
+initial_marker_distribution:
+  iuse_random: [0, None, ' Randomize initial marker distribution: 0 = off; 1 = on.']
+  nmarkers_cell_x: [5.0, None, ' Number of markers per cell in horizontal direction.']
+  nmarkers_cell_y: [5.0, None, ' Number of markers per cell in vertical direction. ']
+marker_advection:
+  marker_cell_displ_max: [0.5, fraction, ' Maximum marker displacement as a fraction of cell size.']
+  itype_move_markers: [4, None, ' Integer ID for marker displacement method: 0 = no motion; 1 = simple advection; 4 = 4-th order Runge-Kutta.']
+subgrid_diffusion:
+  subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient. ']
+  subgrid_diff_coef_temp: [1.0, None, ' Numerical subgrid temperature diffusion coefficient.']
+initial_material_distribution_model:
+  itype_mat: [1, None, ' Integer ID for material initialization type. ']
+viscosity_limits:
+  viscosity_min: [1.0e+18, Pa.s, ' Minimum viscosity.']
+  viscosity_max: [1.0e+25, Pa.s, ' Maximum viscosity.']
+minimum_stress_for_dislocation_creep:
+  powerlaw_stress_min: [10000.0, Pa, ' Minimum stress limit for power law. ']
+stress_limits_for_yield_model:
+  yield_stress_min: [0.0, Pa, ' Minimum stress limit for plastic failure. ']
+  yield_stress_max: [1.0e+32, Pa, ' Maximum stress limit for plastic failure. ']
+heat_equation_options:
+  iuse_heat: [1, None, ' Solve heat equation: 0 = off; 1 = on. ']
+  iuse_adiabatic_heating: [0, None, ' Adiabatic heating: 0 = off; 1 = on. ']
+  iuse_shear_heating: [0, None, ' Shear heating: 0 = off; 1 = on. ']
+temperature_change_limit_for_adaptive_time_stepping:
+  max_temp_change: [20.0, K, ' Maximal temperature change allowed for one time step.']
+thermal_conductivity_model:
+  itype_conductivity: [1, None, ' Integer ID for thermal conductivity model type.']
+initial_temperature_structure_model:
+  itype_temp: [2, None, ' Integer ID for initial temperature type.']
+stokes_continuity_parameters:
+  itype_velocity: [0, None, ' Integer ID for velocity type: -1 = zero; 0 = solve equations; 1 = solid body rotation.']
+  itype_density: [1, None, ' Integer ID for density model.']
+picard_iteration:
+  tolerance_picard: [0.001, None, ' Convergence criterion for Stokes iterations.']
+  nglobal: [1, None, ' Maximum number of global Stokes iterations. ']
+  itype_global: [1, None, 'Type of Picard iteration: 0 = marker base; 1 = node based.']
+plasticity_options:
+  itype_plasticity: [1, None, ' Plasticity model type: 0 = viscoelastic stress forecast; 1 = purley elastic stress forecast']
+gravity:
+  gravity_x: [0.0, m/s/s, ' X-component of gravitational acceleration.']
+  gravity_y: [0.0, m/s/s, ' Y-component of gravitational acceleration.']
+  turn_off_gravity_y: [0, None, ' Vertical gravity component: 0 = off; 1 = on.']
+  nsteps_turn_off_gravity: [100, None, ' Number of timesteps before shutting off vertical gravity component.']
+boundary_condition_type:
+  itype_bc: [13, None, ' Integer ID for boundary condition type for both Stokes-continuity and heat equations.']
+pressure_boundary_conditions:
+  pressure_bc: [1.0e+9, Pa, ' Pressure boundary condition ']
+temperature_boundary_conditions:
+  temperature_top: [0.0, C, ' Temperature at the top of the model ']
+  temperature_bottom: [0.0, C, ' Temperature at the base of the model. ']
+strain_rate_based_velocity_boundary_condition_for_extension_models:
+  iuse_strain_rate: [0, None, ' 0 = use full extension velocity; 1 = use strain rate.']
+  strain_rate_bc: [1.0e-15, 1/s, ' strain rate used for velocity boundary condition (stress buildup benchmark)']
+interpolation_options:
+  iuse_harmonic_avg_normal_viscosity: [0, None, ' Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+  iuse_initial_temp_interp: [0, None, ' Interpolate nodal temperatures back to markers at start: 0 = off; 1 = on.']

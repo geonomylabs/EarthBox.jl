@@ -1,0 +1,1448 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="89.045517mm"
+   height="82.762825mm"
+   viewBox="0 0 89.04552 82.762836"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="stencil_heat.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="true"
+     inkscape:snap-nodes="false"
+     inkscape:snap-global="false"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true"
+     inkscape:snap-text-baseline="true"
+     inkscape:zoom="4.655693"
+     inkscape:cx="208.88405"
+     inkscape:cy="154.64937"
+     inkscape:window-width="1688"
+     inkscape:window-height="1259"
+     inkscape:window-x="504"
+     inkscape:window-y="68"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:snap-others="false"
+     inkscape:snap-bbox="true"
+     inkscape:snap-bbox-edge-midpoints="false"
+     inkscape:bbox-nodes="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid1276"
+       originx="-60.340516"
+       originy="-28.255247" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <rect
+       x="63.879076"
+       y="55.31258"
+       width="57.649521"
+       height="15.076329"
+       id="rect40418" />
+    <rect
+       x="51.838811"
+       y="51.27829"
+       width="73.225677"
+       height="24.615401"
+       id="rect15132" />
+    <rect
+       x="64.256413"
+       y="53.997475"
+       width="58.922016"
+       height="17.690936"
+       id="rect4050" />
+    <rect
+       x="508.06161"
+       y="310.65921"
+       width="72.030251"
+       height="300.25638"
+       id="rect43863" />
+    <rect
+       x="476.9458"
+       y="280.06879"
+       width="57.016834"
+       height="28.922159"
+       id="rect50899" />
+    <rect
+       x="476.9458"
+       y="280.06879"
+       width="43.899403"
+       height="26.665428"
+       id="rect50899-2" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="51.668761"
+       height="13.452237"
+       id="rect40418-9" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0-6" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="25.72237"
+       height="13.674801"
+       id="rect40418-6" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0-2" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="51.668762"
+       height="13.452237"
+       id="rect40418-9-8" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="25.72237"
+       height="13.674801"
+       id="rect40418-1" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0-0" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="51.668762"
+       height="13.452237"
+       id="rect40418-9-1" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="51.668762"
+       height="13.452237"
+       id="rect40418-9-1-4" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="25.72237"
+       height="13.674801"
+       id="rect40418-1-5" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0-0-2" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="25.72237"
+       height="13.674801"
+       id="rect40418-99" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="7.6307368"
+       height="14.504653"
+       id="rect40418-0-4" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="51.668762"
+       height="13.452237"
+       id="rect40418-9-5" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="57.649521"
+       height="15.076329"
+       id="rect40418-62" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="57.649521"
+       height="15.076329"
+       id="rect40418-8" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="57.649521"
+       height="15.076329"
+       id="rect40418-7" />
+    <rect
+       x="63.879074"
+       y="55.31258"
+       width="57.649521"
+       height="15.076329"
+       id="rect40418-4" />
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-60.340513,-28.255234)">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 104.93521,28.916802 -0.0979,5.037423"
+       id="path781666-4-8-5-8" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 142.16084,28.913067 -0.0979,5.037423"
+       id="path781666-4-8-5-8-1" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#020000;stroke-width:0.449691;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1850-7-4-1"
+       width="37.041668"
+       height="34.395828"
+       x="104.89819"
+       y="34.665531" />
+    <rect
+       style="fill:none;fill-opacity:1;stroke:#020000;stroke-width:0.449691;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1850"
+       width="37.041668"
+       height="34.395828"
+       x="67.856514"
+       y="69.061363" />
+    <g
+       id="g73836"
+       transform="matrix(0.64556063,0,0,1,24.092634,0)">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 58.882589,52.540787 h 9.091334"
+         id="path781149"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 59.001789,86.987923 h 8.960974"
+         id="path781149-0-8"
+         sodipodi:nodetypes="cc" />
+    </g>
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.15;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596"
+       cx="67.922264"
+       cy="69.243927"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-9"
+       cx="67.856514"
+       cy="103.4572"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-9-6"
+       cx="104.89819"
+       cy="103.4572"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-9-6-8"
+       cx="141.93983"
+       cy="103.4572"
+       rx="0.79439825"
+       ry="0.79564357" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-9-6-8-0"
+       cx="104.89819"
+       cy="69.061363"
+       rx="0.79439825"
+       ry="0.79564357" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-9-6-8-0-2"
+       cx="141.93983"
+       cy="69.061363"
+       rx="0.79439825"
+       ry="0.79564357" />
+    <rect
+       style="fill:none;stroke:#020000;stroke-width:0.449691;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1850-7"
+       width="37.041668"
+       height="34.395828"
+       x="104.89819"
+       y="69.061363" />
+    <rect
+       style="fill:none;stroke:#020000;stroke-width:0.449691;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1850-5-8"
+       width="37.041668"
+       height="34.395828"
+       x="67.856506"
+       y="34.665531" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.86856px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.244685"
+       x="60.841854"
+       y="71.82579"
+       id="text14104-0-5-1-3-8-5-2-2"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.65113px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.244685"
+         x="60.841854"
+         y="71.82579"
+         dy="0">Δy<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan54356">p,i-1</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.369566"
+       x="60.739414"
+       y="68.995499"
+       id="text14104-0-5-1-3-8-5-2-2-0"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-3"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.369566"
+         x="60.739414"
+         y="68.995499"
+         dy="0 0">Δy<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan93530">C</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="107.11555"
+       y="71.168106"
+       id="text14104-0-5-1-3-8-2-6-6-9"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="107.11555"
+         y="71.168106"
+         dx="0 0 0 0 0 0"
+         dy="0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan221484"
+   dy="0.33769688">b</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="107.34525"
+       y="36.905231"
+       id="text14104-0-5-1-3-8-2-6-6-9-0"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-9"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="107.34525"
+         y="36.905231"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-2">i<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan14859">-1</tspan></tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-5">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan221484-4"
+   dy="0.33769688">b</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="107.46207"
+       y="100.94817"
+       id="text14104-0-5-1-3-8-2-6-6-9-0-0"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-9-5"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="107.46207"
+         y="100.94817"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-2-9">i+<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan14859-4">1</tspan></tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-5-6">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan221484-4-9"
+   dy="0.33769688">b</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="135.14565"
+       y="71.03643"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="135.14565"
+         y="71.03643"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6">j<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan143293">+1</tspan></tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan221484-5-4"
+   dy="0.33769688">b</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.55604px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33471"
+       x="144.25648"
+       y="85.24884"
+       id="text14104-0-5-1-3-8-5-2-2-6"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-0"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.62654px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.33471"
+         x="144.25648"
+         y="85.24884"
+         dy="0 0">Δy<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan67364">D</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.68492px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.220637"
+       x="83.77726"
+       y="32.725029"
+       id="text14104-0-5-1-3-8-5-2-2-5-3"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-5-7"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.39058px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.220637"
+         x="83.77726"
+         y="32.725029"
+         dy="0 0">Δx<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan62766">b,j-1</tspan></tspan></text>
+    <g
+       id="g45842"
+       transform="matrix(0.61078131,0,0,1,55.718764,0)">
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 143.15541,69.058809 h 9.25675"
+         id="path781149-9"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 143.67697,34.729379 h 9.25675"
+         id="path781149-9-5"
+         sodipodi:nodetypes="cc" />
+      <path
+         style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+         d="m 143.21202,103.42716 h 9.3348"
+         id="path781149-9-0"
+         sodipodi:nodetypes="cc" />
+    </g>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 67.811745,28.768555 -0.0979,5.03742"
+       id="path781666-4-8-5" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-0"
+       cx="67.856514"
+       cy="34.665531"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-03"
+       cx="104.96381"
+       cy="34.847973"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke:#000000;stroke-width:0.150241;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-3"
+       cx="141.93983"
+       cy="34.665531"
+       rx="0.79439825"
+       ry="0.79564613" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.6595px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.217309"
+       x="144.63725"
+       y="88.424103"
+       id="text14104-0-5-1-3-8-5-2-2-6-64"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-0-6"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.35452px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.217309"
+         x="144.63725"
+         y="88.424103"
+         dy="0 0">Δy<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.62482px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.217309"
+   id="tspan682849-2"
+   dy="0.37007031">b,i</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.55604px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33471"
+       x="144.37314"
+       y="50.90358"
+       id="text14104-0-5-1-3-8-5-2-2-6-9"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-0-69"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.62654px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.33471"
+         x="144.37314"
+         y="50.90358"
+         dy="0 0 0.56999999">Δy<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan183757">U</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.6595px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.217309"
+       x="144.37981"
+       y="54.057964"
+       id="text14104-0-5-1-3-8-5-2-2-6-64-3"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-0-6-8"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.35452px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.217309"
+         x="144.37981"
+         y="54.057964"
+         dy="0 0">Δy<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.62482px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.217309"
+   id="tspan682849-2-0"
+   dy="0.37007031">b,i-1</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.369566"
+       x="83.033081"
+       y="30.896957"
+       id="text14104-0-5-1-3-8-5-2-2-5-3-1"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-5-7-1"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.369566"
+         x="83.033081"
+         y="30.896957"
+         dy="0 0">Δx<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.50263px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.369566"
+   id="tspan60058-2-3-7-0"
+   dy="0.56999999">L</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.369566"
+       x="121.85933"
+       y="30.259781"
+       id="text14104-0-5-1-3-8-5-2-2-5-3-1-0"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-5-7-1-3"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.369566"
+         x="121.85933"
+         y="30.259781"
+         dy="0 0">Δx<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;baseline-shift:sub;stroke-width:0.369566"
+   id="tspan60058-2-3-7-0-9">R</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="70.149269"
+       y="71.216537"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8-2"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5-2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="70.149269"
+         y="71.216537"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0-4">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6-7">j-<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan143293-7">1</tspan></tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan221484-5-4-5"
+   dy="0.33769688">b</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,58.637627,27.161804)"
+       id="text43861"
+       style="font-size:15.2645px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect43863)" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.68492px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.220637"
+       x="122.67444"
+       y="32.601944"
+       id="text14104-0-5-1-3-8-5-2-2-5-3-8"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-5-7-12"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.39058px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.220637"
+         x="122.67444"
+         y="32.601944"
+         dy="0 0">Δx<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan62766-8">b,j</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="95.743385"
+       y="71.209557"
+       id="text164037-4-2-9"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="95.743385"
+         y="71.209557"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6"
+           dy="0">k<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844">C</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="90.430115"
+       y="75.232025"
+       id="text164037-4-2-9-0"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan85775"
+         x="90.430115"
+         y="75.232025"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal">ρ<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan135708">C</tspan>C<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan138042">p,C</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="91.057228"
+       y="71.122993"
+       id="text164037-4-2-93"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-38"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="91.057228"
+         y="71.122993"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-0"
+           dy="0">T<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan128930">C</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="69.431366"
+       y="71.622826"
+       id="text164037-4-2-9-2"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-8"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="69.431366"
+         y="71.622826"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-2"
+           dy="0">k<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-9">L</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="65.164383"
+       y="71.580162"
+       id="text164037-4-2-93-9"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-38-6"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="65.164383"
+         y="71.580162"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-0-0"
+           dy="0">T<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan128930-2">L</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="130.27098"
+       y="71.483917"
+       id="text164037-4-2-9-2-6"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-8-1"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="130.27098"
+         y="71.483917"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-2-3"
+           dy="0">k<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-9-2">R</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="126.03937"
+       y="71.159569"
+       id="text164037-4-2-93-9-1"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-38-6-5"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="126.03937"
+         y="71.159569"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-0-0-9"
+           dy="0">T<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan128930-2-9">R</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="95.16922"
+       y="39.909012"
+       id="text164037-4-2-9-2-6-4"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-8-1-9"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="95.16922"
+         y="39.909012"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-2-3-1"
+           dy="0">k<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-9-2-0">U</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="90.455048"
+       y="39.811871"
+       id="text164037-4-2-93-9-1-7"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-38-6-5-5"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="90.455048"
+         y="39.811871"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-0-0-9-8"
+           dy="0">T<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan128930-2-9-7">U</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="95.899689"
+       y="107.51712"
+       id="text164037-4-2-9-2-6-4-0"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-8-1-9-4"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="95.899689"
+         y="107.51712"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-2-3-1-8"
+           dy="0">k<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-9-2-0-0">D</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="91.434563"
+       y="107.26725"
+       id="text164037-4-2-93-9-1-7-4"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-38-6-5-5-2"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="91.434563"
+         y="107.26725"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-0-0-9-8-9"
+           dy="0">T<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan128930-2-9-7-6">D</tspan></tspan></tspan></text>
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 123.95699,103.98535 -0.0979,5.03742"
+       id="path781666-4-8-5-8-0" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:0.4;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.4, 1.2;stroke-dashoffset:0;stroke-opacity:1"
+       d="m 86.83353,103.8371 -0.0979,5.03742"
+       id="path781666-4-8-5-9" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.369566"
+       x="101.98122"
+       y="106.76789"
+       id="text14104-0-5-1-3-8-5-2-2-5-3-1-4"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-5-7-1-35"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.369566"
+         x="101.98122"
+         y="106.76789"
+         dy="0 0">Δx<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan168543">C</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.86856px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.244685"
+       x="102.0781"
+       y="109.36703"
+       id="text14104-0-5-1-3-8-5-2-2-8"
+       transform="scale(0.99303979,1.007009)"><tspan
+         id="tspan14102-59-4-0-4-5-48-9-90-6"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.65113px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.244685"
+         x="102.0781"
+         y="109.36703"
+         dy="0 0">Δx<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan40576">p,j</tspan><tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola';baseline-shift:sub"
+   id="tspan37538">-1</tspan></tspan></text>
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5"
+       cx="104.92935"
+       cy="52.195812"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5-9"
+       cx="104.92832"
+       cy="86.314285"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5-7"
+       cx="67.940285"
+       cy="52.83762"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5-9-7"
+       cx="67.939255"
+       cy="86.9561"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5-7-6"
+       cx="141.80077"
+       cy="52.251907"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#ff0002;fill-opacity:1;stroke:#000000;stroke-width:0.0938545;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-24-5-9-7-4"
+       cx="141.79974"
+       cy="86.370384"
+       rx="0.97071916"
+       ry="0.97224402" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0"
+       cx="85.88987"
+       cy="34.838924"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0-6-4"
+       cx="85.88987"
+       cy="69.234756"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0-6-4-9"
+       cx="86.830513"
+       cy="103.45092"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0-0"
+       cx="123.73906"
+       cy="34.782047"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0-6-4-5"
+       cx="123.73906"
+       cy="69.177879"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ffff;fill-opacity:1;stroke:#000000;stroke-width:0.0945607;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-0-0-6-4-5-4"
+       cx="123.89149"
+       cy="103.19882"
+       rx="0.97802311"
+       ry="0.97955948" />
+    <ellipse
+       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0.094928;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-05-8-0"
+       cx="86.273445"
+       cy="52.387165"
+       rx="0.98182219"
+       ry="0.98336446" />
+    <ellipse
+       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0.094928;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-05-8-0-9"
+       cx="86.44133"
+       cy="86.672829"
+       rx="0.98182219"
+       ry="0.98336446" />
+    <ellipse
+       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0.094928;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-05-8-0-2"
+       cx="123.7002"
+       cy="52.045067"
+       rx="0.98182219"
+       ry="0.98336446" />
+    <ellipse
+       style="fill:#00ff00;fill-opacity:1;stroke:#000000;stroke-width:0.094928;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       id="path2596-8-6-7-05-8-0-9-2"
+       cx="123.86808"
+       cy="86.330727"
+       rx="0.98182219"
+       ry="0.98336446" />
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="82.437698"
+       y="68.179436"
+       id="text164037-4-2-9-4"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="82.437698"
+         y="68.179436"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7"
+           dy="0 0">k'<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5">L</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="77.858994"
+       y="67.803642"
+       id="text164037-4-2-9-4-8"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="77.858994"
+         y="67.803642"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-3"
+           dy="0">q<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-6">xL</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="101.48319"
+       y="89.489792"
+       id="text164037-4-2-9-4-85"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-0"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="101.48319"
+         y="89.489792"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-6"
+           dy="0 0">k'<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-4">D</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="94.175331"
+       y="88.664795"
+       id="text164037-4-2-9-4-8-6"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9-2"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="94.175331"
+         y="88.664795"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-3-5"
+           dy="0">q<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-6-8">yD</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="101.19964"
+       y="53.240955"
+       id="text164037-4-2-9-4-85-6"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-0-2"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="101.19964"
+         y="53.240955"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-6-8"
+           dy="0 0">k'<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-4-4">U</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="94.354645"
+       y="52.294369"
+       id="text164037-4-2-9-4-8-6-7"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9-2-2"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="94.354645"
+         y="52.294369"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-3-5-4"
+           dy="0">q<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-6-8-0">yU</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="118.07089"
+       y="68.200317"
+       id="text164037-4-2-9-4-80"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-2"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="118.07089"
+         y="68.200317"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-1"
+           dy="0 0">k'<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-0">R</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="113.06019"
+       y="67.652863"
+       id="text164037-4-2-9-4-8-5"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9-1"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="113.06019"
+         y="67.652863"><tspan
+           style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+           id="tspan441564-6-7-3-1"
+           dy="0">q<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan132844-5-6-0">xR</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="84.567474"
+       y="71.431335"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8-2-2"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5-2-9"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="84.567474"
+         y="71.431335"
+         dx="0 0 0 0 0 0"
+         dy="0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0-4-9">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6-7-0">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+   id="tspan138295">v<tspan
+   style="baseline-shift:baseline"
+   id="tspan182083"
+   dy="0.25999999">y</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="121.62723"
+       y="71.130455"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8-2-2-0"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5-2-9-3"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="121.62723"
+         y="71.130455"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0-4-9-4">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6-7-0-0">j<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan192916">+1</tspan></tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+   id="tspan138295-3">v<tspan
+   style="baseline-shift:baseline"
+   id="tspan182083-9"
+   dy="0.25999999">y</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="107.46451"
+       y="88.203049"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8-2-2-1"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5-2-9-9"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="107.46451"
+         y="88.203049"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0-4-9-6">i<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan203575">+1</tspan></tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6-7-0-9">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+   id="tspan138295-33">v<tspan
+   style="baseline-shift:baseline"
+   id="tspan182083-8"
+   dy="0.2">x</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="106.69949"
+       y="54.428905"
+       id="text14104-0-5-1-3-8-2-6-6-9-9-8-2-2-1-0"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-2-5-2-9-9-5"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="106.69949"
+         y="54.428905"
+         dx="0 0 0 0 0 0"
+         dy="0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-4-0-4-9-6-6">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-4-6-7-0-9-4">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+   id="tspan138295-33-0">v<tspan
+   style="baseline-shift:baseline"
+   id="tspan182083-8-0"
+   dy="0.2">x</tspan></tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="123.33825"
+       y="88.629539"
+       id="text14104-0-5-1-3-8-2-6-6-9-4"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-6"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="123.33825"
+         y="88.629539"
+         dx="0 0 0 0 0 0"
+         dy="0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-26">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-7">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;baseline-shift:sub;stroke-width:0.312003"
+   id="tspan221484-5">p</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="85.253654"
+       y="88.738731"
+       id="text14104-0-5-1-3-8-2-6-6-9-4-6"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-6-9"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="85.253654"
+         y="88.738731"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-26-8">i</tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-7-7">j<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan228798">-1</tspan></tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;baseline-shift:sub;stroke-width:0.312003"
+   id="tspan221484-5-2">p</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="121.97294"
+       y="55.030556"
+       id="text14104-0-5-1-3-8-2-6-6-9-4-8"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-6-2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="121.97294"
+         y="55.030556"
+         dx="0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-26-9">i<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan234763">-1</tspan></tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-7-9">j</tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;baseline-shift:sub;stroke-width:0.312003"
+   id="tspan221484-5-6">p</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.48915px;line-height:1.25;font-family:'TeX Gyre Bonum';-inkscape-font-specification:'TeX Gyre Bonum, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;white-space:pre;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.312003"
+       x="83.472839"
+       y="55.099056"
+       id="text14104-0-5-1-3-8-2-6-6-9-4-6-0"
+       transform="scale(0.9875602,1.0125965)"><tspan
+         id="tspan14102-59-4-0-4-5-1-7-4-7-6-9-2"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+         x="83.472839"
+         y="55.099056"
+         dx="0 0 0 0 0 0 0 0 0 0"
+         dy="0 0 0 0 0 0 0 0 0 0">(<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan189691-4-26-8-7">i<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan239123">-1</tspan></tspan>, <tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.38264px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.312003"
+   id="tspan186581-3-7-7-6">j<tspan
+   style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola'"
+   id="tspan228798-1">-1</tspan></tspan>)<tspan
+   style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;baseline-shift:sub;stroke-width:0.312003"
+   id="tspan221484-5-2-3">p</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="79.809227"
+       y="70.510956"
+       id="text164037-4-2-9-4-8-2"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9-15"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="79.809227"
+         y="70.510956">v<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan254656">yL</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+       x="115.62112"
+       y="70.405273"
+       id="text164037-4-2-9-4-8-2-1"
+       transform="scale(1.0536652,0.94906808)"><tspan
+         sodipodi:role="line"
+         id="tspan164035-1-0-3-7-9-15-4"
+         style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222px;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola, Italic';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+         x="115.62112"
+         y="70.405273">v<tspan
+   style="font-size:65%;baseline-shift:sub"
+   id="tspan254656-9">yR</tspan></tspan></text>
+    <g
+       id="g322148">
+      <g
+         id="g322141">
+        <g
+           id="g322135">
+          <g
+             id="g322130">
+            <text
+               xml:space="preserve"
+               style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.0042px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.375393"
+               x="70.779732"
+               y="49.10994"
+               id="text164037-4-2-9-4-8-1"
+               transform="scale(1.0536652,0.94906808)"><tspan
+                 sodipodi:role="line"
+                 id="tspan304320"
+                 x="70.779732"
+                 y="49.10994" /></text>
+          </g>
+        </g>
+      </g>
+    </g>
+    <g
+       id="g105676"
+       transform="translate(3.7406936,1.4944563)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,62.486072,28.255234)"
+         id="text40416"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1472"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1468">η</tspan><tspan
+             style="font-style:italic;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+             id="tspan1470">xxUL</tspan></tspan></text>
+    </g>
+    <g
+       id="g105676-2"
+       transform="translate(-1.4652693,6.0819343)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,67.381309,26.902842)"
+         id="text40416-1"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-9)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1478"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1474">σ'</tspan><tspan
+             style="font-size:65%;baseline-shift:sub"
+             id="tspan1476">xxUL</tspan></tspan></text>
+    </g>
+    <g
+       id="g105676-2-7"
+       transform="translate(35.840608,5.4064111)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,67.381309,26.902842)"
+         id="text40416-1-0"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-9-8)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1484"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1480">σ'</tspan><tspan
+             style="font-size:65%;baseline-shift:sub"
+             id="tspan1482">xxUR</tspan></tspan></text>
+    </g>
+    <g
+       id="g105676-2-2"
+       transform="translate(-1.4046555,40.249556)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,67.381309,26.902842)"
+         id="text40416-1-6"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-9-1)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1490"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1486">σ'</tspan><tspan
+             style="font-size:65%;baseline-shift:sub"
+             id="tspan1488">xxLL</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,103.05413,66.535727)"
+       id="text40416-1-6-0"
+       style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-9-1-4)"><tspan
+         x="63.878906"
+         y="65.157864"
+         id="tspan1496"><tspan
+           style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+           id="tspan1492">σ'</tspan><tspan
+           style="font-size:65%;baseline-shift:sub"
+           id="tspan1494">xxLR</tspan></tspan></text>
+    <g
+       id="g105676-2-78"
+       transform="translate(21.577716,23.101131)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,67.381309,26.902842)"
+         id="text40416-1-8"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-9-5)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1502"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1498">σ'</tspan><tspan
+             style="font-size:65%;baseline-shift:sub"
+             id="tspan1500">xyC</tspan></tspan></text>
+    </g>
+    <g
+       id="g105676-5"
+       transform="translate(41.070223,1.0496529)">
+      <text
+         xml:space="preserve"
+         transform="matrix(0.26458333,0,0,0.26458333,62.486072,28.255234)"
+         id="text40416-8"
+         style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-62)"><tspan
+           x="63.878906"
+           y="65.157864"
+           id="tspan1508"><tspan
+             style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+             id="tspan1504">η</tspan><tspan
+             style="font-style:italic;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+             id="tspan1506">xxUR</tspan></tspan></text>
+    </g>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,66.359498,63.827146)"
+       id="text40416-4"
+       style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-8)"><tspan
+         x="63.878906"
+         y="65.157864"
+         id="tspan1514"><tspan
+           style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+           id="tspan1510">η</tspan><tspan
+           style="font-style:italic;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+           id="tspan1512">xxLL</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,103.21647,63.130263)"
+       id="text40416-2"
+       style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-7)"><tspan
+         x="63.878906"
+         y="65.157864"
+         id="tspan1520"><tspan
+           style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+           id="tspan1516">η</tspan><tspan
+           style="font-style:italic;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+           id="tspan1518">xxLR</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,89.474197,46.803475)"
+       id="text40416-0"
+       style="font-size:10.6667px;line-height:1.25;font-family:'TeX Gyre Bonum Math';-inkscape-font-specification:'TeX Gyre Bonum Math, Normal';white-space:pre;shape-inside:url(#rect40418-4)"><tspan
+         x="63.878906"
+         y="65.157864"
+         id="tspan1526"><tspan
+           style="font-style:italic;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic'"
+           id="tspan1522">η</tspan><tspan
+           style="font-style:italic;font-size:65%;font-family:'TeX Gyre Schola';-inkscape-font-specification:'TeX Gyre Schola Italic';baseline-shift:sub"
+           id="tspan1524">xyC</tspan></tspan></text>
+  </g>
+</svg>

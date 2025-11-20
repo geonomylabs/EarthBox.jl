@@ -1,0 +1,57 @@
+EarthBoxDimensions:
+  xnum: [51, None, 'Basic grid resolution in x-direction']
+  ynum: [51, None, 'Basic grid resolution in y-direction']
+  xsize: [1000000.0, m, 'Width of model']
+  ysize: [1000000.0, m, 'Height of model']
+  nmarkers_cell_x: [5.0, None, 'Number of markers per cell in horizontal direction']
+  nmarkers_cell_y: [5.0, None, 'Number of markers per cell in vertical direction']
+StaggeredGrid:
+  stype_grid: [UniformGrid, None, 'Basic grid type']
+BoundaryConditions:
+  stype_bc: [ElasticSlab, None, 'Boundary condition type']
+  pressure_bc: [0.0, Pa, 'Pressure boundary condition']
+  temperature_top: [0.0, C, 'Temperature at the top of the model']
+  temperature_bottom: [0.0, C, 'Temperature at the base of the model']
+MarkerCoordinates:
+  iuse_random: [0, None, 'Randomize initial marker distribution: 0 = off; 1 = on']
+MarkerMaterials:
+  stype_mat: [ElasticSlab, None, 'Material initialization type.']
+  viscosity_min: [1.0e+18, Pa.s, 'Minimum viscosity.']
+  viscosity_max: [1.0e+27, Pa.s, 'Maximum viscosity.']
+MarkerTemperature:
+  stype_temp: [Uniform, None, 'Initial temperature type']
+  temperature_uniform: [0.0, C, 'Initial uniform temperature']
+RockProps:
+  stype_conductivity: [Liao14, None, 'Thermal conductivity model']
+  stype_density: [Liao14, None, 'Density model']
+StokesContinuitySolver:
+  stype_velocity: [VelocityFromStokesSolver, None, 'Velocity type']
+  tolerance_picard: [0.001, None, 'Convergence criterion for Stokes iterations']
+  nglobal: [1, None, 'Maximum number of global Stokes iterations']
+  stype_global: [NodalPlasticityLoop, None, 'Global plasticity loop type']
+  stype_plasticity: [PureElasticStressForecast, None, 'Marker plasticity type']
+  gravity_x: [0.0, m/s/s, 'X-component of gravitational acceleration']
+  gravity_y: [10.0, m/s/s, 'Y-component of gravitational acceleration']
+  turn_off_gravity_y: [1, None, 'Vertical gravity component: 0 = off; 1 = on']
+  nsteps_turn_off_gravity: [100, None, 'Number of timesteps before shutting off vertical gravity component']
+HeatSolver:
+  iuse_heat: [1, None, 'Solve heat equation: 0 = off; 1 = on']
+  iuse_adiabatic_heating: [0, None, 'Adiabatic heating: 0 = off; 1 = on']
+  iuse_shear_heating: [0, None, 'Shear heating: 0 = off; 1 = on']
+  max_temp_change: [20.0, K, 'Maximal temperature change allowed for one time step']
+Advection:
+  stype_move_markers: [RungeKutta4thOrder, None, 'Marker advection method']
+  marker_cell_displ_max: [0.3333, fraction, 'Maximum marker displacement as a fraction of cell size']
+  subgrid_diff_coef_stress: [0.0, None, 'Numerical subgrid stress diffusion coefficient']
+  subgrid_diff_coef_temp: [1.0, None, 'Numerical subgrid temperature diffusion coefficient']
+Interpolate:
+  iuse_harmonic_avg_normal_viscosity: [0, None, 'Harmonic averaging of shear viscosity for normal viscosity: 0 = off; 1 = on']
+  iuse_initial_temp_interp: [1, None, 'Interpolate nodal temperatures back to markers at start: 0 = off; 1 = on']
+TimeLoop:
+  ntimestep_max: [8000, None, 'Maximum number of model time steps']
+  timestep_viscoelastic: [200.0, yr, 'Viscoelastic time step']
+  timestep_out: [10000.0, yr, 'Output time step size']
+SingleTimeStepIncreaseModel:
+  iuse_single_timestep_increase: [1, None, 'Increase in time step using single step: 0 = off; 1 = on']
+  ntime_increase: [250, None, 'Number of time steps before timestep size is increased']
+  time_increase_factor: [10.0, None, 'Factor used to increase time step size']

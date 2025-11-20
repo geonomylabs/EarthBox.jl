@@ -1,0 +1,6 @@
+include("SolutionNormsStokesGroup.jl")
+include("ResidualNormsStokesGroup.jl")
+include("OutputStokesGroup.jl")
+include("BuildSysStokesGroup.jl")
+include("VelocityCalcOptionsGroup.jl")
+include("PicardGroup.jl")
