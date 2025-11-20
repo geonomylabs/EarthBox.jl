@@ -1,1 +1,0 @@
-# Magmatic Crust Formation: Southern South Atlantic

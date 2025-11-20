@@ -33,6 +33,8 @@ model_pages = [
         "Sandbox Shortening" => "models/sandbox/sandbox_shortening.md",
         "Spreading Center" => "models/spreading_center/spreading_center.md",
         "Hot Box Melting" => "models/hot_box_melting/hot_box_melting.md",
+        "Magmatic Crust Formation: Central Atlantic" => "models/regional/catl.md",
+        "Magma Poor Margin: Iberia" => "models/regional/iberia.md",
     ]
 ]
 
