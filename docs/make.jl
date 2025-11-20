@@ -271,7 +271,6 @@ PAGES = [
 
 makedocs(
     sitename = "EarthBox.jl", 
-    remotes  = nothing,
     plugins  = [bib],
     pages    = PAGES,
     repo     = "https://github.com/eakneller/EarthBox.jl",
