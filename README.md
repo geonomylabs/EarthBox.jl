@@ -19,9 +19,8 @@ damage, lava flow modeling and marine and terrestrial sediment transport with co
 This novel combination of features enables Seaward-dipping-reflectors (SDR's) to be 
 dynamically modeled using realistic rheology and boundary conditions.
 
-An example of an EarthBox.jl model simulation of magmatic crust formation during 
-lithospheric extension with melt damage and subaerial lava flow can found 
-[here](https://youtu.be/j9za3xvKYpM).
+Video example of an EarthBox.jl model simulations can be found 
+[here](https://www.youtube.com/@user-ge7vz5st6q).
 
 See documentation at [EarthBox.jl Docs](https://eakneller.github.io/EarthBox.jl/stable/) 
 including a detailed description of the EarthBox API, installation, methods, models
