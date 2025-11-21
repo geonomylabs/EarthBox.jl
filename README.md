@@ -16,8 +16,8 @@
 EarthBox.jl is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
 framework with melt generation, melt intrusion, melt extrusion, frictional-plastic melt 
 damage, lava flow modeling and marine and terrestrial sediment transport with compaction. 
-This novel combination features enables Seaward-dipping-reflectors (SDR's) to modeled 
-dynamically using realistic rheology and boundary conditions. 
+This novel combination of features enables Seaward-dipping-reflectors (SDR's) to be 
+dynamically modeled using realistic rheology and boundary conditions. 
 
 See documentation at [EarthBox.jl Docs](https://eakneller.github.io/EarthBox.jl/stable/) 
 including a detailed description of the EarthBox API, installation, methods, models
