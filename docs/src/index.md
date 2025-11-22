@@ -11,15 +11,33 @@ lava flow, submarine hydrothermal cooling, exothermic serpentinization and sedim
 transport with erosion, deposition, compaction and an isostatically realistic global sea level.
 EarthBox uses a composite viscous flow law that includes dislocation creep, diffusion creep,
 Peierls creep, the effects of viscous softening associated with grain size reduction and the 
-effects of partial melting. The frictional plastic model used by EarthBox includes strain weakening
-and melt damage associated with melt transport networks above zones of melt focusing.
+effects of partial melting. The frictional-plastic model used by EarthBox includes strain weakening
+and melt damage associated with melt transport networks above zones of melt focusing 
+([Fig.](@ref fig:video-example-model-melt-damage)).
 
-The goals of the EarthBox project are two-fold: (1) create an easy-to-use and easy-to-modify 
-geodynamic modeling tool tuned for shared memory machines and small clusters with performance 
-comparable to C++ and Fortran and (2) develop a system that can be used to build
-easily extensible libraries of options and model cases. EarthBox is currently 2D with an experimental 
-3D multigrid solver that will be integrated into the EarthBox system during a future release.
-EarthBox is developed using the Julia programming language and includes arm's-length integration with the 
+```@raw html
+<iframe width="750" height="375"
+   src="https://www.youtube.com/embed/EExMeB9Svmc"
+   title="YouTube video"
+   frameborder="0"
+   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+   allowfullscreen>
+</iframe>
+```
+
+##### fig:video-example-model-melt-damage
+*Video of an EarthBox simulation of magmatic crust formation and subaerial lava flow with melt damage 
+above regions of melt focusing*
+
+The goals of the EarthBox.jl project are two-fold: 
+1. To create an easy-to-use and easy-to-modify geodynamic modeling framework with 
+    performance comparable to C++ and Fortran, optimized for multi-threaded shared 
+    memory machines. 
+2. To provide an extensible system for building libraries of options and model cases. 
+
+EarthBox is currently 2D with an experimental 3D multigrid solver that will be integrated 
+into the EarthBox system during a future release. EarthBox is developed using the Julia 
+programming language and includes arm's-length integration with the 
 parallel direct solver MUMPS [amestoy01, amestoy19](@cite) that manages the stochastic 
 nature of this powerful parallel direct solver that if not properly addressed can
 lead to failed simulation runs.
