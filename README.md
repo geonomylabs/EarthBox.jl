@@ -514,7 +514,8 @@ well with `MUMPS.jl` version `1.5.1`:
 [6] Dietterich, H. R.; Lev, E.; Chen, J.; Richardson, J. A. and Cashman, K. V. (2017). Benchmarking computational fluid dynamics models of lava flow simulation for hazard assessment, forecasting, and risk management. Journal of Applied Volcanology 6, 9.
 
 <a id="ref7"></a>
-[7] Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models with Extrusive Surface Processes. EarthArXiv Preprints. Preprint.
+[7] Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models with Extrusive Surface Processes. 
+[EarthArXiv Preprints](https://eartharxiv.org/repository/view/10967/). Preprint.
 
 <a id="ref8"></a>
 [8] Amestoy, P.; Duff, I. S.; Koster, J. and L'Excellent, J.-Y. (2001). A Fully Asynchronous Multifrontal Solver Using Distributed Dynamic Scheduling. SIAM Journal on Matrix Analysis and Applications 23, 15–41.
