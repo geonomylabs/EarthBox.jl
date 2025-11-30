@@ -1,7 +1,7 @@
 name = "EarthBox"
 uuid = "8cac4eb0-b9dc-491e-8029-d46e41f70254"
 authors = ["Erik Kneller"]
-version = "0.1.0"
+version = "0.1.4"
 
 [deps]
 CairoMakie = "13f3f980-e62b-5c42-98c6-ff1f3baf88f0"
