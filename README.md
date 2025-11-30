@@ -60,12 +60,16 @@ please consider citing or referencing this project. While not
 required by the Apache License 2.0, citations help support and
 acknowledge ongoing development.
 
-Suggested citation:
+Suggested citations:
 
 Kneller, E. A. (2025). EarthBox.jl: A visco-elasto-plastic geodynamic
 modeling framework in Julia with marine and terrestrial sediment transport, 
 melt intrusion and extrusion, frictional-plastic melt damage and lava flow 
 modeling. https://github.com/eakneller/EarthBox.jl
+
+Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic 
+Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models 
+with Extrusive Surface Processes. [EarthArXiv Preprints](https://eartharxiv.org/repository/view/10967/). Preprint.
 
 
 ## Operating Systems
