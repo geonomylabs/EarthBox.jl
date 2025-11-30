@@ -6,7 +6,7 @@ include("registries/__init__.jl")
 using EarthBox
 import YAML
 import DataStructures: OrderedDict
-import .MaterialCollectionManager: MaterialCollection
+import .MaterialCollectionManager: MaterialCollection, get_material_collection
 using .BenchmarksRegistry
 using .LithosphericDeformationRegistry: LithosphericDeformationCollections
 using .Gerya2019Registry
@@ -14,6 +14,8 @@ using .ViscoElastoPlasticRegistry
 using .SimpleMantleMeltingRegistry
 using .SeafloorSpreadingRegistry
 using .SandboxRegistry
+
+export get_material_collection
 
 function get_material_names_list_string(collection::MaterialCollection)::String
     material_names = collection.materials

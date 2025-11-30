@@ -81,7 +81,7 @@ work of [maclennan04](@citet): ``\Delta T_{solidus}^{frac} = 100`` ``K`` and
 ``\Delta T_{liquidus}^{frac} = 300`` ``K``. 
 
 Melt is assumed to migrate instantaneously to the top of the partially molten mantle domain and 
-then flow horizontally toward local high points. At the local maximum, melt is 
+then flow horizontally toward local high points [kneller25](@cite). At the local maximum, melt is 
 divided into two fractions: one that is immediately emplaced at the base of the crust and another that 
 is transported to the surface. This simplified model of melt transport and emplacement is implemented 
 independently within each melt drainage basin bounded by local minima along the top of the partially 
@@ -218,7 +218,7 @@ f_{v} =
         f_{v,min}
             & \quad \text{for} \quad H_{mc,k} \leq H_{mc,min}
                 \quad \text{and} \\
-        f_{v(max)}
+        f_{v,max}
             & \quad \text{for} \quad H_{mc,k} \geq H_{mc,max}
                 \quad \text{and} \\
         f_{v,min} + 

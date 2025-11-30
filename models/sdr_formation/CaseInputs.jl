@@ -33,6 +33,7 @@ function define_case_parameters(model_case_name::String="case0")::CaseType
         # Extrusion Model
         PARAMS.characteristic_flow_length_subaerial.name => CaseParameter(20_000.0, "m"),
         PARAMS.eruption_interval_yr.name                 => CaseParameter(50_000.0, "yr"),
+        PARAMS.extrusion_volume_factor_max.name           => CaseParameter(0.5, "None"),
         # Sediment Transport Model
         PARAMS.subaerial_transport_coefficient.name => CaseParameter(1.0e-4, "None"),
         PARAMS.pelagic_sedimentation_rate.name      => CaseParameter(0.0, "mm/yr"),

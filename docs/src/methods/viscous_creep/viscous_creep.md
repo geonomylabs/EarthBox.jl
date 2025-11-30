@@ -71,7 +71,8 @@ Peierls stress exponents.
 
 The visco-elastic nature of the rheology implemented in this work and the power law and exponential
 nature of the creep mechanisms introduces a non-linear time-dependent relationship between stress and 
-effective viscosity. Similar to [gerya2010](@cite) a bisection algorithm is used to solve for the
+effective viscosity. Similar to [gerya2010](@cite) a bisection algorithm 
+([Viscosity Using Bisection](@ref "Update Effective Viscosity Using Bisection")) is used to solve for the
 effective viscosity consistent with a visco-elastic stress forecast for a given marker ``m`` 
 calculated using the following equations:
 

@@ -27,6 +27,7 @@ import .ParameterRegistry: get_eb_parameters
 import .PrintFuncs: print_info
 import .PrintFuncs: print_warning, print_info, @timeit_memit, PRINT_SETTINGS
 import .SysTools: get_username
+import .GetModels: get_models
 # Testing and benchmark management
 import .TestManager
 import .BenchmarksManager
@@ -34,6 +35,7 @@ import .BenchmarksManager
 import .MaterialLibraryCollection: MaterialLibrary
 import .MaterialLibraryCollection: make_material_collection_table
 import .MaterialLibraryCollection: get_material_names_list_string, make_material_table
+import .MaterialLibraryCollection: get_material_collection
 import .Markers.MarkerMaterials.Registry: MaterialTypesRegistry
 import .Markers.MarkerMaterials.Registry: MaterialDomainsRegistry
 # Case input management
@@ -95,7 +97,7 @@ export material_model_names, marker_distribution_names, initial_temperature_name
     friction_init_names
 
 # Export API functions
-export run_time_steps, print_info, run_model
+export run_time_steps, print_info, run_model, get_models
 # Export Data Structures and Type manager
 export EarthBoxState, ModelDataContainer, get_eb_parameters, EarthBoxDtypes
 # Export model management module
@@ -110,7 +112,7 @@ export Kinematics, Rheology, Regrid
 # Export material library, types and domains modules 
 export MaterialLibraryCollection, MaterialLibrary, MaterialTypesRegistry,
     MaterialDomainsRegistry, make_material_collection_table, 
-    get_material_names_list_string, make_material_table
+    get_material_names_list_string, make_material_table, get_material_collection
 export MaterialsDictType, MaterialDictType
 # Export utility modules and functions
 export ConversionFuncs, GetPaths, get_username
@@ -138,6 +140,8 @@ export run_earthbox, remote_model_loop, local_model_loop
 export execute_remote_script_in_background, execute_earthbox_script
 # Export marker output configuration keys
 export MarkerOutputKeys
+# Export GetModels tools
+export get_models
 
 const PDATA = get_eb_parameters()
 

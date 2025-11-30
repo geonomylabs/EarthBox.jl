@@ -121,7 +121,7 @@ where ``i`` ranges from ``1`` to ``N_{y,b}-1``.
 
 The pressure grid, denoted by subscript ``p``, has nodes located at the center of basic grid cells 
 with ``(N_{x,b}-1)`` nodes in the ``x``-direction and ``(N_{y,b}-1)`` nodes in the ``y``-direction 
-[Fig.](@ref fig:staggered-grid). The x- and y-coordinates of the pressure grid are ``(x_{p,j}, y_{p,i})`` 
+[fig:staggered-grid](@ref fig:staggered-grid). The x- and y-coordinates of the pressure grid are ``(x_{p,j}, y_{p,i})`` 
 where ``j`` is in the ``x``-direction ranging from ``1`` to ``N_{x,b}-1`` and ``i`` is in the ``y``-direction ranging 
 from ``1`` to ``N_{y,b}-1``. The pressure grid spacings in the ``x``- and ``y``-directions are denoted by 
 ``\Delta x_{p,j}`` where ``j`` ranges from ``1`` to ``N_{x,b}-2`` and ``\Delta y_{p,i}`` where ``i`` ranges from ``1`` 
@@ -160,7 +160,7 @@ y_{p,i} = y_{p,i-1} + \Delta y_{p,i-1} \text{.}
 
 The ``v_x`` grid, denoted by subscript ``v_x``, has nodes located at the center of left- and 
 right-sides of basic-grid cells and outside the model domain in the y-direction with ``N_{x,b}`` nodes
-in the ``x``-direction and ``(N_{y,b}+1)`` nodes in the ``y``-direction [Fig.](@ref fig:staggered-grid). 
+in the ``x``-direction and ``(N_{y,b}+1)`` nodes in the ``y``-direction [fig:staggered-grid](@ref fig:staggered-grid). 
 The x- and y-coordinates of the ``v_x`` grid are ``(x_{b,j}, y_{v_x,i})`` where ``j`` ranges from ``1`` to 
 ``N_{x,b}`` and ``i`` ranges from ``1`` to ``N_{y,b}+1``. The grid spacings in the y-direction of the ``v_x`` 
 grid are denoted by ``\Delta y_{v_x,i}`` where ``i`` ranges from ``1`` to ``N_{y,b}``. Spacing in the 
@@ -184,7 +184,7 @@ Starting with ``\Delta y_{v_x,1} = \Delta y_{b,1}`` and ending with ``\Delta y_{
 
 The ``v_y`` grid, denoted by subscript ``v_y``, has nodes located at the center top and bottom 
 of basic-grid cells and outside the model domain in the x-direction with ``N_{x,b}+1`` nodes
-in the ``x``-direction and ``(N_{y,b})`` nodes in the ``y``-direction [Fig.](@ref fig:staggered-grid). The 
+in the ``x``-direction and ``(N_{y,b})`` nodes in the ``y``-direction [fig:staggered-grid](@ref fig:staggered-grid). The 
 x- and y-coordinates of the ``v_y`` grid are ``(x_{j,v_y}, y_{b,i})`` where ``j`` ranges from ``1`` to 
 ``N_{x,b}+1`` and ``i`` ranges from ``1`` to ``N_{y,b}``. The grid spacings in the x-direction of the ``v_y`` 
 grid are denoted by ``\Delta x_{j,v_y}`` where ``j`` ranges from ``1`` to ``N_{x,b}``. Spacing in the 

@@ -12,12 +12,12 @@ transport with erosion, deposition, compaction and an isostatically realistic gl
 EarthBox uses a composite viscous flow law that includes dislocation creep, diffusion creep,
 Peierls creep, the effects of viscous softening associated with grain size reduction and the 
 effects of partial melting. The frictional-plastic model used by EarthBox includes strain weakening
-and melt damage associated with melt transport networks above zones of melt focusing 
+and melt damage associated with melt transport networks above zones of melt focusing [kneller25](@cite) 
 ([Fig.](@ref fig:video-example-model-melt-damage)).
 
 ```@raw html
 <iframe width="750" height="375"
-   src="https://www.youtube.com/embed/EExMeB9Svmc"
+   src="https://www.youtube.com/embed/DCyEYk1VpAE"
    title="YouTube video"
    frameborder="0"
    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -28,6 +28,8 @@ and melt damage associated with melt transport networks above zones of melt focu
 ##### fig:video-example-model-melt-damage
 *Video of an EarthBox simulation of magmatic crust formation and subaerial lava flow with melt damage 
 above regions of melt focusing*
+
+For quick start instructions see [EarthBox Quick Start](@ref).
 
 The goals of the EarthBox.jl project are two-fold: 
 1. To create an easy-to-use and easy-to-modify geodynamic modeling framework with 
@@ -81,8 +83,8 @@ structure that takes into account the effects of sediment overburden
 (see [Hydrothermal Circulation](@ref)) and how exothermic serpentinization reactions 
 impact thermal conductivity and density (see [Serpentinization](@ref)).
 
-Numerical and analytical benchmarks of EarthBox are presented in the [Benchmarks](@ref) providing a 
-direct comparison to similar codes such as I2ELVIS that has been used 
+Numerical and analytical benchmarks of EarthBox are presented in the [Benchmarks](@ref) section 
+providing a direct comparison to similar codes such as I2ELVIS that has been used 
 extensively in published geodynamic modeling studies [gerya03, gerya2010, gerya2019](@cite).
 EarthBox includes an integrated benchmarking system allowing the user to quickly
 reproduce benchmarks, gain confidence in multiple aspects of the code and test the code 
@@ -99,6 +101,66 @@ Some novel aspects of the design of the EarthBox software are as follows:
    or YAML input files (see [EarthBox API Overview](@ref)).
 - A multiple model case management system (see [Case Management](@ref)).
 
+
+# EarthBox Quick Start
+
+For more detailed instructions and alternative installation options see
+[EarthBox Installation](@ref).
+
+The easiest way to get started with Julia is to use `juliaup` which involves
+executing the following command on Linux systems:
+
+```bash
+curl -fsSL https://install.julialang.org | sh
+```
+See [Installing Julia](https://julialang.org/install/) for more details. 
+
+You can install the registered version of EarthBox via the Julia REPL:
+
+```julia
+julia> ]
+(@v1.x) pkg> add EarthBox
+```
+
+Copy the model collection packaged with EarthBox to your local directory using 
+the REPL:
+
+```julia
+julia> using EarthBox
+julia> get_models()
+```
+
+Next, navigate to `models/lithospheric_extension/extension_weak_fault`, change the 
+`ROOT_OUTPUT_PATH` in `Model.jl` to a desired output location and then 
+run the model using the following command:
+
+```bash
+julia Model.jl case_name=case1
+```
+
+Alternatively, you can use the REPL to run the model:
+
+```julia
+julia> include("Model.jl")
+julia> Model.run_case(case_name="case1")
+```
+
+Plot model marker output files using:
+
+```bash
+julia Plot.jl marker_plots case_name=case1 istart=1 iend=10
+```
+
+Alternatively, you can plot marker output files using the REPL:
+
+```julia
+include("Plot.jl")
+Plot.marker_plots(
+    model_output_path = "/path/to/model_output",
+    istart = 1,
+    iend = 10
+);
+```
 
 
 

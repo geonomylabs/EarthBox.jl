@@ -20,8 +20,8 @@ described by the following equations:
 
 where ``m`` is the index of the marker, ``\epsilon_{plastic,m}`` is plastic strain of the marker, 
 ``\epsilon^o`` and ``\epsilon^f`` are initial and final reference plastic strain, ``\sigma_{c,m}^o`` and 
-``\sigma_{c,m}^f`` are initial and final reference cohesion, and ``\theta_m^f`` is the final reference 
-friction angle and ``\theta_m^o`` is the final initial reference friction angle that is randomized at 
+``\sigma_{c,m}^f`` are initial and final reference cohesion, ``\theta_m^f`` is the final reference 
+friction angle, and ``\theta_m^o`` is the final initial reference friction angle that is randomized at 
 the beginning of each time step using the following equation from [naliboff17](@cite):
 
 ###### eq:friction-angle-randomization
@@ -66,9 +66,10 @@ and ``\dot \epsilon_{healing}`` is the plastic healing rate.
 
 As melt is transported through the lithosphere and crust it can weaken the bulk frictional-plastic 
 yield strength of the rock by forming reactive channelized networks, increasing fluid pressure and 
-forming dikes and sills that may be weaker than the surrounding rock prior to solidification. In this 
-work, weakening associated with melt transport is assumed to be probabilistically localized above local 
-maxima of the partially molten domain in the mantle that act as focusing points for melt migration. 
+forming dikes and sills that may be weaker than the surrounding rock prior to solidification 
+[kneller25](@cite). In this work weakening associated with melt transport is assumed to be 
+probabilistically localized above local maxima of the partially molten domain in the mantle that act 
+as focusing points for melt migration.
 The maximum probability of melt damage is assumed to scale with amount of melt being generated in a 
 melt drainage basin ``k``, which is defined by the characteristic magmatic crust height ``H_{mc,k}`` 
 calculated during melt extraction (see equation [eq:char-magmatic-crust-height](@ref)). The weakening from 

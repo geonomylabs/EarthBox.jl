@@ -1,10 +1,10 @@
-import DataStructures: OrderedDict
 using EarthBox
+import DataStructures: OrderedDict
 
 function run_benchmarks()
     option_names = BenchmarksManager.option_names
     test_dict = OrderedDict(
-        option_names.couette_flow_viscous_heating                          => false,
+        option_names.couette_flow_viscous_heating                          => true,
         option_names.channel_flow_non_newtonian                            => false,
         option_names.channel_flow_variable_conductivity                    => false,
         option_names.channel_flow_non_steady_temperature                   => false,
@@ -22,7 +22,7 @@ function run_benchmarks()
         option_names.viscoelastic_contraction_asymmetric                   => false,
         option_names.simple_sedimentation                                  => false,
         option_names.seafloor_spreading                                    => false,
-        option_names.flexure_triangular_hole                               => true,
+        option_names.flexure_triangular_hole                               => false,
     )
     mumps_solver_dict = Dict{Symbol, Vector{Any}}(
         option_names.flexure_triangular_hole                               => [true, 8],

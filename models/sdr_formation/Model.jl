@@ -400,7 +400,7 @@ function initialize_melt_model(
         model,
         iuse_extrusion                           = 1,
         extrusion_volume_factor                  = 0.06, # fraction
-        extrusion_volume_factor_max              = 0.5, # fraction
+        extrusion_volume_factor_max              = case_parameters[PARAMS.extrusion_volume_factor_max.name].value, # fraction
         characteristic_magmatic_crust_height_min = 6_000.0, # m
         characteristic_magmatic_crust_height_max = 7_500.0, # m
         width_eruption_domain_fixed              = 2_500.0, # m

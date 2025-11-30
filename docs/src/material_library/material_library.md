@@ -4,8 +4,22 @@ The `MaterialLibrary` struct provides access to material collections files that
 are packaged with EarthBox. See [Material Collection Files](@ref) for more
 information about the format of material collection library files.
 
-Material Collection Tables
+Material library collections can be copied to your local directory for
+customization using the following workflow in the REPL:
+
+``` julia
+julia> using EarthBox
+julia> collection = MaterialLibrary().lithospheric_deformation.lithospheric_deformation_eb1
+julia> get_material_collection(collection)
+```
+
+## Material Collection Tables 
 - [Material Collection: `lithospheric_deformation_eb1`](@ref)
+- [Material Collection: `benchmarks`](@ref)
+- [Material Collection: `benchmarks_sfs`](@ref)
+- [Material Collection: `sandbox`](@ref)
+
+## Material Library API
 
 ```@docs
 EarthBox.MaterialLibraryCollection.MaterialLibrary
@@ -24,7 +38,7 @@ EarthBox.MaterialLibraryCollection.LithosphericDeformationCollections
 ```julia
 using EarthBox
 
-lib = MaterialLibraryCollection.MaterialLibrary();
+lib = MaterialLibrary();
 
 lith_collections = lib.lithospheric_deformation;
 

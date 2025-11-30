@@ -57,7 +57,7 @@ accelerations, ``\eta_{vp}`` is the visco-plastic viscosity, ``\mu`` is the shea
 rate, ``\dot{\epsilon}_{xy}'`` is the deviatoric shear strain rate and ``v_x`` and ``v_y`` are the 
 velocity components. Equations [Eq.](@ref eq:x-stokes) and [Eq.](@ref eq:y-stokes) are the x- and 
 y-components of the Stokes equations, respectively. We note that the equation [Eq.](@ref eq:y-stokes) 
-utilizes the relationships ``\sigma_{yy}' = -\sigma_{xx}`` and ``\sigma_{yx}' = \sigma_{xy}`` to 
+utilizes the relationships ``\sigma_{yy}' = -\sigma_{xx}'`` and ``\sigma_{yx}' = \sigma_{xy}'`` to 
 reduce computational storage requirements. The Boussinesq approximation is used to account for the 
 effects of temperature and pressure on density in the gravitation terms in [Eq.](@ref eq:x-stokes) and 
 [Eq.](@ref eq:y-stokes) while maintaining the assumptions of incompressibility from 
@@ -69,7 +69,7 @@ effects of temperature and pressure on density in the gravitation terms in [Eq.]
 ```
 
 where ``\rho_{ref}`` is the reference density, ``\alpha`` is the thermal expansion coefficient,
-``T_{ref}`` is the reference temperature (298.15 K), ``\beta`` is the compressibility coefficient,
+``T_{ref}`` is the reference temperature (298.15 K), ``\beta`` is the compressibility coefficient, and
 ``P_{ref}`` is the reference pressure (``10^5 Pa``). Gravitational acceleration in the x-direction is set 
 equal to zero, ``g_x = 0``, and in the y-direction gravitational acceleration is set to ``g_y = 9.8`` 
 m/s``^2``. The visco-plastic viscosity term ``\eta_{vp}`` is given by:
@@ -101,8 +101,8 @@ where ``\sigma_{II}`` is the second invariant of the stress tensor given by
 ```
 
 Visco-plastic viscosity ``\eta_{vp}`` is is limited by a minimum value and a maximum value to
-avoid numerical issues. A typical minimum viscosity used in EarthBox simulations is ``10^18 Pa \cdot s``,
-and a typical maximum viscosity is ``10^26 Pa \cdot s``.
+avoid numerical issues. A typical minimum viscosity used in EarthBox simulations is ``10^{18} Pa \cdot s``,
+and a typical maximum viscosity is ``10^{26} Pa \cdot s``.
 
 The yield stress ``\sigma_{yield}`` is given by the following equations:
 

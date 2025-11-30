@@ -15,16 +15,16 @@ import EarthBox.MeltModel.MeltDamage: linear_melt_damage_probability_model
 
 function run_test()::Nothing
     avg_shallow_partial_melt_xcoor_mantle = 250_000.0
-    melt_damage_distance = 20_000.0
+    melt_damage_distance = 2500.0
     melt_damage_factor = 10.0
     maximum_damage_probability = 0.8
 
-    xo_plot = avg_shallow_partial_melt_xcoor_mantle - 40_000.0
-    xf_plot = avg_shallow_partial_melt_xcoor_mantle + 40_000.0
+    xo_plot = avg_shallow_partial_melt_xcoor_mantle - 2500.0
+    xf_plot = avg_shallow_partial_melt_xcoor_mantle + 2500.0
 
-    xo = 0.0
-    xf = 500_000.0
-    dx = 500.0
+    xo = avg_shallow_partial_melt_xcoor_mantle - 2500.0
+    xf = avg_shallow_partial_melt_xcoor_mantle + 2500.0
+    dx = 50.0
     nx = floor(Int, (xf - xo) / dx) + 1
 
     xcoors = range(xo, xf, length=nx)
@@ -52,11 +52,20 @@ function run_test()::Nothing
         end
     end
 
-    p1 = plot(xcoors, damage_array, xlims=(xo_plot, xf_plot), ylims=(0.0, 15.0))
-    savefig(p1, "melt_damage.png")
+    p1 = scatter(
+        xcoors/1000.0,
+        damage_array,
+        xlims=(xo_plot/1000.0, xf_plot/1000.0),
+        ylims=(0.0, 11.0),
+        yticks=0:1:11,
+        label = "",
+        legend = false,
+        markersize = 2
+    )
+    savefig(p1, "melt_damage.pdf")
 
-    p2 = plot(xcoors, prob_array, xlims=(xo_plot, xf_plot), ylims=(0.0, 1.0))
-    savefig(p2, "melt_damage_prob.png")
+    p2 = plot(xcoors/1000.0, prob_array, xlims=(xo_plot/1000.0, xf_plot/1000.0), ylims=(0.0, 1.0))
+    savefig(p2, "melt_damage_prob.pdf")
 
     magmatic_crust_height_threshold = 500.0
     magmatic_crust_height_minimum = 750.0
@@ -86,7 +95,7 @@ function run_test()::Nothing
     end
     
     p3 = plot(xth_pts, prob_array, xlims=(xtho, xthf), ylims=(0.0, 1.0))
-    savefig(p3, "melt_damage_prob_linear.png")
+    savefig(p3, "melt_damage_prob_linear.pdf")
     
     return nothing
 end

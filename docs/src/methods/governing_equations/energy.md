@@ -11,10 +11,11 @@ Temperature is obtained by solving the conservation of energy equation as given 
 ```
 
 where ``T`` is the temperature, ``C_p`` is the specific heat capacity, ``k`` is the thermal
-conductivity, ``H_{rad}`` is the radiogenic heat production, ``H_{shear}`` is the shear heating, 
-``H_{adi}`` is the adiabatic heating, ``H_{melt}`` is the latent heat of melting and 
-crystallization, ``H_{exo}`` is the heat produced from from exothermic serpentinization reactions 
-and ``\frac{DT}{Dt}`` is the substantive time temperature derivative defined as:
+conductivity, ``H_{rad}`` is the radiogenic heat production term, ``H_{shear}`` is the shear heating term, 
+``H_{adi}`` is the adiabatic term, ``H_{melt}`` is a melting-processes term associated with the latent 
+heat of melting and crystallization, ``H_{exo}`` is a serpentinization term associated with the heat 
+produced from from exothermic serpentinization reactions and ``\frac{DT}{Dt}`` is the substantive 
+time-temperature derivative defined as:
 
 ###### eq:substantive-temperature-derivative
 ```math
@@ -56,7 +57,7 @@ H_{shear} = \frac{\sigma_{xx}'^{2}}{\eta_{vp}} + \frac{\sigma_{xy}'^{2}}{\eta_{v
 ```
 
 where ``\sigma_{xx}'`` and ``\sigma_{xy}'`` are the deviatoric components of the stress tensor and
-``\eta_{vp}`` is the visco-plastic effective viscosity. The adiabatic heating term ``H_{adi}`` is 
+``\eta_{vp}`` is the visco-plastic effective viscosity. The adiabatic term ``H_{adi}`` is 
 defined using the following equation:
 
 ###### eq:adiabatic-heating

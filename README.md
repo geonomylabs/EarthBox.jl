@@ -41,7 +41,7 @@ includes dislocation creep, diffusion creep, Peierls creep, the effects of visco
 softening associated with grain size reduction and the effects of partial melting. 
 The frictional plasticity model incorporates strain weakening and a novel 
 probabilistic frictional-plastic melt damage model that activates above regions of 
-melt focusing in partially molten mantle.
+melt focusing in partially molten mantle [[7](#ref7)].
 
 The goals of the EarthBox.jl project are two-fold: 
 1. To create an easy-to-use and easy-to-modify geodynamic modeling framework with 
@@ -52,7 +52,7 @@ The goals of the EarthBox.jl project are two-fold:
 EarthBox.jl is currently 2D with an experimental 3D multigrid solver that will be integrated 
 into the EarthBox system during a future release. EarthBox is developed using the 
 Julia programming language and includes arm's-length integration with the parallel 
-direct solver MUMPS [[7](#ref7)]. EarthBox prevents simulation failures that
+direct solver MUMPS [[8](#ref8)]. EarthBox prevents simulation failures that
 can be caused by the stochastic nature of the MUMPS solver.
 
 If you use EarthBox.jl in academic, scientific, or technical work,
@@ -157,8 +157,15 @@ julia> ]
 
 ## Run a Model and Plot Results
 
-Download the `models` directory from the EarthBox package, navigate
-to `models/lithospheric_extension/extension_weak_fault`, change the 
+Download the `models` directory from the EarthBox package or copy the model
+collection packaged with EarthBox to your local directory using the REPL:
+
+```julia
+julia> using EarthBox
+julia> get_models()
+```
+
+Next, navigate to `models/lithospheric_extension/extension_weak_fault`, change the 
 `ROOT_OUTPUT_PATH` in `Model.jl` to a desired output location and then 
 run the model using the following command:
 
@@ -507,6 +514,9 @@ well with `MUMPS.jl` version `1.5.1`:
 [6] Dietterich, H. R.; Lev, E.; Chen, J.; Richardson, J. A. and Cashman, K. V. (2017). Benchmarking computational fluid dynamics models of lava flow simulation for hazard assessment, forecasting, and risk management. Journal of Applied Volcanology 6, 9.
 
 <a id="ref7"></a>
-[7] Amestoy, P.; Duff, I. S.; Koster, J. and L'Excellent, J.-Y. (2001). A Fully Asynchronous Multifrontal Solver Using Distributed Dynamic Scheduling. SIAM Journal on Matrix Analysis and Applications 23, 15–41.
+[7] Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models with Extrusive Surface Processes. EarthArXiv Preprints. Preprint.
+
+<a id="ref8"></a>
+[8] Amestoy, P.; Duff, I. S.; Koster, J. and L'Excellent, J.-Y. (2001). A Fully Asynchronous Multifrontal Solver Using Distributed Dynamic Scheduling. SIAM Journal on Matrix Analysis and Applications 23, 15–41.
 
 
