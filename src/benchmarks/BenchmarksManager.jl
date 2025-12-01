@@ -179,13 +179,13 @@ function run_tests(
         error("test_dict is not defined.")
     end
     for (test_name, isactive) in test_dict
-        println("\n=============================================================")
-        println("Working on benchmark test: $test_name")
-        println("=============================================================\n")
         if !isa(test_name, Symbol)
             error("test_dict key $test_name is not a Symbol. Correct inputs")
         end
         if isactive
+            println("\n=============================================================")
+            println("Working on benchmark test: $test_name")
+            println("=============================================================\n")
             option = get_option_state(String(test_name))
             PrintFuncs.print_option_info(String(test_name), option.description)
             bench.main_paths["model_name"] = String(test_name)
