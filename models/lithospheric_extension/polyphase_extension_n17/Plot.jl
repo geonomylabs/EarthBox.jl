@@ -37,7 +37,7 @@ Plot.marker_plots(
     istart = 1,
     iend = 100
 );
-
+```
 Note that `istart` and `iend` are not used by the stokes convergence and yield 
 strength plotting functions.
 
@@ -53,7 +53,7 @@ import .Model: ROOT_PATH_OUTPUT
 
 const dimensions = (0.0, 500.0, 0.0, 120.0)
 const xyspacing = (50.0, 10.0)
-const model_figsize = (10.0, 4.0)
+const model_figsize = (10.0, 8.0)
 
 function scalar_plots(;
     model_output_path::String,
@@ -105,17 +105,19 @@ function marker_plots(;
     iend::Union{Int64, Nothing} = nothing
 )::Nothing
     plot_markers(
-        plot_type=:CompositionHeatFlow,
+        plot_type=:CompositionHeatFlowGravity,
         model_output_path=model_output_path,
         material_library_file_path=MATERIAL_COLLECTION.path,
         materials_input_dict=get_materials_input_dict(),
+        figsize=model_figsize,
         dimensions=dimensions,
         xyspacing=xyspacing,
+        xy_location_contour_legend = (2.0, 5.0),
         istart=istart, iend=iend,
         # General marker parameters
         marker_size=2.0, decimation_factor=5,
         plot_mesh=0, mesh_line_width=0.1,
-        plot_contour_labels=1, contour_line_width=1.0, contour_line_color="black",
+        plot_contour_labels=0, contour_line_width=1.0, contour_line_color="black",
         # Topography parameters
         plot_topography=1, topo_line_width=1.0, 
         topo_line_color="red",
@@ -123,7 +125,7 @@ function marker_plots(;
         plot_base_level=1, base_level_line_width=1.0,
         base_level_line_color="blue",
         # Melt fraction parameters
-        plot_meltfrac_contours=1, melt_fraction_min=0.0,
+        plot_meltfrac_contours=0, melt_fraction_min=0.0,
         melt_fraction_max=0.2, melt_fraction_contour_interval=0.05,
         meltfrac_contour_color="red", meltfrac_number_format="%6.2f",
         # Plastic strain parameters
@@ -135,19 +137,19 @@ function marker_plots(;
         strain_rate_min = -18, strain_rate_max = -12,
         strain_rate_contour_interval = 0.5, strain_rate_cmap = "Reds",
         # Sediment age parameters
-        plot_sediment_age=1,
+        plot_sediment_age=0,
         age_min=0.0, age_max=18.0,
         age_contour_interval=0.25, age_cmap="hsv",
         # Intrusive age parameters
-        plot_intrusive_age=1,
+        plot_intrusive_age=0,
         age_min_intrusive=0.0, age_max_intrusive=10.0,
         age_contour_interval_intrusive=0.2, age_cmap_intrusive="rainbow",
         # Volcanics age parameters
-        plot_volcanics_age=1,
+        plot_volcanics_age=0,
         age_min_volcanics=0.0, age_max_volcanics=18.0,
         age_contour_interval_volcanics=0.1,
         # Serpentinization parameters
-        plot_serpentinization=1,
+        plot_serpentinization=0,
         serpentinization_min=0.0, serpentinization_max=1.0,
         serpentinization_contour_interval=0.1, serpentinization_cmap="Greens",
         # Temperature contours parameters
@@ -159,7 +161,9 @@ function marker_plots(;
         # Heat flow parameters
         heatflow_min=0.0, heatflow_max=200.0,
         heatflow_spacing=50.0,
-        figsize = model_figsize
+        # Gravity Parameters (mgal)
+        gravity_min=-1000.0, gravity_max=1000.0,
+        gravity_spacing=200.0
     )
     return nothing
 end

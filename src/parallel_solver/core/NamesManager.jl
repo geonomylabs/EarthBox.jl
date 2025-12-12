@@ -9,6 +9,7 @@ MUMPS solver loop.
 # Fields
 - `termination_info_file_name`: Binary file with integer indicating whether external solver should terminate
     - 0 = don't terminate, -1 = terminate
+- `mumps_solver_config_file_name`: Text file containing the MUMPS solver configuration parameters
 - `ready_to_solve_file_name`: Text file signaling system is ready to be solved. The existence of this file
     indicates that the information has been exported necessary to solve the system of equations.
 - `solution_flag_file_name`: Binary file with integer indicating solution status:
@@ -21,6 +22,7 @@ Base.@kwdef struct FileAndDirNames
     termination_info_file_name::String = "termination_info_0001.bin"
     ready_to_solve_file_name::String = "ready_to_solve_0001.txt"
     solution_flag_file_name::String = "solution_flag_0001.bin"
+    mumps_solver_config_file_name::String = "mumps_solver_config_0001.txt"
     soe_dir_name::String = "system_of_equations"
     soe_file_name::String = "system_of_equations.jld"
 end

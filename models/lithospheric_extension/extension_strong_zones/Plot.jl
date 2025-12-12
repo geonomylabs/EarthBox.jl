@@ -37,6 +37,7 @@ Plot.marker_plots(
     istart = 1,
     iend = 100
 );
+```
 
 Note that `istart` and `iend` are not used by the stokes convergence and yield 
 strength plotting functions.

@@ -38,7 +38,7 @@ using EarthBox
 include("Materials.jl")
 import .Materials: get_materials_input_dict, MATERIAL_COLLECTION
 
-const ROOT_PATH_OUTPUT = "/mnt/extradrive1/earthbox_output/lithospheric_extension/polyphase_extension_n17"
+const ROOT_PATH_OUTPUT = "/mnt/extradrive1/earthbox_output/polyphase_extension_n17"
 
 # Get the input parameters object so names can be accessed programmatically
 const PARAMS = get_eb_parameters()
@@ -53,7 +53,7 @@ const thick_upper_crust        = 22_000.0 # meters
 const thick_lith               = 100_000.0 # meters
 const marker_spacing           = 100.0 # meters (50 m for high resolution case)
 const grid_spacing_high_res    = 500.0 # meters (200 m for high resolution case)
-const avg_grid_spacing_low_res = 2000.0 # meters
+const avg_grid_spacing_low_res = 2000.0 # meters (1000 m for high resolution case)
 const temperature_base_lith_celsius = 1330.0
 
 function run_case(;case_name::String="case0")::Nothing
@@ -89,7 +89,8 @@ function setup_model(;model_output_path::String)::EarthBoxState
         dx_marker                   = marker_spacing,
         dy_marker                   = marker_spacing,
         ttype_refinement_parameters = ttype_refinement_parameters,
-        use_mumps                   = false,
+        use_mumps                   = true,
+        analysis_method             = :PARALLEL,
         nprocs                      = 8,
         paths                       = Dict("output_dir" => model_output_path)
     )
@@ -269,7 +270,7 @@ function initialize_advection_model(eb::EarthBoxState)::Nothing
         eb.model_manager.model,
         advection_scheme                  = advection_scheme_names.RungeKutta4thOrder,
         iuse_local_adaptive_time_stepping = 1,
-        marker_cell_displ_max             = 4.0, # fraction
+        marker_cell_displ_max             = 0.5, # fraction
         subgrid_diff_coef_temp            = 1.0,
         subgrid_diff_coef_stress          = 1.0
     )    

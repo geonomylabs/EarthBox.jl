@@ -32,24 +32,18 @@ function print_error(msg::String; level::Int=1)
     end
 end
 
-""" Solve system of equations using MUMPS.
+"""
+    solve_system_io_comm(soe_dir_path::String)::Nothing
+
+Solve system of equations using MUMPS with file IO communication.
 
 This function is run on multiple CPUs. Only the CPU with rank 0 reads
 the system of equations and saves the resulting solution vector to file.
 
 # Arguments
-- `analysis_method_itype`: Analysis step method (1 = serial, 2 = parallel)
-- `parallel_ordering_method_itype`: Parallel ordering method (1 = PT-SCOTCH, 2 = ParMETIS)
-- `verbose_output_itype`: Verbose output flag (0 = silent, 1 = verbose)
-- `memory_relax_perc`: Memory relaxation percentage
+- `soe_dir_path::String`: Path to the system of equations directory
 """
-function solve_system_io_comm(
-    analysis_method_itype::Int,
-    parallel_ordering_method_itype::Int,
-    verbose_output_itype::Int,
-    memory_relax_perc::Int,
-    soe_dir_path::String
-)::Nothing
+function solve_system_io_comm(soe_dir_path::String)::Nothing
     MPI.Init()
     comm = MPI.COMM_WORLD
     rank = MPI.Comm_rank(comm)
@@ -89,6 +83,11 @@ function solve_system_io_comm(
                     MUMPS.mumps_unsymmetric, MUMPS.default_icntl, MUMPS.default_cntl64)
                 # Set analysis step parameters on all processes
                 if rank == root
+                    (
+                        analysis_method_itype, parallel_ordering_method_itype, 
+                        verbose_output_itype, memory_relax_perc
+                    ) = read_solver_config_file(soe_dir_path)
+                    remove_solver_config_file(soe_dir_path)
                     MUMPS.set_icntl!(mumps, 28, analysis_method_itype)
                     MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype)
                     MUMPS.set_icntl!(mumps, 14, memory_relax_perc)
@@ -109,7 +108,9 @@ function solve_system_io_comm(
                         break
                     end
                     
-                    (N, Li, Lj, Lv, rhs) = SystemReader.read_system_of_equations_from_file(soe_dir_path)
+                    (
+                        N, Li, Lj, Lv, rhs
+                    ) = SystemReader.read_system_of_equations_from_file(soe_dir_path)
 
                     A = SparseArrays.sparse(Li, Lj, Lv, N, N)
                     MUMPS.associate_matrix!(mumps, A)
@@ -189,6 +190,36 @@ function has_a_ready_to_solve_file(soe_dir_path::String)::Bool
     return isfile(file_path)
 end
 
+function read_solver_config_file(soe_dir_path::String)::Tuple{Int, Int, Int, Int}
+    names = NamesManager.FileAndDirNames()
+    file_name = names.mumps_solver_config_file_name
+    file_path = joinpath(soe_dir_path, file_name)
+    open(file_path, "r") do f
+        analysis_method = readline(f)
+        parallel_ordering_method = readline(f)
+        (
+            analysis_method_itype, 
+            parallel_ordering_method_itype
+        ) = get_integer_option_values(
+            analysis_method,
+            parallel_ordering_method
+        )
+        verbose_output = parse(Int, readline(f))
+        memory_relax_perc = parse(Int, readline(f))
+        return (analysis_method_itype, parallel_ordering_method_itype, verbose_output, memory_relax_perc)
+    end
+end
+
+function remove_solver_config_file(soe_dir_path::String)::Nothing
+    names = NamesManager.FileAndDirNames()
+    file_name = names.mumps_solver_config_file_name
+    file_path = joinpath(soe_dir_path, file_name)
+    if isfile(file_path)
+        rm(file_path)
+    end
+    return nothing
+end
+
 function create_solution_flag_file(soe_dir_path::String, solution_flag::Int64)::Nothing
     names = NamesManager.FileAndDirNames()
     solution_file_name = names.solution_flag_file_name
@@ -209,13 +240,18 @@ function get_termination_info_files(soe_dir_path::String)::Vector{String}
     return termination_info_files
 end
 
-function solve_system_mpi_comm(
-    analysis_method_itype::Int,
-    parallel_ordering_method_itype::Int,
-    verbose_output_itype::Int,
-    memory_relax_perc::Int,
-    soe_dir_path::String
-)::Nothing
+"""
+    solve_system_mpi_comm(soe_dir_path::String)::Nothing
+
+Solve system of equations using MUMPS with MPI array passing.
+
+This function is run on multiple CPUs. Only the CPU with rank 0 receives
+the system of equations and the solution vector from the parent process.
+
+# Arguments
+- `soe_dir_path::String`: Path to the system of equations directory
+"""
+function solve_system_mpi_comm(soe_dir_path::String)::Nothing
     MPI.Init()
     parent = MPI.Comm_get_parent()
     comm = MPI.COMM_WORLD
@@ -252,9 +288,14 @@ function solve_system_mpi_comm(
                     MUMPS.mumps_unsymmetric, MUMPS.default_icntl, MUMPS.default_cntl64)
                 # Set analysis step parameters on all processes
                 if rank == root
+                    (
+                        analysis_method_itype, parallel_ordering_method_itype, 
+                        verbose_output_itype, memory_relax_perc
+                    ) = read_solver_config_file(soe_dir_path)
+                    remove_solver_config_file(soe_dir_path)
                     MUMPS.set_icntl!(mumps, 28, analysis_method_itype)
                     MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype)
-                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc)
+                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc)   
                     if verbose_output_itype == 0
                         MUMPS.set_icntl!(mumps, 1, 6)   # Error messages to stderr
                         MUMPS.set_icntl!(mumps, 2, 0)  # Diagnostics suppressed

@@ -265,8 +265,8 @@ parameters. MPI is also initialized if the MUMPS solver is used.
        Set to "SERIAL" if you are having issues with the "PARALLEL" option.
 - `parallel_ordering_method::Union{String, Symbol, Nothing}`
     - Parallel ordering method to use for the MUMPS solver. Options are "PTSCOTCH" 
-       and "ParMETIS". The "ParMETIS" option. The "PTSCOTCH" is sometimes not
-       available with Julia MUMPS binaries.
+       and "ParMETIS". The "ParMETIS" option is the default. The "PTSCOTCH" option 
+       is sometimes not available with Julia MUMPS binaries.
 - `memory_relax_perc::Int`
     - Memory relaxation percentage to use for the MUMPS solver. Default is 25.
 - `verbose_output::Int`
@@ -499,7 +499,8 @@ function EarthBoxState(;
             )
         set_mumps_solver_options(
             model_manager, 
-            analysis_method, parallel_ordering_method, memory_relax_perc, verbose_output
+            analysis_method, parallel_ordering_method, 
+            memory_relax_perc, verbose_output
         )
         RunMumpsSolverLoop.initialize_persistent_solver(model_manager.config.solver, mpi_comm)
         EarthBoxPaths.check_output_dir(eb_paths)
