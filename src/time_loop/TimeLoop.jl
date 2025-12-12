@@ -131,6 +131,7 @@ function run_loop!(model_manager::ModelManagerState)::Nothing
     SurfaceProcesses.reset_marker_compaction_properties!(model)
     initialize_next_eruption_time!(model)
     inside_flags = GridFuncs.get_marker_inside_flags(model)
+
     t1 = time()
     for _ntimestep in _ntimestep_initial:ntimestep_max
         model_manager.loop_time_start = time()

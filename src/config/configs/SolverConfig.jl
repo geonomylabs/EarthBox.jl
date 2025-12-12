@@ -147,7 +147,8 @@ function print_mumps_solver_info(config::SolverConfigState, nmumps::Int)
     print_info(
         "MUMPS solver run $(nmumps): number of processors $(config.nproc): "
         *"analysis_method $(config.analysis_method): parallel_ordering_method $(config.parallel_ordering_method): "
-        *"memory_relax_perc $(config.memory_relax_perc)",
+        *"memory_relax_perc $(config.memory_relax_perc): "
+        *"verbose_output $(config.verbose_output)", 
         level=2
     )
 end

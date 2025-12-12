@@ -176,13 +176,7 @@ function make_command(
     mpi_project_path::Union{String, Nothing}
 )::Cmd
     nproc = solver_config.nproc
-
-    analysis_method = solver_config.analysis_method
-    parallel_ordering_method = solver_config.parallel_ordering_method
-    verbose_output = solver_config.verbose_output
-    memory_relax_perc = solver_config.memory_relax_perc
     pass_large_arrays_via_mpi = false
-    # path_to_earthbox = dirname(solver_config.src_dir)
     
     no_startup = "--startup-file=no"
     if mpi_project_path !== nothing
@@ -195,10 +189,6 @@ function make_command(
     soe_dir_path = get_soe_dir_path(solver_config)
 
     args = [
-        string(analysis_method),
-        string(parallel_ordering_method),
-        string(verbose_output),
-        string(memory_relax_perc),
         soe_dir_path,
         string(pass_large_arrays_via_mpi),
     ]
@@ -261,10 +251,6 @@ function get_args(
     solver_config::SolverConfigState,
     path_to_mumps_script::String
 )::Vector{String}
-    analysis_method = solver_config.analysis_method
-    parallel_ordering_method = solver_config.parallel_ordering_method
-    verbose_output = solver_config.verbose_output
-    memory_relax_perc = solver_config.memory_relax_perc
     pass_large_arrays_via_mpi = solver_config.pass_large_arrays_via_mpi
 
     path_to_earthbox = dirname(solver_config.src_dir)
@@ -278,10 +264,6 @@ function get_args(
         no_startup,
         no_banner,
         script_path,
-        analysis_method,
-        parallel_ordering_method,
-        string(verbose_output),
-        string(memory_relax_perc),
         soe_dir_path,
         string(pass_large_arrays_via_mpi)
     ]
@@ -377,6 +359,8 @@ function execute_mumps_with_timeout_io_comm(
         # Create a solver ready file to signal to the child process that it is time
         # to start solving the system of equations
         create_solver_ready_file(soe_dir_path)
+        # Create a solver config file to store the solver configuration parameters
+        create_solver_config_file(solver_config)
 
         # Initialize solution flag to 0 (system not solved)
         solution_flag = 0
@@ -467,6 +451,29 @@ function create_solver_ready_file(soe_dir_path::String)::Nothing
     return nothing
 end
 
+function create_solver_config_file(solver_config::SolverConfigState)::Nothing
+    # String: "PARALLEL" or "SERIAL"
+    analysis_method = string(solver_config.analysis_method)
+    # String: "PTSCOTCH" or "ParMETIS"
+    parallel_ordering_method = string(solver_config.parallel_ordering_method)
+    # Int: 0 = silent, 1 = verbose
+    verbose_output = solver_config.verbose_output
+    # Int: Memory relaxation percentage in the form of an integer
+    memory_relax_perc = solver_config.memory_relax_perc
+    # Path to the system of equations directory
+    soe_dir_path = get_soe_dir_path(solver_config)
+
+    names = NamesManager.FileAndDirNames()
+    config_file_path = joinpath(soe_dir_path, names.mumps_solver_config_file_name)
+    open(config_file_path, "w") do f
+        println(f, analysis_method)
+        println(f, parallel_ordering_method)
+        println(f, string(verbose_output))
+        println(f, string(memory_relax_perc))
+    end
+    return nothing
+end
+
 function clean_up_soe_dir(solver_config::SolverConfigState)::Nothing
     soe_dir_path = get_soe_dir_path(solver_config)
     remove_termination_file(soe_dir_path)
@@ -548,6 +555,9 @@ function execute_mumps_with_timeout_mpi_comm(
     pymumps_timeout = solver_config.pymumps_timeout
     loop_check_time = 1.0
     try
+        # Create a solver config file to store the solver configuration parameters
+        create_solver_config_file(solver_config)
+
         #MPI.Send(matrix_info, 0, 0, inter)
         req = MPI.Isend(matrix_info, 0, 0, inter)
         MPI.Wait(req)

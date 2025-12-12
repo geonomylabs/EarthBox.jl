@@ -68,7 +68,8 @@ function parallel_direct_solver(
     pass_large_arrays_via_mpi = solver_config.pass_large_arrays_via_mpi
 
     if !pass_large_arrays_via_mpi
-        soe_dir_path = export_system_of_equations_for_mumps(output_dir, N, Li, Lj, Lv, R)
+        soe_dir_path = export_system_of_equations_for_mumps(
+            output_dir, N, Li, Lj, Lv, R)
     end
     
     nmumps_max = 5
