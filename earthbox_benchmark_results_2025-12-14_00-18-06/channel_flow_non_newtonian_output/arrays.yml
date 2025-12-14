@@ -1,0 +1,2214 @@
+RC1:
+  name: "RC1"
+  reference: "model.stokes_continuity.arrays.rhs.RC1.array"
+  units: ""
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Right-hand side values on pressure grid for continuity equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+RHS:
+  name: "RHS"
+  reference: "model.stokes_continuity.arrays.rhs.RHS.array"
+  units: ""
+  shape: "3000"
+  type: "Vector{Float64}"
+  description: "Discretized right-hand side array for Stokes-continuity equation"
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+RHSheat:
+  name: "RHSheat"
+  reference: "model.heat_equation.arrays.rhs.RHSheat.array"
+  units: "K"
+  shape: "1071"
+  type: "Vector{Float64}"
+  description: "`(ynum*xnum)` : Right-hand side array for heat equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+RT1:
+  name: "RT1"
+  reference: "model.heat_equation.arrays.rhs.RT1.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Right-hand side values at grid node locations."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+RX1:
+  name: "RX1"
+  reference: "model.stokes_continuity.arrays.rhs.RX1.array"
+  units: "m/s or Pa"
+  shape: "22,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : Right-hand side values on vx grid for x-Stokes equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+RY1:
+  name: "RY1"
+  reference: "model.stokes_continuity.arrays.rhs.RY1.array"
+  units: "m/s or Pa"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Right-hand side values on vy grid for y-Stokes equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+avg_shallow_partial_melt_xcoors:
+  name: "avg_shallow_partial_melt_xcoors"
+  reference: "model.melting.arrays.extraction.avg_shallow_partial_melt_xcoors.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Average x-coordinates of the shallowest partial melt marker in drainage basins in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+avg_shallow_partial_melt_ycoors:
+  name: "avg_shallow_partial_melt_ycoors"
+  reference: "model.melting.arrays.extraction.avg_shallow_partial_melt_ycoors.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Average y-coordinates of the shallowest partial melt marker in drainage basins in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bback:
+  name: "bback"
+  reference: "model.bcs.arrays.velocity.bback.array"
+  units: "m/s"
+  shape: "22,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 6)` : Velocity boundary conditions along back boundary: 
+    	 vx[i,j,znum+1] = bback[i,1] + vx[i,j,znum]*bback[i,2] 
+    	 vy[i,j,znum+1] = bback[i,3] + vy[i,j,znum]*bback[i,4] 
+    	 vz[i,j,znum  ] = bback[i,5] + vz[i,j,znum-1]*bback[i,6]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bbackx:
+  name: "bbackx"
+  reference: "model.bcs.arrays.vel_comp.bbackx.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vx boundary condition along back boundary: 
+    	 vx[i,j,znum+1] = bbackx[i,j,1] + vx[i,j,znum]*bbackx[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bbacky:
+  name: "bbacky"
+  reference: "model.bcs.arrays.vel_comp.bbacky.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vy boundary condition along back boundary: 
+    	 vy[i,j,znum+1] = bbacky[i,j,1] + vy[i,j,znum]*bbacky[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bbackz:
+  name: "bbackz"
+  reference: "model.bcs.arrays.vel_comp.bbackz.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vz boundary condition along back boundary: 
+    	 vz[i,j,znum  ] = bbackz[i,j,1] + vz[i,j,znum-1]*bbackz[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bbottom:
+  name: "bbottom"
+  reference: "model.bcs.arrays.velocity.bbottom.array"
+  units: "m/s"
+  shape: "52,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 6)` : Velocity boundary conditions along bottom boundary: 
+    	 vx[ynum+1,j,:] = bbottom[j,1] + vx[ynum  ,j,:]*bbottom[j,2] 
+    	 vy[ynum  ,j,:] = bbottom[j,3] + vy[ynum-1,j,:]*bbottom[j,4] 
+    	 vz[ynum+1,j,:] = bbottom[j,5] + vz[ynum  ,j,:]*bbottom[j,6]
+  min: 0.0
+  max: 1.0
+  mean: 0.3333333333333333
+bbottomt:
+  name: "bbottomt"
+  reference: "model.bcs.arrays.temperature.bbottomt.array"
+  units: "K"
+  shape: "51,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum, 2)` : Temperature boundary condition along bottom boundary: 
+    	 tk[ynum][j] = bbottomt[j][1] + tk[ynum-1][j]*bbottomt[j][2]
+  min: 0.0
+  max: 273.0
+  mean: 136.5
+bbottomx:
+  name: "bbottomx"
+  reference: "model.bcs.arrays.vel_comp.bbottomx.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vx boundary condition along bottom boundary: 
+    	 vx[ynum+1,j,:] = bbottomx[j,1] + vx[ynum, j,:]*bbottomx[j,2]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+bbottomy:
+  name: "bbottomy"
+  reference: "model.bcs.arrays.vel_comp.bbottomy.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vy along bottom boundary: 
+    	 vy[ynum,j,:] = bbottomy[j,1] + vy[ynum-1, j,:]*bbottomy[j,2]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+bbottomz:
+  name: "bbottomz"
+  reference: "model.bcs.arrays.vel_comp.bbottomz.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vz boundary condition along bottom boundary: 
+    	 vz[ynum+1,j,:] = bbottomz[j,1] + vz[ynum, j,:]*bbottomz[j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bfront:
+  name: "bfront"
+  reference: "model.bcs.arrays.velocity.bfront.array"
+  units: "m/s"
+  shape: "22,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 6)` : Velocity boundary conditions along front boundary: 
+    	 vx[i,j,1] = bfront[i,1] + vx[i,j,2]*bfront[i,2] 
+    	 vy[i,j,1] = bfront[i,3] + vy[i,j,2]*bfront[i,4] 
+    	 vz[i,j,1] = bfront[i,5] + vz[i,j,2]*bfront[i,6]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bfrontx:
+  name: "bfrontx"
+  reference: "model.bcs.arrays.vel_comp.bfrontx.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vx boundary condition along front boundary: 
+    	 vx[i,j,1] = bfrontx[i,j,1] + vx[i,j,2]*bfrontx[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bfronty:
+  name: "bfronty"
+  reference: "model.bcs.arrays.vel_comp.bfronty.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vy boundary condition along front boundary: 
+    	 vy[i,j,1] = bfronty[i,j,1] + vy[i,j,2]*bfronty[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bfrontz:
+  name: "bfrontz"
+  reference: "model.bcs.arrays.vel_comp.bfrontz.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vz boundary condition along front boundary: 
+    	 vz[i,j,1] = bfrontz[i,j,1] + vz[i,j,2]*bfrontz[i,j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bintern_velocity:
+  name: "bintern_velocity"
+  reference: "model.bcs.arrays.internal.bintern_velocity.array"
+  units: "NA"
+  shape: "8"
+  type: "Vector{Float64}"
+  description:
+    - "1: (not used)"
+    - "2: (not used)"
+    - "3: (not used)"
+    - "4: Prescribed x-velocity, m/s"
+    - "5: (not used)"
+    - "6: (not used)"
+    - "7: (not used)"
+    - "8: Prescribed y-velocity, m/s"
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bintern_zone:
+  name: "bintern_zone"
+  reference: "model.bcs.arrays.internal.bintern_zone.array"
+  units: "NA"
+  shape: "8"
+  type: "Vector{Int64}"
+  description:
+    - "1: Horizontal position of vx nodes with prescribed velocity [no such condition if negative]"
+    - "2: Min vertical position"
+    - "3: Max vertical position"
+    - "4: (not used)"
+    - "5: Horizontal position of vy nodes with prescribed velocity [no such condition if negative]"
+    - "6: Min vertical position"
+    - "7: Max vertical position"
+    - "8: (not used)"
+  min: -1
+  max: -1
+  mean: -1.0
+bleft:
+  name: "bleft"
+  reference: "model.bcs.arrays.velocity.bleft.array"
+  units: "m/s"
+  shape: "22,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 6)` : Velocity boundary conditions along left boundary: 
+    	 vx[i,1,:] = bleft[i,1] + vx[i,2,:]*bleft[i,2] 
+    	 vy[i,1,:] = bleft[i,3] + vy[i,2,:]*bleft[i,4] 
+    	 vz[i,1,:] = bleft[i,5] + vz[i,2,:]*bleft[i,6]
+  min: -1.0
+  max: 0.0
+  mean: -0.16666666666666666
+bleftt:
+  name: "bleftt"
+  reference: "model.bcs.arrays.temperature.bleftt.array"
+  units: "K"
+  shape: "21,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum, 2)` : Temperature boundary condition along left boundary: 
+    	 tk[i][1] = bleftt[i][1] + bleftt[i][2]*tk[i][2]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+bleftx:
+  name: "bleftx"
+  reference: "model.bcs.arrays.vel_comp.bleftx.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vx boundary condition along left boundary: 
+    	 vx[i,1] = bleftx[i,1] + vx[i, 2]*bleftx[i,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+blefty:
+  name: "blefty"
+  reference: "model.bcs.arrays.vel_comp.blefty.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vy boundary condition along left boundary: 
+    	 vy[i,1] = blefty[i,1] + vy[i, 2]*blefty[i,2]
+  min: -1.0
+  max: 0.0
+  mean: -0.5
+bleftz:
+  name: "bleftz"
+  reference: "model.bcs.arrays.vel_comp.bleftz.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vz boundary condition along left boundary: 
+    	 vz[i,1,:] = bleftz[i,1] + vz[i,2,:]*bleftz[i,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+bright:
+  name: "bright"
+  reference: "model.bcs.arrays.velocity.bright.array"
+  units: "m/s"
+  shape: "22,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 6)` : Velocity boundary conditions along right boundary: 
+    	 vx[i,xnum  ,:] = bright[i,1] + vx[i,xnum-1,:]*bright[i,2] 
+    	 vy[i,xnum+1,:] = bright[i,3] + vy[i,xnum  ,:]*bright[i,4] 
+    	 vz[i,xnum+1,:] = bright[i,5] + vz[i,xnum  ,:]*bright[i,6]
+  min: -1.0
+  max: 0.0
+  mean: -0.16666666666666666
+brightt:
+  name: "brightt"
+  reference: "model.bcs.arrays.temperature.brightt.array"
+  units: "K"
+  shape: "21,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum, 2)` : Temperature boundary condition along right boundary: 
+    	 tk[i][xnum] = brightt[i][1] + brightt[i][2]*tk[i][xnum-1]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+brightx:
+  name: "brightx"
+  reference: "model.bcs.arrays.vel_comp.brightx.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vx boundary condition along right boundary: 
+    	 vx[i,xnum] = brightx[i, 1] + vx[i, xnum-1]*brightx[i,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+brighty:
+  name: "brighty"
+  reference: "model.bcs.arrays.vel_comp.brighty.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vy boundary condition along right boundary: 
+    	 vy[i,xnum+1] = brighty[i,1] + vx[i, xnum]*brighty[i,2]
+  min: -1.0
+  max: 0.0
+  mean: -0.5
+brightz:
+  name: "brightz"
+  reference: "model.bcs.arrays.vel_comp.brightz.array"
+  units: "m/s"
+  shape: "22,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(ynum+1, 2)` : Vz boundary condition along right boundary: 
+    	 vz[i,xnum+1,:] = brightz[i,1] + vz[i,xnum,:]*brightz[i,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+btop:
+  name: "btop"
+  reference: "model.bcs.arrays.velocity.btop.array"
+  units: "m/s"
+  shape: "52,6"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 6)` : Velocity boundary conditions along top boundary: 
+    	 vx[1,j,:] = btop[j,1] + vx[2,j,:]*btop[j,2] 
+    	 vy[1,j,:] = btop[j,3] + vy[2,j,:]*btop[j,4] 
+    	 vz[1,j,:] = btop[j,5] + vz[2,j,:]*btop[j,6]
+  min: 0.0
+  max: 1.0
+  mean: 0.3333333333333333
+btopt:
+  name: "btopt"
+  reference: "model.bcs.arrays.temperature.btopt.array"
+  units: "K"
+  shape: "51,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum, 2)` : Temperature boundary condition along top boundary: 
+    	 tk[1][j] = btopt[j][1] + tk[2][j]*btop[j][2]
+  min: 0.0
+  max: 273.0
+  mean: 136.5
+btopx:
+  name: "btopx"
+  reference: "model.bcs.arrays.vel_comp.btopx.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vx boundary condition along top boundary: 
+    	 vx[1,j,:] = btopx[j,1] + vx[2,j,:]*btopx[j,2]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+btopy:
+  name: "btopy"
+  reference: "model.bcs.arrays.vel_comp.btopy.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vy boundary condition along top boundary: 
+    	 vy[1,j,:] = btopy[j,1] + vy[2,j,:]*btopy[j,2]
+  min: 0.0
+  max: 1.0
+  mean: 0.5
+btopz:
+  name: "btopz"
+  reference: "model.bcs.arrays.vel_comp.btopz.array"
+  units: "m/s"
+  shape: "52,2"
+  type: "Matrix{Float64}"
+  description: |-
+    `(xnum+1, 2)` : Vz boundary condition along top boundary: 
+    	 vz[1,j,:] = btopz[j,1] + vz[2,j,:]*btopz[j,2]
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+cohesion_grid:
+  name: "cohesion_grid"
+  reference: "model.stokes_continuity.arrays.plastic_def.cohesion_grid.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Cohesion on basic grid interpolated from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+cohesion_grid0:
+  name: "cohesion_grid0"
+  reference: "model.stokes_continuity.arrays.plastic_def.cohesion_grid0.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of cohesion on basic grid interpolated from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dilatation_grid:
+  name: "dilatation_grid"
+  reference: "model.stokes_continuity.arrays.plastic_def.dilatation_grid.array"
+  units: "Degrees"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Dilatation angle on pressure grid interpolated from markers in Degrees."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dilatation_grid0:
+  name: "dilatation_grid0"
+  reference: "model.stokes_continuity.arrays.plastic_def.dilatation_grid0.array"
+  units: "None"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Backup of dilatation angle on pressure grid interpolated from markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dsxx:
+  name: "dsxx"
+  reference: "model.stokes_continuity.arrays.stress_change.dsxx.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Dual purpose array: First stores post-Stokes normal viscoelastic stress change (sxx2-sxx1) and then updated to final (remaining) normal stress change by subtracting relaxed grid nodal-marker stress differences (dsxxn) in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dsxxn:
+  name: "dsxxn"
+  reference: "model.stokes_continuity.arrays.stress_change.dsxxn.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Subgrid nodal-marker normal stress change on basic grid interpolated from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dsxy:
+  name: "dsxy"
+  reference: "model.stokes_continuity.arrays.stress_change.dsxy.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Dual purpose array: First stores post-Stokes viscoelastic stress change (sxy2-sxy1) and then updated to final (remaining) shear stress change by subtracting relaxed grid nodal-marker stress differences (dsxyn) in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dsxyn:
+  name: "dsxyn"
+  reference: "model.stokes_continuity.arrays.stress_change.dsxyn.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Subgrid nodal-marker shear stress change on basic grid interpolated from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dtk1:
+  name: "dtk1"
+  reference: "model.heat_equation.arrays.temperature.dtk1.array"
+  units: "K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Temperature change array in Kelvin used for: (1) defining temperature change (tk2 - tk0) on basic grid for iteration of adaptive time stepping heat loop, (2) defining temperature change on basic grid between new conductive solution and old advective transport array temperature (tk2 - tk1). Updated for subgrid diffusion by subtracting dtkn."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+dtkn:
+  name: "dtkn"
+  reference: "model.heat_equation.arrays.temperature.dtkn.array"
+  units: "K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Subgrid diffusive temperature change array in Kelvin interpolated from markers to basic grid used to update dkt1 for subgrid diffusion."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+eii:
+  name: "eii"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.eii.array"
+  units: "1/s"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Second invariant of deviatoric strain rate in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+eii_plastic_basic:
+  name: "eii_plastic_basic"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.eii_plastic_basic.array"
+  units: "1/s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Second invariant of plastic strain rate on basic grid in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+eii_plastic_pressure:
+  name: "eii_plastic_pressure"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.eii_plastic_pressure.array"
+  units: "1/s"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Second invariant of plastic strain rate on pressure grid in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+esp:
+  name: "esp"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.esp.array"
+  units: "1/s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Spin in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+eta_flow:
+  name: "eta_flow"
+  reference: "model.stokes_continuity.arrays.viscosity.eta_flow.array"
+  units: "Pa.s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Flow viscosity in Pa.s interpolated to basic grid from markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+eta_flow0:
+  name: "eta_flow0"
+  reference: "model.stokes_continuity.arrays.viscosity.eta_flow0.array"
+  units: "Pa.s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of flow viscosity on basic grid in Pa.s used for problematic interpolation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+etan0:
+  name: "etan0"
+  reference: "model.stokes_continuity.arrays.viscosity.etan0.array"
+  units: "Pa.s"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Old viscoplastic normal viscosity array in Pa.s used for: (1) backup of viscoplastic normal viscosity (etan1) interpolated from markers used for problematic interpolation and (2) visco-elasto-plastic viscosity coefficients used in visco-elastic Stokes equations."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+etan1:
+  name: "etan1"
+  reference: "model.stokes_continuity.arrays.viscosity.etan1.array"
+  units: "Pa.s"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Viscoplastic normal viscosity in Pa.s interpolated to pressure grid from markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+etas0:
+  name: "etas0"
+  reference: "model.stokes_continuity.arrays.viscosity.etas0.array"
+  units: "Pa.s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Old viscoplastic shear viscosity array in Pa.s used for: (1) backup of viscoplastic shear viscosity (etas1) interpolated from markers used for problematic interpolation and (2) visco-elasto-plastic viscosity coefficients used in visco-elastic Stokes equations."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+etas1:
+  name: "etas1"
+  reference: "model.stokes_continuity.arrays.viscosity.etas1.array"
+  units: "Pa.s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Viscoplastic shear viscosity in Pa.s interpolated to basic grid from markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+extrusion_volumes:
+  name: "extrusion_volumes"
+  reference: "model.melting.arrays.extraction.extrusion_volumes.array"
+  units: "m^3"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Volume of extracted melt in m^3 that will be extruded to surface."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+exx:
+  name: "exx"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.exx.array"
+  units: "1/s"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Normal strain rate in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+exy:
+  name: "exy"
+  reference: "model.stokes_continuity.arrays.strain_rate_and_spin.exy.array"
+  units: "1/s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Shear strain rate in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+fric_degrees_grid:
+  name: "fric_degrees_grid"
+  reference: "model.stokes_continuity.arrays.plastic_def.fric_degrees_grid.array"
+  units: "Degrees"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Friction angle in degrees on basic grid interpolated from markers in Degrees."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+fric_degrees_grid0:
+  name: "fric_degrees_grid0"
+  reference: "model.stokes_continuity.arrays.plastic_def.fric_degrees_grid0.array"
+  units: "Degrees"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of friction angle in degrees on basic grid in Degrees."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+grid_carb:
+  name: "grid_carb"
+  reference: "model.carbonate.arrays.grid_carb.array"
+  units:
+    - "1: m"
+    - "2: m"
+    - "3: m"
+    - "4: m/s"
+    - "5; m/s"
+    - "6: m"
+    - "7: m"
+  shape: "7,1001"
+  type: "Matrix{Float64}"
+  description:
+    - "1: x-coordinates of carbonate grid nodes."
+    - "2: Elevation at carbonate grid nodes."
+    - "3: Not used."
+    - "4: x-component of velocity at carbonate grid nodes."
+    - "5: y-component of velocity at carbonate grid nodes."
+    - "6: Not used."
+    - "7: Carbonate nucleation probability."
+  min: .NaN
+  max: .NaN
+  mean: .NaN
+gridt:
+  name: "gridt"
+  reference: "model.topography.arrays.gridt.array"
+  units:
+    - "1: m"
+    - "2: m"
+    - "3: m"
+    - "4: m/s"
+    - "5: m/s"
+    - "6: m"
+    - "7: m"
+  shape: "7,1001"
+  type: "Matrix{Float64}"
+  description:
+    - "1: x-coordinates of topography grid nodes."
+    - "2: y-coordinate of topography grid nodes (i.e. elevation)."
+    - "3: Updated pre-antidiffusion y-coordinate (i.e. elevation) at topography grid nodes."
+    - "4: x-component of velocity at topography grid nodes."
+    - "5: y-component of velocity at topography grid nodes."
+    - "6: Antidiffusion correction."
+    - "7: Thickness of extrusive material at each node."
+  min: .NaN
+  max: .NaN
+  mean: .NaN
+gridx_b:
+  name: "gridx_b"
+  reference: "model.grids.arrays.basic.gridx_b.array"
+  units: "m"
+  shape: "51"
+  type: "Vector{Float64}"
+  description: "`(xnum)` : x-coordinates of basic grid nodes in meters."
+  min: 0.0
+  max: 10000.0
+  mean: 5000.0
+gridx_pr:
+  name: "gridx_pr"
+  reference: "model.grids.arrays.pressure.gridx_pr.array"
+  units: "m"
+  shape: "50"
+  type: "Vector{Float64}"
+  description: "`(xnum - 1)` : x-locations of pressure grid nodes in meters."
+  min: 100.0
+  max: 9900.0
+  mean: 5000.0
+gridx_vy:
+  name: "gridx_vy"
+  reference: "model.grids.arrays.staggered_vy.gridx_vy.array"
+  units: "m"
+  shape: "52"
+  type: "Vector{Float64}"
+  description: "`(xnum + 1)` : x-locations of staggered Vy grid nodes including ghost nodes in meters."
+  min: -100.0
+  max: 10100.0
+  mean: 5000.0
+gridy_b:
+  name: "gridy_b"
+  reference: "model.grids.arrays.basic.gridy_b.array"
+  units: "m"
+  shape: "21"
+  type: "Vector{Float64}"
+  description: "`(ynum)` : y-coordinates of basic grid nodes in meters."
+  min: 0.0
+  max: 10000.0
+  mean: 5000.0
+gridy_pr:
+  name: "gridy_pr"
+  reference: "model.grids.arrays.pressure.gridy_pr.array"
+  units: "m"
+  shape: "20"
+  type: "Vector{Float64}"
+  description: "`(ynum - 1)` : y-locations of pressure grid nodes in meters."
+  min: 250.0
+  max: 9750.0
+  mean: 5000.0
+gridy_vx:
+  name: "gridy_vx"
+  reference: "model.grids.arrays.staggered_vx.gridy_vx.array"
+  units: "m"
+  shape: "22"
+  type: "Vector{Float64}"
+  description: "`(ynum + 1)` : y-locations of staggered Vx grid nodes including ghost nodes in meters."
+  min: -250.0
+  max: 10250.0
+  mean: 5000.0
+ha0:
+  name: "ha0"
+  reference: "model.heat_equation.arrays.adiabatic_production.ha0.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of adiabatic heat production term on basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+ha1:
+  name: "ha1"
+  reference: "model.heat_equation.arrays.adiabatic_production.ha1.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Adiabatic heat production term (expansivity x temperature) interpolated from markers to basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+hr0:
+  name: "hr0"
+  reference: "model.heat_equation.arrays.radiogenic_production.hr0.array"
+  units: "W/m^3"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of radiogenic heat production on basic grid in W/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+hr1:
+  name: "hr1"
+  reference: "model.heat_equation.arrays.radiogenic_production.hr1.array"
+  units: "W/m^3"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Radiogenic heat production interpolated from markers to basic grid in W/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+kt0:
+  name: "kt0"
+  reference: "model.heat_equation.arrays.thermal_conductivity.kt0.array"
+  units: "W/m/K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of thermal conductivity on basic grid in W/m/K."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+kt1:
+  name: "kt1"
+  reference: "model.heat_equation.arrays.thermal_conductivity.kt1.array"
+  units: "W/m/K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Thermal conductivity interpolated from markers to basic grid in W/m/K."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_GII:
+  name: "marker_GII"
+  reference: "model.markers.arrays.strain.marker_GII.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Accumulated strain of marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_TK:
+  name: "marker_TK"
+  reference: "model.markers.arrays.thermal.marker_TK.array"
+  units: "K"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Temperature of marker in Kelvin."
+  min: 273.0
+  max: 273.0
+  mean: 273.0
+marker_age:
+  name: "marker_age"
+  reference: "model.markers.arrays.strat.marker_age.array"
+  units: "Myr"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Age of marker in million years."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_cohesion:
+  name: "marker_cohesion"
+  reference: "model.markers.arrays.rheology.marker_cohesion.array"
+  units: "Pa"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Cohesion of marker in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_decay_depth:
+  name: "marker_decay_depth"
+  reference: "model.markers.arrays.material.marker_decay_depth.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float32}"
+  description: "`(marknum)` : Porosity decay depth used in Athy's law in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_dilatation_angle:
+  name: "marker_dilatation_angle"
+  reference: "model.markers.arrays.rheology.marker_dilatation_angle.array"
+  units: "Degrees"
+  shape: "25000"
+  type: "Vector{Float32}"
+  description: "`(marknum)` : Marker dilatation angle in Degrees."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_dx:
+  name: "marker_dx"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_dx.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Normalized x-distance between marker and upper-left basic grid node in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_dx_vy:
+  name: "marker_dx_vy"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_dx_vy.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Normalized x-distance between marker and upper-left grid node of staggered vy grid in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_dy:
+  name: "marker_dy"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_dy.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Normalized y-distance between marker and upper-left basic grid node in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_dy_vy:
+  name: "marker_dy_vy"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_dy_vy.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Normalized y-distance between marker and upper-left grid node of staggered vy grid in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_eta:
+  name: "marker_eta"
+  reference: "model.markers.arrays.rheology.marker_eta.array"
+  units: "Pa.s"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker viscoplastic viscosity in Pa.s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_eta_flow:
+  name: "marker_eta_flow"
+  reference: "model.markers.arrays.rheology.marker_eta_flow.array"
+  units: "Pa.s"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker viscosity from flow law in Pa.s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_extractable_meltfrac:
+  name: "marker_extractable_meltfrac"
+  reference: "model.markers.arrays.melt.marker_extractable_meltfrac.array"
+  units: "fraction"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Extractable melt fraction of marker in fraction."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_extracted_meltfrac:
+  name: "marker_extracted_meltfrac"
+  reference: "model.markers.arrays.melt.marker_extracted_meltfrac.array"
+  units: "fraction"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Extracted melt fraction of marker in fraction."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_exx:
+  name: "marker_exx"
+  reference: "model.markers.arrays.strain.marker_exx.array"
+  units: "1/s"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Normal strain rate of marker in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_exy:
+  name: "marker_exy"
+  reference: "model.markers.arrays.strain.marker_exy.array"
+  units: "1/s"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Shear strain rate of marker in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_fric:
+  name: "marker_fric"
+  reference: "model.markers.arrays.rheology.marker_fric.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Friction coefficient (sine of friction angle) of marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_fric_ini:
+  name: "marker_fric_ini"
+  reference: "model.markers.arrays.rheology.marker_fric_ini.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Initial friction coefficient (sine of friction angle) of marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_ha:
+  name: "marker_ha"
+  reference: "model.markers.arrays.thermal.marker_ha.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker adiabatic heating term (expansivity x temperature)."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_kt:
+  name: "marker_kt"
+  reference: "model.markers.arrays.thermal.marker_kt.array"
+  units: "W/m/K"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker thermal conductivity in W/m/K."
+  min: 3.0
+  max: 3.0
+  mean: 3.0
+marker_matid:
+  name: "marker_matid"
+  reference: "model.markers.arrays.material.marker_matid.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Int16}"
+  description: "`(marknum)` : Material ID of marker."
+  min: 1
+  max: 1
+  mean: 1.0
+marker_max_burial_depth:
+  name: "marker_max_burial_depth"
+  reference: "model.markers.arrays.material.marker_max_burial_depth.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float32}"
+  description: "`(marknum)` : Maximum burial depth of marker in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_melt_damage:
+  name: "marker_melt_damage"
+  reference: "model.markers.arrays.strain.marker_melt_damage.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Damage factor of marker associated with melt intrusion."
+  min: 1.0
+  max: 1.0
+  mean: 1.0
+marker_meltfrac:
+  name: "marker_meltfrac"
+  reference: "model.markers.arrays.melt.marker_meltfrac.array"
+  units: "fraction"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Melt fraction of marker in fraction."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_pfailure:
+  name: "marker_pfailure"
+  reference: "model.markers.arrays.rheology.marker_pfailure.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float32}"
+  description: "`(marknum)` : Flag indicating plastic failure of marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_porosity_initial:
+  name: "marker_porosity_initial"
+  reference: "model.markers.arrays.material.marker_porosity_initial.array"
+  units: "fraction"
+  shape: "25000"
+  type: "Vector{Float32}"
+  description: "`(marknum)` : Initial porosity at sediment-water interface used in Athy's law in fraction."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_pr:
+  name: "marker_pr"
+  reference: "model.markers.arrays.pressure.marker_pr.array"
+  units: "Pa"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Pressure of marker in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_preexp:
+  name: "marker_preexp"
+  reference: "model.markers.arrays.rheology.marker_preexp.array"
+  units: "1/s/MPa^n"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Pre-exponential factor for dislocation creep of marker in 1/s/MPa^n."
+  min: 5.0e-20
+  max: 5.0e-20
+  mean: 5.000000000000004e-20
+marker_rho:
+  name: "marker_rho"
+  reference: "model.markers.arrays.material.marker_rho.array"
+  units: "kg/m^3"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker density in kg/m^3."
+  min: 3300.0
+  max: 3300.0
+  mean: 3300.0
+marker_rhocp:
+  name: "marker_rhocp"
+  reference: "model.markers.arrays.thermal.marker_rhocp.array"
+  units: "J/K/m^3"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker density multiplied by heat capacity in J/K/m^3."
+  min: 3.63e6
+  max: 3.63e6
+  mean: 3.63e6
+marker_serpentinization:
+  name: "marker_serpentinization"
+  reference: "model.markers.arrays.material.marker_serpentinization.array"
+  units: "fraction"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Serpentinization fraction of marker in fraction."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_serpentinization_heat_production:
+  name: "marker_serpentinization_heat_production"
+  reference: "model.markers.arrays.material.marker_serpentinization_heat_production.array"
+  units: "W/m^3"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Serpentinization heat production of marker in W/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_sr_ratio:
+  name: "marker_sr_ratio"
+  reference: "model.markers.arrays.strain.marker_sr_ratio.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Ratio of nodal-stress-based to nodal-velocity-based strain rate invariant for each marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_strain_plastic:
+  name: "marker_strain_plastic"
+  reference: "model.markers.arrays.strain.marker_strain_plastic.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Accumulated plastic strain of marker."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_strain_rate_plastic:
+  name: "marker_strain_rate_plastic"
+  reference: "model.markers.arrays.strain.marker_strain_rate_plastic.array"
+  units: "1/s"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Plastic strain rate of marker in 1/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_sxx:
+  name: "marker_sxx"
+  reference: "model.markers.arrays.stress.marker_sxx.array"
+  units: "Pa"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Deviatoric normal stress of marker in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_sxy:
+  name: "marker_sxy"
+  reference: "model.markers.arrays.stress.marker_sxy.array"
+  units: "Pa"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Deviatoric shear stress of marker in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforCnode:
+  name: "marker_wtforCnode"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforCnode.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for central pressure grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforLLnode:
+  name: "marker_wtforLLnode"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforLLnode.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for lower-left basic grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforLLnodeVy:
+  name: "marker_wtforLLnodeVy"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforLLnodeVy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for lower-left Vy staggered grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforLRnode:
+  name: "marker_wtforLRnode"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforLRnode.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for lower-right basic grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforLRnodeVy:
+  name: "marker_wtforLRnodeVy"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforLRnodeVy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for lower-right Vy staggered grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforULnode:
+  name: "marker_wtforULnode"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforULnode.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for upper-left basic grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforULnodeVy:
+  name: "marker_wtforULnodeVy"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforULnodeVy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for upper-left Vy staggered grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforURnode:
+  name: "marker_wtforURnode"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforURnode.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for upper-right basic grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_wtforURnodeVy:
+  name: "marker_wtforURnodeVy"
+  reference: "model.interpolation.arrays.marker_weights.marker_wtforURnodeVy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : Marker weight for upper-right Vy staggered grid node."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+marker_x:
+  name: "marker_x"
+  reference: "model.markers.arrays.location.marker_x.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : x-coordinate of marker in meters."
+  min: 20.0
+  max: 9980.0
+  mean: 5000.0
+marker_xn:
+  name: "marker_xn"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_xn.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Int32}"
+  description: "`(marknum)` : Horizontal index of upper left node of basic grid cell containing marker."
+  min: 0
+  max: 0
+  mean: 0.0
+marker_xn_vy:
+  name: "marker_xn_vy"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_xn_vy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Int32}"
+  description: "`(marknum)` : Horizontal index of upper left node of staggered vy grid cell containing marker."
+  min: 0
+  max: 0
+  mean: 0.0
+marker_y:
+  name: "marker_y"
+  reference: "model.markers.arrays.location.marker_y.array"
+  units: "m"
+  shape: "25000"
+  type: "Vector{Float64}"
+  description: "`(marknum)` : y-coordinate of marker in meters."
+  min: 50.0
+  max: 9950.0
+  mean: 5000.0
+marker_yn:
+  name: "marker_yn"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_yn.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Int32}"
+  description: "`(marknum)` : Vertical index of upper left node of basic grid cell containing marker."
+  min: 0
+  max: 0
+  mean: 0.0
+marker_yn_vy:
+  name: "marker_yn_vy"
+  reference: "model.markers.arrays.grid_marker_relationship.marker_yn_vy.array"
+  units: "None"
+  shape: "25000"
+  type: "Vector{Int32}"
+  description: "`(marknum)` : Vertical index of upper left node of staggered vy grid cell containing marker."
+  min: 0
+  max: 0
+  mean: 0.0
+mat_compaction:
+  name: "mat_compaction"
+  reference: "model.materials.arrays.mat_compaction.array"
+  units:
+    - "1: fraction"
+    - "2: meters"
+  shape: "100,2"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Initial porosity at sediment-water interface"
+    - "2: Porosity decay depth"
+  min: 0.0
+  max: 2001.0
+  mean: 10.005
+mat_cp:
+  name: "mat_cp"
+  reference: "model.materials.arrays.mat_cp.array"
+  units: "1: J/kg/K"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "1: Heat capacity."
+  min: 0.0
+  max: 3000.0
+  mean: 30.0
+mat_flow:
+  name: "mat_flow"
+  reference: "model.materials.arrays.mat_flow.array"
+  units:
+    - "1: Pa.s"
+    - "2: 1/s/MPa^n"
+    - "3: None"
+    - "4: kJ/mol"
+    - "5: J/MPa/mol"
+    - "6: s^-1*MPa^-2"
+    - "7: None"
+    - "8: None"
+    - "9: MPa"
+    - "10: 1/s/MPa^n"
+    - "11: kJ/mol"
+    - "12: J/MPa/mol"
+    - "13: Pa.s"
+    - "14: kJ/mol"
+    - "15: Pa.s"
+    - "16: None"
+    - "17: None"
+  shape: "100,17"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Viscosity for isoviscous models"
+    - "2: Pre-exponential factor for power law"
+    - "3: Power law stress exponent n"
+    - "4: Activation energy for power law"
+    - "5: Activation volume for power law"
+    - "6: Pre-exponential term for Peierls creep"
+    - "7: Peierls creep stress exponent 1"
+    - "8: Peierls creep stress exponent 2"
+    - "9: Peierls stress"
+    - "10: Pre-exponential terms for diffusion creep"
+    - "11: Activation energy for diffusion creep"
+    - "12: Activation volume for diffusion creep"
+    - "13: Pre-exponential term for temperature-dependent viscosity"
+    - "14: Activation energy for temperature-dependent viscosity"
+    - "15: Reference viscosity for flow law from Blankenbach (1989)."
+    - "16: b term for flow law from Blankenbach (1989)."
+    - "17: c term for flow law from Blankenbach (1989)."
+  min: 0.0
+  max: 3.0
+  mean: 0.0017647058823529412
+mat_flow_type:
+  name: "mat_flow_type"
+  reference: "model.materials.arrays.mat_flow_type.array"
+  units: "None"
+  shape: "100"
+  type: "Vector{Int64}"
+  description: "Flow law type integer ID. See get_option() method in rheology.flow_viscosity for details on available options."
+  min: -9999
+  max: 2
+  mean: -9898.99
+mat_hr:
+  name: "mat_hr"
+  reference: "model.materials.arrays.mat_hr.array"
+  units: "1: W/m^3"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "2: Radiogenic heat production"
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mat_kt:
+  name: "mat_kt"
+  reference: "model.materials.arrays.mat_kt.array"
+  units:
+    - "1: W/m/k"
+    - "2: W/m"
+  shape: "100,2"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Reference thermal conductivity k0"
+    - "2: Thermal conductivity term a"
+  min: 0.0
+  max: 3.0
+  mean: 0.015
+mat_melting:
+  name: "mat_melting"
+  reference: "model.materials.arrays.mat_melting.array"
+  units:
+    - "1: J/kg"
+    - "2: K"
+  shape: "100,2"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Latent heat"
+    - "2: Shift in solidus and liquidus temperature to account for fractional crystallization above the Moho at spreading ridges."
+  min: 0.0
+  max: 400000.0
+  mean: 2000.0
+mat_melting_itypes:
+  name: "mat_melting_itypes"
+  reference: "model.materials.arrays.mat_melting_itypes.array"
+  units:
+    - "1: None"
+    - "2: None"
+  shape: "100,2"
+  type: "Matrix{Int64}"
+  description:
+    - "1: Integer type ID for solidus"
+    - "2: Integer type ID for liquidus"
+  min: -1
+  max: 0
+  mean: -0.01
+mat_mu:
+  name: "mat_mu"
+  reference: "model.materials.arrays.mat_mu.array"
+  units: "1: Pa"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "1: Shear modulus"
+  min: 0.0
+  max: 1.0e21
+  mean: 1.0e19
+mat_plastic:
+  name: "mat_plastic"
+  reference: "model.materials.arrays.mat_plastic.array"
+  units:
+    - "1: Pa"
+    - "2: Pa"
+    - "3: None"
+    - "4: None"
+    - "5: None"
+    - "6: None"
+    - "7: Degrees"
+  shape: "100,7"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Cohesion (C0) at initial strain GAM0"
+    - "2: Cohesion (C1) at final strain GAM1"
+    - "3: Sine of friction angle at strain GAM0"
+    - "4: Sine of friction angle at strain GAM1"
+    - "5: Initial strain GAM0"
+    - "6: Final strain GAM1"
+    - "7: Dilatation angle"
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mat_rho:
+  name: "mat_rho"
+  reference: "model.materials.arrays.mat_rho.array"
+  units:
+    - "1: kg/m^3"
+    - "2: 1/K"
+    - "3: 1/Pa"
+    - "4: kg/m^3"
+  shape: "100,4"
+  type: "Matrix{Float64}"
+  description:
+    - "1: Standard density"
+    - "2: Thermal expansion"
+    - "3: Compressibility"
+    - "4: Melt density"
+  min: 0.0
+  max: 3200.0
+  mean: 8.0
+melt_residuals:
+  name: "melt_residuals"
+  reference: "model.melting.arrays.extraction.melt_residuals.array"
+  units: "m^3"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Residual melt volume in m^3 remaining in the extrusion volume after the melt has been extracted in drainage basin."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mun0:
+  name: "mun0"
+  reference: "model.stokes_continuity.arrays.shear_modulus.mun0.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Backup of shear modulus for normal stress on pressure grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mun1:
+  name: "mun1"
+  reference: "model.stokes_continuity.arrays.shear_modulus.mun1.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Normal elastic modulus interpolated to pressure grid from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mus0:
+  name: "mus0"
+  reference: "model.stokes_continuity.arrays.shear_modulus.mus0.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of shear modulus for shear stress on basic grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+mus1:
+  name: "mus1"
+  reference: "model.stokes_continuity.arrays.shear_modulus.mus1.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Shear elastic modulus interpolated to basic grid from markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+plastic_yield:
+  name: "plastic_yield"
+  reference: "model.stokes_continuity.arrays.plastic_def.plastic_yield.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Plastic yielding marker on basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+plasticn:
+  name: "plasticn"
+  reference: "model.stokes_continuity.arrays.plastic_def.plasticn.array"
+  units: "None"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Plastic deformation indicator on pressure grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+plasticn0:
+  name: "plasticn0"
+  reference: "model.stokes_continuity.arrays.plastic_def.plasticn0.array"
+  units: "None"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Backup of plastic deformation indicator on pressure grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+plastics:
+  name: "plastics"
+  reference: "model.stokes_continuity.arrays.plastic_def.plastics.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Plastic deformation indicator on basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+plastics0:
+  name: "plastics0"
+  reference: "model.stokes_continuity.arrays.plastic_def.plastics0.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of plastic deformation indicator on basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+pr1:
+  name: "pr1"
+  reference: "model.stokes_continuity.arrays.pressure.pr1.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Pressure solution on pressure grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+pr1_old:
+  name: "pr1_old"
+  reference: "model.stokes_continuity.arrays.pressure.pr1_old.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Old pressure solution on pressure grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resc1:
+  name: "resc1"
+  reference: "model.stokes_continuity.arrays.residuals.resc1.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Continuity equation residual on pressure grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resnl:
+  name: "resnl"
+  reference: "model.stokes_continuity.arrays.residuals.resnl.array"
+  units: "Mixed"
+  shape: "3000"
+  type: "Vector{Float64}"
+  description: "Non-linear stokes-continuity system residual."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resnlc:
+  name: "resnlc"
+  reference: "model.stokes_continuity.arrays.residuals.resnlc.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Non-linear continuity equation residual on pressure grid in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resnlx:
+  name: "resnlx"
+  reference: "model.stokes_continuity.arrays.residuals.resnlx.array"
+  units: "m/s"
+  shape: "22,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : Non-linear x-Stokes equation residual on staggered vx grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resnly:
+  name: "resnly"
+  reference: "model.stokes_continuity.arrays.residuals.resnly.array"
+  units: "m/s"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Non-linear y-Stokes equation residual on staggered vy grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rest:
+  name: "rest"
+  reference: "model.heat_equation.arrays.residuals.rest.array"
+  units: ""
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Residual for heat equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resx1:
+  name: "resx1"
+  reference: "model.stokes_continuity.arrays.residuals.resx1.array"
+  units: "m/s"
+  shape: "22,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : x-Stokes equation residual on staggered vx grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+resy1:
+  name: "resy1"
+  reference: "model.stokes_continuity.arrays.residuals.resy1.array"
+  units: "m/s"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : y-Stokes equation residual on staggered vy grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rho0:
+  name: "rho0"
+  reference: "model.stokes_continuity.arrays.density.rho0.array"
+  units: "kg/m^3"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of transport array with density on basic grid in kg/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rho0_vy:
+  name: "rho0_vy"
+  reference: "model.stokes_continuity.arrays.density.rho0_vy.array"
+  units: "kg/m^3"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Backup of transport array with density on vy grid in kg/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rho1:
+  name: "rho1"
+  reference: "model.stokes_continuity.arrays.density.rho1.array"
+  units: "kg/m^3"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Transport array with density on basic grid in kg/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rho1_vy:
+  name: "rho1_vy"
+  reference: "model.stokes_continuity.arrays.density.rho1_vy.array"
+  units: "kg/m^3"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Transport array with density on vy grid in kg/m^3."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rhocp0:
+  name: "rhocp0"
+  reference: "model.heat_equation.arrays.rhocp.rhocp0.array"
+  units: "kg/m^3 x J/kg/K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Backup of density times heat capacity on basic grid in kg/m^3 x J/kg/K."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+rhocp1:
+  name: "rhocp1"
+  reference: "model.heat_equation.arrays.rhocp.rhocp1.array"
+  units: "kg/m^3 x J/kg/K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Density times heat capacity interpolated from markers to basic grid in kg/m^3 x J/kg/K."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+soluv1:
+  name: "soluv1"
+  reference: "model.stokes_continuity.arrays.stokes_solution.soluv1.array"
+  units: "m/s or Pa"
+  shape: "3000"
+  type: "Vector{Float64}"
+  description: "Stokes-continuity solution array with velocity and pressure in m/s or Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+soluv1_old:
+  name: "soluv1_old"
+  reference: "model.stokes_continuity.arrays.stokes_solution.soluv1_old.array"
+  units: "m/s"
+  shape: "3000"
+  type: "Vector{Float64}"
+  description: "Old Stokes-continuity solution array with velocity and pressure in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxx0:
+  name: "sxx0"
+  reference: "model.stokes_continuity.arrays.stress.sxx0.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Old deviatoric normal stress array on basic grid in Pa used for: (1) storing copy of visco-elasto-plastic normal stress transport array (sxx1) and (2) storing product of old visco-elasto-plastic normal stress transport array (sxx1) and viscoelastic factor used in RHS terms of visco-elasto-plastic Stokes equations."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxx1:
+  name: "sxx1"
+  reference: "model.stokes_continuity.arrays.stress.sxx1.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Visco-elasto-plastic deviatoric normal stress interpolated to basic grid from advected markers in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxx2:
+  name: "sxx2"
+  reference: "model.stokes_continuity.arrays.stress.sxx2.array"
+  units: "Pa"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Visco-elasto-plastic deviatoric normal stress on pressure grid calculated using updated deviatoric strain rates from Stokes velocity solution in Pa."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxy0:
+  name: "sxy0"
+  reference: "model.stokes_continuity.arrays.stress.sxy0.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Old deviatoric shear stress array on basic grid in Pa used for: (1) storing copy of visco-elasto-plastic shear stress transport array (sxy1) and (2) storing product of old visco-elasto-plastic shear stress transport array (sxy1) and viscoelastic factor used in RHS terms of visco-elasto-plastic Stokes equations."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxy1:
+  name: "sxy1"
+  reference: "model.stokes_continuity.arrays.stress.sxy1.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Visco-elasto-plastic deviatoric shear stress in Pa interpolated to basic grid from advected markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+sxy2:
+  name: "sxy2"
+  reference: "model.stokes_continuity.arrays.stress.sxy2.array"
+  units: "Pa"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Visco-elasto-plastic deviatoric shear stress in Pa on basic grid calculated using updated deviatoric strain rates from Stokes velocity solution."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+tk0:
+  name: "tk0"
+  reference: "model.heat_equation.arrays.temperature.tk0.array"
+  units: "K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Old temperature array in Kelvin used for: (1) defining old temperature in grids for problematic marker interpolation after being copied from last conductive temperature solution (tk2), (2) defining old initial temperature when solving transient heat equation after being copied from temperature transport array (tk1), and (3) defining old temperature from previous iteration of adaptive time stepping heat loop after being copied from current conductive temperature solution (tk2)."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+tk1:
+  name: "tk1"
+  reference: "model.heat_equation.arrays.temperature.tk1.array"
+  units: "K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Transport array with temperature in Kelvin interpolated from advected markers to basic grid used to define initial old temperature when solving conductive heat equation."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+tk2:
+  name: "tk2"
+  reference: "model.heat_equation.arrays.temperature.tk2.array"
+  units: "K"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : New conductive temperature solution array in Kelvin obtained by solving heat conduction equation on basic grid using adaptive time stepping heat loop and tk1 as initial condition."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vx1:
+  name: "vx1"
+  reference: "model.stokes_continuity.arrays.staggered_grid_velocity.vx1.array"
+  units: "m/s"
+  shape: "22,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : X-component of velocity on staggered vx grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vx1_old:
+  name: "vx1_old"
+  reference: "model.stokes_continuity.arrays.staggered_grid_velocity.vx1_old.array"
+  units: "m/s"
+  shape: "22,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : Old x-component of velocity on staggered vx grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vxb:
+  name: "vxb"
+  reference: "model.stokes_continuity.arrays.basic_grid_velocity.vxb.array"
+  units: "m/s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : x-component of velocity interpolated to basic grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vxy:
+  name: "vxy"
+  reference: "model.stokes_continuity.arrays.velocity_solution.vxy.array"
+  units: "m/s"
+  shape: "2214"
+  type: "Vector{Float64}"
+  description: "Solution array with vx and vy solutions in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vxy_old:
+  name: "vxy_old"
+  reference: "model.stokes_continuity.arrays.velocity_solution.vxy_old.array"
+  units: "m/s"
+  shape: "2214"
+  type: "Vector{Float64}"
+  description: "Old solution array with vx and vy solutions in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vy1:
+  name: "vy1"
+  reference: "model.stokes_continuity.arrays.staggered_grid_velocity.vy1.array"
+  units: "m/s"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Y-component of velocity on staggered vy grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vy1_old:
+  name: "vy1_old"
+  reference: "model.stokes_continuity.arrays.staggered_grid_velocity.vy1_old.array"
+  units: "m/s"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum + 1)` : Old y-component of velocity on staggered vy grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+vyb:
+  name: "vyb"
+  reference: "model.stokes_continuity.arrays.basic_grid_velocity.vyb.array"
+  units: "m/s"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : y-component of velocity interpolated to basic grid in m/s."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+width_molten_zones:
+  name: "width_molten_zones"
+  reference: "model.melting.arrays.extraction.width_molten_zones.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Width of the molten region in drainage basin in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+wtetan:
+  name: "wtetan"
+  reference: "model.interpolation.arrays.grid_weights.wtetan.array"
+  units: "None"
+  shape: "20,50"
+  type: "Matrix{Float64}"
+  description: "`(ynum - 1, xnum - 1)` : Summed marker weight factors for normal viscosity on pressure nodes."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+wtetas:
+  name: "wtetas"
+  reference: "model.interpolation.arrays.grid_weights.wtetas.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Summed marker weight factors on basic grid nodes using exclusive method with shorter search radius for markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+wtnodes:
+  name: "wtnodes"
+  reference: "model.interpolation.arrays.grid_weights.wtnodes.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Summed marker weight factors on basic grid nodes using inclusive method with maximum search radius for markers."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+wtnodes_vy:
+  name: "wtnodes_vy"
+  reference: "model.interpolation.arrays.grid_weights.wtnodes_vy.array"
+  units: "None"
+  shape: "21,52"
+  type: "Matrix{Float64}"
+  description: "`(ynum + 1, xnum)` : Summed marker weight factors on Vy staggered grid nodes using inclusive method with maximum search radius."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xend_drainage:
+  name: "xend_drainage"
+  reference: "model.melting.arrays.extraction.xend_drainage.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Current x-locations in meters of the end of the drainage area. The drainage area is the region where the melt migrates to the shallowest position."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xend_drainage_o:
+  name: "xend_drainage_o"
+  reference: "model.melting.arrays.extraction.xend_drainage_o.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Old x-locations of the end of the drainage area. The drainage area is the region where the melt migrates to the shallowest position in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xmid_molten_zones:
+  name: "xmid_molten_zones"
+  reference: "model.melting.arrays.extraction.xmid_molten_zones.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : X-locations in meters of the midpoints of the molten region."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xstart_drainage:
+  name: "xstart_drainage"
+  reference: "model.melting.arrays.extraction.xstart_drainage.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Current x-locations in meters of the start of the drainage area. The drainage area is the region where the melt migrates to the shallowest position."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xstart_drainage_o:
+  name: "xstart_drainage_o"
+  reference: "model.melting.arrays.extraction.xstart_drainage_o.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Old x-locations of the start of the drainage area. The drainage area is the region where the melt migrates to the shallowest position in meters."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+xstp_b:
+  name: "xstp_b"
+  reference: "model.grids.arrays.basic.xstp_b.array"
+  units: "m"
+  shape: "50"
+  type: "Vector{Float64}"
+  description: "`(xnum - 1)` : Width of cells in x-direction for basic grid in meters."
+  min: 200.0
+  max: 200.0
+  mean: 200.0
+xstp_pr:
+  name: "xstp_pr"
+  reference: "model.grids.arrays.pressure.xstp_pr.array"
+  units: "m"
+  shape: "49"
+  type: "Vector{Float64}"
+  description: "`(xnum - 2)` : Width of pressure cells in x-direction in meters."
+  min: 200.0
+  max: 200.0
+  mean: 200.0
+xstp_vy:
+  name: "xstp_vy"
+  reference: "model.grids.arrays.staggered_vy.xstp_vy.array"
+  units: "m"
+  shape: "51"
+  type: "Vector{Float64}"
+  description: "`(xnum)` : Width of staggered vy grid cells in x-direction in meters."
+  min: 200.0
+  max: 200.0
+  mean: 200.0
+yield_error:
+  name: "yield_error"
+  reference: "model.stokes_continuity.arrays.plastic_def.yield_error.array"
+  units: "None"
+  shape: "21,51"
+  type: "Matrix{Float64}"
+  description: "`(ynum, xnum)` : Plastic yielding stress error on basic grid."
+  min: 0.0
+  max: 0.0
+  mean: 0.0
+ystp_b:
+  name: "ystp_b"
+  reference: "model.grids.arrays.basic.ystp_b.array"
+  units: "m"
+  shape: "20"
+  type: "Vector{Float64}"
+  description: "`(ynum - 1)` : Width of cells in y-direction for basic grid in meters."
+  min: 500.0
+  max: 500.0
+  mean: 500.0
+ystp_pr:
+  name: "ystp_pr"
+  reference: "model.grids.arrays.pressure.ystp_pr.array"
+  units: "m"
+  shape: "19"
+  type: "Vector{Float64}"
+  description: "`(ynum - 2)` : Width of pressure cells in y-direction in meters."
+  min: 500.0
+  max: 500.0
+  mean: 500.0
+ystp_vx:
+  name: "ystp_vx"
+  reference: "model.grids.arrays.staggered_vx.ystp_vx.array"
+  units: "m"
+  shape: "21"
+  type: "Vector{Float64}"
+  description: "`(ynum)` : Width of staggered vx grid cells in y-direction in meters."
+  min: 500.0
+  max: 500.0
+  mean: 500.0
+ytop_molten_zones:
+  name: "ytop_molten_zones"
+  reference: "model.melting.arrays.extraction.ytop_molten_zones.array"
+  units: "m"
+  shape: "100"
+  type: "Vector{Float64}"
+  description: "`(nmax_basin)` : Y-locations in meters of the top of the molten region."
+  min: 0.0
+  max: 0.0
+  mean: 0.0

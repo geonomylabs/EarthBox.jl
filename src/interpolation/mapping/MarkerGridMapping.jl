@@ -31,7 +31,7 @@ import EarthBox: GridFuncs
 - `xnum::Int`: Number of nodes in 1D grid
 
 # Returns
-- `ix_upr_left::Int`
+- `ix_upr_left::Int32`
     - Index of the left node
 """
 @inline function get_index_of_left_node_old(
@@ -40,9 +40,9 @@ import EarthBox: GridFuncs
     xnum::Int
 )::Int32
     # Find horizontal index
-    xnmin = 1
-    xnmax = xnum
-    while (xnmax - xnmin) > 1
+    xnmin = Int32(1)
+    xnmax = Int32(xnum)
+    while (xnmax - xnmin) > Int32(1)
         # Subtract 0.5 since ceil(0.5) = 1
         ix_upr_left = ceil(Int32, (xnmax + xnmin)/2 - 0.5)
         #ix_upr_left = (xnmax + xnmin) ÷ 2
@@ -55,11 +55,11 @@ import EarthBox: GridFuncs
     ix_upr_left = xnmin
     # Check horizontal index
     #ix_upr_left = max(ix_upr_left, 1)
-    if ix_upr_left < 1
-        ix_upr_left = 1
+    if ix_upr_left < Int32(1)
+        ix_upr_left = Int32(1)
     end
-    if ix_upr_left > xnum - 1
-        ix_upr_left = xnum - 1
+    if ix_upr_left > Int32(xnum - 1)
+        ix_upr_left = Int32(xnum - 1)
     end
     return ix_upr_left
 end
@@ -72,7 +72,7 @@ end
 - `xnum::Int`: Number of nodes in 1D grid
 
 # Returns
-- `ix_upr_left::Int`
+- `ix_upr_left::Int32`
     - Index of the left node
 """
 @inline function get_index_of_left_node(
@@ -81,7 +81,8 @@ end
     xnum::Int
 )::Int32
     i = searchsortedlast(gridx, x_marker)
-    return ifelse(i < 1, 1, ifelse(i > xnum-1, xnum-1, i))
+    #return ifelse(i < 1, 1, ifelse(i > xnum-1, xnum-1, i))
+    return (clamp(i, 1, xnum - 1)) % Int32
 end
 
 """  Calculate upper-left grid node indices for basic grid.
@@ -281,7 +282,7 @@ This functions works for both x- and y-indices.
     grids see the docstring in stokes_continuity_solver.build.stokes_build.
 
 # Returns
-- `index_pressure_upr_left::Int`:
+- `index_pressure_upr_left::Int32`:
     - Index of upper-left node of pressure grid cell.
 
 # Background
@@ -314,17 +315,17 @@ vy    +-----vy-----+-----vy-----+-----vy-----+-----vy-----+     vy
     grid_staggered::Vector{Float64}
 )::Int32
     @inbounds begin
-        if marker_loc < grid_staggered[index_basic_upr_left + 1]
-            index_pressure_upr_left = index_basic_upr_left - 1
+        if marker_loc < grid_staggered[index_basic_upr_left + Int32(1)]
+            index_pressure_upr_left = index_basic_upr_left - Int32(1)
         else
             index_pressure_upr_left = index_basic_upr_left
         end
     end
-    index_pressure_upr_left = max(index_pressure_upr_left, 1)
+    index_pressure_upr_left = max(index_pressure_upr_left, Int32(1))
     # Note that the last pressure cell in x-direction has upper left node
     # nnodes-2.
-    if index_pressure_upr_left > nnodes-2
-        index_pressure_upr_left = nnodes-2
+    if index_pressure_upr_left > Int32(nnodes-2)
+        index_pressure_upr_left = Int32(nnodes-2)
     end
     return index_pressure_upr_left
 end
@@ -396,12 +397,12 @@ end
 )::Tuple{Int32,Float64}
     y_index_upr_left = y_index_basic_upr_left
     @inbounds begin
-        if y_marker > vxgridy[y_index_upr_left+1]
-            y_index_upr_left += 1
+        if y_marker > vxgridy[y_index_upr_left+Int32(1)]
+            y_index_upr_left += Int32(1)
         end
     end
-    if y_index_upr_left > ynum
-        y_index_upr_left -= 1
+    if y_index_upr_left > Int32(ynum)
+        y_index_upr_left -= Int32(1)
     end
     @inbounds dy_upr_left = (y_marker - vxgridy[y_index_upr_left])/ystp_vx[y_index_upr_left]
     return y_index_upr_left, dy_upr_left
@@ -417,10 +418,10 @@ end
     xstp_vy::Vector{Float64}
 )::Tuple{Int32,Float64}
     x_index_upr_left = x_index_upr_left_basic
-    if x_marker > vygridx[x_index_upr_left+1]
-        x_index_upr_left += 1
+    if x_marker > vygridx[x_index_upr_left+Int32(1)]
+        x_index_upr_left += Int32(1)
     end
-    x_index_upr_left = min(x_index_upr_left, xnum)
+    x_index_upr_left = min(x_index_upr_left, Int32(xnum))
     # Define and check normalized distances from marker to the upper left VY-node
     @inbounds dx_upr_left = (x_marker - vygridx[x_index_upr_left])/xstp_vy[x_index_upr_left]
     return x_index_upr_left, dx_upr_left
