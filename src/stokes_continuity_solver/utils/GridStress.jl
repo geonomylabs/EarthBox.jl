@@ -124,13 +124,12 @@ based on updated strain rates from new Stokes velocity solution.
 - `model.stokes_continuity.arrays.stress_change.dsxx`: Normal stress change on 
   pressure grid
 """
-function calculate_deviatoric_grid_stress_change!(model::ModelData)
+function calculate_deviatoric_grid_stress_change!(model::ModelData)::Nothing
     stress = model.stokes_continuity.arrays.stress
     stress_change = model.stokes_continuity.arrays.stress_change
-    dsxy = stress.sxy2.array - stress.sxy1.array
-    dsxx = stress.sxx2.array - stress.sxx1.array
-    stress_change.dsxy.array = copy(dsxy)
-    stress_change.dsxx.array = copy(dsxx)
+    stress_change.dsxy.array .= stress.sxy2.array .- stress.sxy1.array
+    stress_change.dsxx.array .= stress.sxx2.array .- stress.sxx1.array
+    return nothing
 end
 
 end # module 
