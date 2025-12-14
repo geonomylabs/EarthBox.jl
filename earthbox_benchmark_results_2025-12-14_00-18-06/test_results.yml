@@ -1,8 +1,0 @@
-channel_flow_non_newtonian:
-  benchmark_description: "Vertical channel flow with non-Newtonian rheology. Boundary conditions are defined using the `:VerticalChannelFlowNonNewtonian` boundary condition model type (See [EarthBox.BoundaryConditions.initialize!](@ref)). This benchmark tests the codes ability to handle flows where effective viscosity is dependent on a power-law relationship with stress/strain rate. Model parameters are as follows: ``L`` = 10 km, ``H`` = 9.5 km, ``n`` = 3, ``C1`` = ``10^{-37}`` Pa^{-3}s^{-1}, ``P_{beg}`` = ``10^9`` Pa, and ``P_{end}`` = 0. Resolution is 51 x 21 nodes with 25 randomly distributed markers per cell. markers per cell. For details on the analytical solution see [gerya2010](@citet), pg. 246-247."
-  summary_for_each_time_step:
-    time_step_60:
-      "relative error limit %": 1.1
-      "max relative error percentage": 1.0082
-      message: "Test Successful: max relative error is not greater than limit: 1.008% <= 1.100%"
-      result: "Success"
