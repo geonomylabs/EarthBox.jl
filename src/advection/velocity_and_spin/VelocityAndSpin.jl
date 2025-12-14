@@ -2,7 +2,6 @@ module VelocityAndSpin
 
 include("RungeKutta.jl")
 
-import StaticArrays: MVector
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox: GridFuncs
 import EarthBox.Interpolation: MarkerGridMapping
@@ -74,7 +73,7 @@ function interpolate_using_runge_kutta(
     markers_vx = Vector{Float64}(undef, rk_data.marknum)
     markers_vy = Vector{Float64}(undef, rk_data.marknum)
     markers_spin = Vector{Float64}(undef, rk_data.marknum)
-    
+
     Threads.@threads for imarker in 1:rk_data.marknum
         if inside_flags[imarker] == Int8(1)
             @inbounds begin
