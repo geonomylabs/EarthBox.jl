@@ -1,0 +1,101 @@
+.docs-main h6 {
+  counter-increment: equation-counter;
+  text-align: right !important;
+  font-size: 0.75em !important;
+  font-weight: normal;
+  text-transform: none !important;
+  margin-top: 0.01em;
+  margin-bottom: 0.1em;
+  display: inline-block;
+  width: 100%;
+  transform: translateY(3em);
+}
+
+.docs-main h6::before {
+  content: "(Eq. " counter(equation-counter) "";
+}
+
+.docs-main h6::after {
+  content: ")";
+  margin-left: -0.0em;
+}
+
+/* Hide only the permalink icon, not the text anchor */
+.docs-main h6 a.docs-heading-anchor-permalink {
+  display: none !important;
+}
+
+/* Hide the text anchor inside h6 headers */
+.docs-main h6 a.docs-heading-anchor {
+  display: none;
+}
+
+.docs-main {
+  counter-reset: figure-counter;
+}
+
+/******************************************************************************/
+/* Figure numbering management */
+/******************************************************************************/
+.docs-main h5 {
+  counter-increment: figure-counter;
+  text-align: left !important;
+  font-size: 1.0em !important;
+  font-weight: normal;
+  text-transform: none !important;
+  margin-top: 0.01em;
+  margin-bottom: 0.1em;
+  display: inline-block;
+}
+
+.docs-main h5::before {
+  content: "Figure " counter(figure-counter) "";
+}
+
+.docs-main h5::after {
+  content: "";
+  margin-left: -0.0em;
+}
+
+/* Hide only the permalink icon, not the text anchor */
+.docs-main h5 a.docs-heading-anchor-permalink {
+  display: none !important;
+}
+
+/* Hide the text anchor inside h6 headers */
+.docs-main h5 a.docs-heading-anchor {
+  display: none;
+}
+
+/******************************************************************************/
+/* Table numbering management */
+/******************************************************************************/
+.docs-main h4 {
+  counter-increment: table-counter;
+  text-align: left !important;
+  font-size: 1.0em !important;
+  font-weight: normal;
+  text-transform: none !important;
+  margin-top: 0.01em;
+  margin-bottom: 0.1em;
+  display: inline-block;
+}
+
+.docs-main h4::before {
+  content: "Table " counter(table-counter) "";
+}
+
+.docs-main h4::after {
+  content: "";
+  margin-left: -0.0em;
+}
+
+/* Hide only the permalink icon, not the text anchor */
+.docs-main h4 a.docs-heading-anchor-permalink {
+  display: none !important;
+}
+
+/* Hide the text anchor inside h4 headers */
+.docs-main h4 a.docs-heading-anchor {
+  display: none;
+}

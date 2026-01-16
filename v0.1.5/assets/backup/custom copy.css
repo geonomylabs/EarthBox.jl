@@ -1,0 +1,35 @@
+.docs-main {
+  counter-reset: equation-counter;
+}
+
+.docs-main h6 {
+  counter-increment: equation-counter;
+  text-align: left !important;
+  font-size: 0.75em !important;
+  font-weight: normal;
+  text-transform: none !important;
+  margin-top: 0.75em;
+  margin-bottom: 0.1em;
+  display: inline-block;
+  width: 100%;
+}
+
+.docs-main h6::before {
+  content: "(Eq. " counter(equation-counter) ": ";
+}
+
+.docs-main h6::after {
+  content: ")";
+  margin-left: -0.0em;
+}
+
+/* Hide only the permalink icon, not the text anchor */
+.docs-main h6 a.docs-heading-anchor-permalink {
+  display: none !important;
+}
+
+/* Keep the text anchor but remove any special styling */
+.docs-main h6 a.docs-heading-anchor {
+  color: inherit;
+  text-decoration: none;
+}
