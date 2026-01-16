@@ -68,7 +68,6 @@ function calculate_gravity_anomaly_of_cell(
     x_relative_to_upper_left = x_observer - x_upper_left
     y_upper_left_below_datum = y_upper_left - y_datum
     y_lower_left_below_datum = y_upper_left_below_datum + cell_height
-
     beta_rad = beta * π / 180.0
     factor = calculate_gravity_factor(
         beta_rad, x_relative_to_upper_left,
@@ -76,7 +75,6 @@ function calculate_gravity_anomaly_of_cell(
         radius1, radius2, radius3, radius4,
         theta1, theta2, theta3, theta4
     )
-
     gravity_anomaly = 2.0 * grav_constant * delta_density * factor
 
     return gravity_anomaly
@@ -97,6 +95,9 @@ function calculate_gravity_factor(
         theta3::Float64,
         theta4::Float64
 )::Float64
+    if radius1 == 0.0 || radius3 == 0.0 || radius4 == 0.0
+        return 0.0
+    end
     factor = (
         y_lower_left_below_datum * (theta2 - theta4)
         - y_upper_left_below_datum * (theta1 - theta3)

@@ -65,25 +65,67 @@ function execute_multigrid_vcycles!(
     make_plots = multigrid_data.vcycle.make_plots
     nvcycles = multigrid_data.vcycle.nvcycles
     for ivcycle = 1:nvcycles
-        println(">>>> Multigrid iteration $ivcycle")
+        tt1 = time()
+        println("--------------------------------")
+        println("> Multigrid iteration $ivcycle")
+        println("--------------------------------")
+
+        t1 = time()
+        println(">> Updating ivcycle...")
         update_ivcycle!(multigrid_data.counters, ivcycle)
+        t2 = time()
+        println(">> Time taken to update ivcycle: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Smoothing and restricting...")
         smooth_and_restrict!(multigrid_data)
+        t2 = time()
+        println(">> Time taken to smooth and restrict: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Smoothing and prolongating...")
         ΔRxL1, ΔRyL1, ΔRcL1 = smooth_and_prolongate!(multigrid_data)
+        t2 = time()
+        println(">> Time taken to smooth and prolongate: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Calculating mean residuals...")
         (
             ΔRxL1_scaled, ΔRyL1_scaled, ΔRcL1_scaled
         ) = calculate_mean_residuals!(multigrid_data, ΔRxL1, ΔRyL1, ΔRcL1)
+        t2 = time()
+        println(">> Time taken to calculate mean residuals: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Plotting residuals...")
         if make_plots
             plot_residuals(multigrid_data, ΔRxL1_scaled, ΔRyL1_scaled, ΔRcL1_scaled)
         end
+        t2 = time()
+        println(">> Time taken to plot residuals: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Rescaling viscosity...")
         if !use_multimulti
             ViscosityScaling.rescale_viscosity_for_levels!(multigrid_data)
         else
             ViscosityScaling.rescale_viscosity_for_levels_using_multimulti!(multigrid_data)
         end
+        t2 = time()
+        println(">> Time taken to rescale viscosity: $(t2-t1) seconds")
+
+        t1 = time()
+        println(">> Checking convergence...")
         if is_converged_2d(multigrid_data)
-            println(">>>> Multigrid iteration $ivcycle converged")
+            println("> Multigrid iteration $ivcycle converged")
             break
         end
+        t2 = time()
+        println(">> Time taken to check convergence: $(t2-t1) seconds")
+
+        tt2 = time()
+        println(">>> Total time taken for iteration $ivcycle: $(tt2-tt1) seconds")
+
     end
     return nothing
 end

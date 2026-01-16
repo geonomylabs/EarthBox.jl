@@ -81,9 +81,20 @@ function stokes_continuity2d_viscous_smoother!(
     smoothing_iterations::Vector{Int64},
     relaxation::RelaxationParameters
 )::Tuple{Array{Float64,2}, Array{Float64,2}, Array{Float64,2}}
+    t1 = time()
     solve_stokes_equations_gauss_seidel!(level_data, smoothing_iterations, relaxation)
+    t2 = time()
+    println("    -- Time taken to solve stokes equations: $(t2-t1) seconds")
+
+    t1 = time()
     update_pressure!(pressure_bc, level_data)
+    t2 = time()
+    println("    -- Time taken to update pressure: $(t2-t1) seconds")
+
+    t1 = time()
     resx, resy, resc = compute_residuals!(level_data)
+    t2 = time()
+    println("    -- Time taken to compute residuals: $(t2-t1) seconds")
     return resx, resy, resc
 end
 

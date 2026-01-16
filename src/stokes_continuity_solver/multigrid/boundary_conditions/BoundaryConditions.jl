@@ -51,6 +51,44 @@ function set_boundary_conditions2d!(
     return nothing
 end
 
+function set_boundary_conditions2d_opt!(level_data::LevelData2d)::Nothing
+    xnum = level_data.grid.parameters.geometry.xnum.value
+    ynum = level_data.grid.parameters.geometry.ynum.value
+    ynum_vx = get_ynum_vx_grid(ynum)
+    xnum_vy = get_xnum_vy_grid(xnum)
+
+    dims = (
+        xnum=xnum, 
+        ynum=ynum, 
+        ynum_vx=ynum_vx, 
+        xnum_vy=xnum_vy
+        )
+
+    # Set Vx boundary conditions - only on actual boundaries
+    # Top boundary (i=1) and bottom boundary (i=ynum_vx) for all j
+    @inbounds for j = 1:xnum
+        set_vx_boundary_conditions2d!(1, j, dims, level_data)        # Top
+        set_vx_boundary_conditions2d!(ynum_vx, j, dims, level_data)  # Bottom
+    end
+    # Left boundary (j=1) and right boundary (j=xnum) for internal i
+    @inbounds for i = 2:ynum_vx-1
+        set_vx_boundary_conditions2d!(i, 1, dims, level_data)     # Left
+        set_vx_boundary_conditions2d!(i, xnum, dims, level_data)  # Right
+    end
+
+    # Set Vy boundary conditions - only on actual boundaries
+    # Top boundary (i=1) and bottom boundary (i=ynum) for all j
+    @inbounds for j = 1:xnum_vy
+        set_vy_boundary_conditions2d!(1, j, dims, level_data)     # Top
+        set_vy_boundary_conditions2d!(ynum, j, dims, level_data)  # Bottom
+    end
+    # Left boundary (j=1) and right boundary (j=xnum_vy) for internal i
+    @inbounds for i = 2:ynum-1
+        set_vy_boundary_conditions2d!(i, 1, dims, level_data)        # Left
+        set_vy_boundary_conditions2d!(i, xnum_vy, dims, level_data)  # Right
+    end
+end
+
 function set_boundary_conditions3d!(level_data::LevelData)::Nothing
     xnum = level_data.grid.parameters.geometry.xnum.value
     ynum = level_data.grid.parameters.geometry.ynum.value
