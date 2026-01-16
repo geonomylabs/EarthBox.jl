@@ -72,6 +72,10 @@ function compute_residuals!(
     ΔRy = zeros(Float64, size(vy))
     ΔRc = zeros(Float64, size(pr))
 
+    #ΔRx = Array{Float64}(undef, size(vx))
+    #ΔRy = Array{Float64}(undef, size(vy))
+    #ΔRc = Array{Float64}(undef, size(pr))
+
     # Computing final state of residuals
     for j = 1:xnum
         for i = 1:ynum

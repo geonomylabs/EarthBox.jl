@@ -50,20 +50,38 @@ function smooth_and_prolongate!(
     ΔRxL1 = zeros(Float64, 2, 2)
     ΔRyL1 = zeros(Float64, 2, 2)
     ΔRcL1 = zeros(Float64, 2, 2)
+    #ΔRxL1 = Array{Float64}(undef, 2, 2)
+    #ΔRyL1 = Array{Float64}(undef, 2, 2)
+    #ΔRcL1 = Array{Float64}(undef, 2, 2)
+
     for n = levelnum:-1:1
+        t1 = time()
         if n == 1
             ΔRxL1, ΔRyL1, ΔRcL1 = stokes_continuity2d_viscous_smoother!(
                     pressure_bc, level_vector[n], smoothing_iterations, relaxation)
         else
+            tt1 = time()
             _, _, _ = stokes_continuity2d_viscous_smoother!(
                 0.0, level_vector[n], smoothing_iterations, relaxation)
+            tt2 = time()
+            println("+++ Time taken to smooth level $n: $(tt2-tt1) seconds")
+
+            tt1 = time()
             dvx, dvy, dpr = prolongate_stokes2d_solution(n, level_vector)
+            tt2 = time()
+            println("+++ Time taken to prolongate level $n: $(tt2-tt1) seconds")
+
+            tt1 = time()
             relax_velocity = multigrid_data.relaxation.relax_velocity
             relax_pressure = multigrid_data.relaxation.relax_pressure
             level_vector[n-1].vx.array .+= dvx * relax_velocity
             level_vector[n-1].vy.array .+= dvy * relax_velocity
             level_vector[n-1].pr.array .+= dpr * relax_pressure
+            tt2 = time()
+            println("+++ Time taken to relax level $n: $(tt2-tt1) seconds")
         end
+        t2 = time()
+        println("++ Time taken to smooth and prolongate level $n: $(t2-t1) seconds")
     end
     return ΔRxL1, ΔRyL1, ΔRcL1
 end

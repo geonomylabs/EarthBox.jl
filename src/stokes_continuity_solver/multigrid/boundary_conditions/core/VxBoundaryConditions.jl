@@ -113,7 +113,7 @@ function set_vx_boundary_conditions2d!(
     # Right boundary
     if j == xnum
         if bc_type == :constant_velocity
-            vx[i,j,k] = vx_bc_right
+            vx[i,j] = vx_bc_right
         end
     end
     # Upper Boundary

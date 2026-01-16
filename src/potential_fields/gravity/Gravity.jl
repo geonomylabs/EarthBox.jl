@@ -171,7 +171,7 @@ function gravity_anomaly_loop_left_edge(
     xnum = length(bgridx)
     ynum = length(bgridy)
 
-    for itopo in 1:toponum
+    Base.Threads.@threads for itopo in 1:toponum
         x_observer = topo_gridx[itopo]
         for j in 1:xnum  # Swapped loop order for column-major arrays
             x_grid = bgridx[j]
@@ -187,7 +187,7 @@ function gravity_anomaly_loop_left_edge(
 
                     (y_upper_left_cell, cell_height) = calculate_vertical_cell_geometry(
                         i, ystp, y_grid, y_sealevel)
-
+                    
                     if y_upper_left_cell >= y_sealevel
                         gravity_anomaly = calculate_gravity_anomaly_of_cell(
                             gravity_constant, delta_density,
@@ -202,6 +202,7 @@ function gravity_anomaly_loop_left_edge(
                         gravity_grid_mgal[itopo] = (
                             gravity_grid_mgal[itopo] + gravity_anomaly_mgal
                         )
+
                     end
                 end
             end

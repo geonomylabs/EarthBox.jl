@@ -71,6 +71,11 @@ Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic
 Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models 
 with Extrusive Surface Processes. [EarthArXiv Preprints](https://eartharxiv.org/repository/view/10967/). Preprint.
 
+## Disclaimer
+
+This project is an independent, open-source, educational effort developed using publicly available 
+academic methods and references, and is not affiliated with or derived from the work of any current 
+or former employer.
 
 ## Operating Systems
 
@@ -85,8 +90,8 @@ management and the Bash shell in the EarthBox documentation. We recommend using 
 or PopOS since EarthBox was extensively tested on these operating systems. 
 
 If you are working on Windows, we recommend using VirtualBox to build a virtual Linux
-machine. See [VirtualBox](https://www.virtualbox.org).
-
+machine. See [VirtualBox](https://www.virtualbox.org). Alternatively, on Windows machines you can
+use the Windows Subsystem for Linux [WSL](https://learn.microsoft.com/en-us/windows/wsl/install).
 
 ## Julia Installation
 
