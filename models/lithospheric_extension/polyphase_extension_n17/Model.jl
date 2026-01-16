@@ -65,7 +65,7 @@ function run_case(;case_name::String="case0")::Nothing
     run_time_steps(
         eb,
         make_backup           = true,
-        ntimestep_max         = 4500,
+        ntimestep_max         = 5000,
         timestep_viscoelastic = ConversionFuncs.years_to_seconds(50_000.0),
         timestep_out          = ConversionFuncs.years_to_seconds(500_000.0)
     )

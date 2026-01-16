@@ -1,3 +1,3 @@
-import EarthBox.StokesContinuitySolver.MultigridTest: MultigridSolver
+import EarthBox.StokesContinuitySolver.MultigridManager.MultigridTests: StokesSinker
 
-MultigridSolver.run_multigrid(make_plots=false, use_multimulti=true,model_type=:TwoDimensional)
+StokesSinker.run_stokes_sinker(make_plots=false, use_multimulti=true, model_type=:TwoDimensional)
