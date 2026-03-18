@@ -18,6 +18,8 @@ Parameter group for random friction properties.
 # Fields
 - `iuse_random_fric::`[`ParameterInt`](@ref): $(PDATA.iuse_random_fric.description)
 - `delta_fric_coef::`[`ParameterFloat`](@ref): $(PDATA.delta_fric_coef.description)
+- `central_delta_fric_coef::`[`ParameterFloat`](@ref): $(PDATA.central_delta_fric_coef.description)
+- `central_weakening_probability::`[`ParameterFloat`](@ref): $(PDATA.central_weakening_probability.description)
 - `iuse_random_fric_time::`[`ParameterInt`](@ref): $(PDATA.iuse_random_fric_time.description)
 - `randomization_factor::`[`ParameterFloat`](@ref): $(PDATA.randomization_factor.description)
 - `obj_list::Vector{Union{ParameterFloat, ParameterInt}}`: List of parameter objects
@@ -25,6 +27,8 @@ Parameter group for random friction properties.
 # Nested Dot Access
 - `iuse_random_fric = $(ROOT_NAME).$(GRP_NAME).iuse_random_fric.value`
 - `delta_fric_coef = $(ROOT_NAME).$(GRP_NAME).delta_fric_coef.value`
+- `central_delta_fric_coef = $(ROOT_NAME).$(GRP_NAME).central_delta_fric_coef.value`
+- `central_weakening_probability = $(ROOT_NAME).$(GRP_NAME).central_weakening_probability.value`
 - `iuse_random_fric_time = $(ROOT_NAME).$(GRP_NAME).iuse_random_fric_time.value`
 - `randomization_factor = $(ROOT_NAME).$(GRP_NAME).randomization_factor.value`
 
@@ -40,6 +44,8 @@ Create a new RandomFriction parameter group with default values.
 mutable struct RandomFriction <: AbstractParameterGroup
     iuse_random_fric::ParameterInt
     delta_fric_coef::ParameterFloat
+    central_delta_fric_coef::ParameterFloat
+    central_weakening_probability::ParameterFloat
     iuse_random_fric_time::ParameterInt
     randomization_factor::ParameterFloat
     obj_list::Vector{Union{ParameterFloat, ParameterInt}}
@@ -50,6 +56,8 @@ function RandomFriction()::RandomFriction
     data = RandomFriction(
         pdata.iuse_random_fric,
         pdata.delta_fric_coef,
+        pdata.central_delta_fric_coef,
+        pdata.central_weakening_probability,
         pdata.iuse_random_fric_time,
         pdata.randomization_factor,
         Union{ParameterFloat, ParameterInt}[] # obj_list

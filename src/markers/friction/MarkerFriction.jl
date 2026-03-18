@@ -22,6 +22,8 @@ import .InitManager
 
 struct ValidInputNames
     delta_fric_coef::Symbol
+    central_delta_fric_coef::Symbol
+    central_weakening_probability::Symbol
     iuse_random_fric_time::Symbol
     randomization_factor::Symbol
 end
@@ -53,8 +55,7 @@ Manage marker friction coefficients initialization and time-dependent models.
 # Arguments
 - `model::ModelData`: The model data container containing the model parameters and arrays.
 - `initialization_model::Union{Int, String, Symbol, Nothing}`: 
-    - Controls the type of marker friction coefficients initialization model.
-       initialization model for marker friction coefficients. See the 
+    - Controls the type of initialization model for marker friction coefficients. See the 
        **Marker Friction Coefficient Initialization Models** section below for information on 
        available initialization models. If the `initialization_model` is not provided, the default 
        initialization model will be used. The initialization model is stored in the model data 
@@ -65,6 +66,10 @@ Manage marker friction coefficients initialization and time-dependent models.
 # Keyword Arguments
 - `delta_fric_coef::Union{Float64, Nothing}=nothing`:
     - $(PDATA.delta_fric_coef.description)
+- `central_delta_fric_coef::Union{Float64, Nothing}=nothing`:
+    - $(PDATA.central_delta_fric_coef.description)
+- `central_weakening_probability::Union{Float64, Nothing}=nothing`:
+    - $(PDATA.central_weakening_probability.description)
 - `iuse_random_fric_time::Union{Bool, Nothing}=nothing`:
     - $(PDATA.iuse_random_fric_time.description)
 - `randomization_factor::Union{Float64, Nothing}=nothing`:

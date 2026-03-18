@@ -4,6 +4,7 @@ import EarthBox.ModelDataContainer: ModelData
 import EarthBox.Arrays: ArrayUtils
 import EarthBox.ConversionFuncs: get_factor_cm_yr_to_m_s
 import Plots
+import CairoMakie
 
 function plot_interpolated_temperature_tk1(model::ModelData, msg::String)::Nothing
     ntimestep = model.timestep.parameters.main_time_loop.ntimestep.value
@@ -196,6 +197,61 @@ function plot_viscoplastic_viscosity_etan0_etas0(model::ModelData, msg::String):
     #plot_marker_overlay(p, model)
     Plots.savefig("etan_2d_grid_$(ntimestep_str).png")
 
+    return nothing
+end
+
+const PLOT_MARKER_FRIC_MAX = 200_000  # max markers to plot; beyond this we downsample
+
+"""
+    plot_marker_fric(model::ModelData; filename::String="marker_fric_debug.png")
+
+Scatter plot of `marker_fric` using **CairoMakie** (`scatter!` + **Colorbar**).
+Positions in km; colormap `:turbo`; **colorrange** is fixed **0.0–0.5** (friction
+coefficient). Decimates beyond `PLOT_MARKER_FRIC_MAX`.
+"""
+function plot_marker_fric(
+    model::ModelData;
+    filename::String="marker_fric_debug.png",
+)::Nothing
+    marker_x = model.markers.arrays.location.marker_x.array ./ 1000.0   # m -> km
+    marker_y = model.markers.arrays.location.marker_y.array ./ 1000.0   # m -> km
+    marker_fric = copy(model.markers.arrays.rheology.marker_fric.array)
+    println("plot_marker_fric: marker_fric min: ", minimum(marker_fric), " max: ", maximum(marker_fric))
+    colorrange_lo = 0.0
+    colorrange_hi = 0.5
+    cbar_ticks = collect(0.0:0.1:0.5)
+    dpi = 150
+    fig = CairoMakie.Figure(size=(round(Int, 10 * dpi), round(Int, 6 * dpi)))
+    x_min, x_max = extrema(marker_x)
+    xtick_positions = (floor(x_min / 25) * 25):25.0:(ceil(x_max / 25) * 25)
+    ax = CairoMakie.Axis(
+        fig[1, 1],
+        xlabel="x (km)",
+        ylabel="y (km)",
+        title="Marker friction coefficient (marker_fric)",
+        aspect=CairoMakie.DataAspect(),
+        yreversed=true,
+        xticks=xtick_positions,
+    )
+    sc = CairoMakie.scatter!(
+        ax,
+        marker_x,
+        marker_y;
+        color=marker_fric,
+        colormap=:turbo,
+        colorrange=(colorrange_lo, colorrange_hi),
+        markersize=2.0,
+        marker=:circle,
+        strokewidth=0.0,
+        strokecolor=:black,
+        rasterize=true,
+    )
+    cb = CairoMakie.Colorbar(fig[1, 2], sc, label="friction coef.")
+    cb.ticks = cbar_ticks
+    cb.labelsize = 14
+    cb.ticklabelsize = 11
+    CairoMakie.save(filename, fig)
+    println(">> Saved marker_fric plot to $(filename)")
     return nothing
 end
 

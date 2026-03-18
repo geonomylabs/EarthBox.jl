@@ -21,7 +21,7 @@ supply at the surface:
 where ``y_{topo}`` is the y-coordinate of topography in the 2D model domain, ``\kappa_s`` is the 
 sediment transport diffusivity, and ``R_{pelagic}`` is a sediment source term that accounts for pelagic 
 sedimentation and sediment transport in and out of the plain of the model domain. We use the approach 
-described by [martinez19](@citet) to define ``\kappa_s`` so that it includes the effects of subaerial 
+described by [martinez19](@citet) to define ``\kappa_s`` that includes the effects of subaerial 
 slope diffusion, subaerial fluvial concentrative diffusional transport associated with river systems 
 within a given drainage basin and water-depth dependent submarine slope diffusion that accounts for 
 wave and tidal effects at shallow water depths:
