@@ -982,6 +982,15 @@ function get_materials_parameters()::NamedTuple
             0.1, "delta_fric_coef", "None", 
             "Friction coefficient perturbation used to randomize initial marker friction coefficients"
         ),
+        central_delta_fric_coef = ParameterFloat(
+            0.1, "central_delta_fric_coef", "None",
+            "Friction coefficient perturbation used in the central weakening model "
+            *"for randomizing initial marker friction coefficients"
+        ),
+        central_weakening_probability = ParameterFloat(
+            0.5, "central_weakening_probability", "None",
+            "Maximum weakening probability at the center of the central weakening zone (0 to 1)"
+        ),
         iuse_random_fric_time = ParameterInt(
             0, "iuse_random_fric_time", "None", 
             "Randomize marker friction coefficients with each time step: 0 off; 1 on"

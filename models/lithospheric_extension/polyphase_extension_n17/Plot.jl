@@ -53,7 +53,7 @@ import .Model: ROOT_PATH_OUTPUT
 
 const dimensions = (0.0, 500.0, 0.0, 120.0)
 const xyspacing = (50.0, 10.0)
-const model_figsize = (10.0, 8.0)
+const model_figsize = (10.0, 6.0)
 
 function scalar_plots(;
     model_output_path::String,

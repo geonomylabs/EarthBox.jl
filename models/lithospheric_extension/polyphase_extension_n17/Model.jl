@@ -51,9 +51,9 @@ const thick_air                = 10_000.0 # meters
 const thick_crust              = 40_000.0 # meters
 const thick_upper_crust        = 22_000.0 # meters
 const thick_lith               = 100_000.0 # meters
-const marker_spacing           = 100.0 # meters (50 m for high resolution case)
-const grid_spacing_high_res    = 500.0 # meters (200 m for high resolution case)
-const avg_grid_spacing_low_res = 2000.0 # meters (1000 m for high resolution case)
+const marker_spacing           = 50.0 # meters (50 m for high resolution case)
+const grid_spacing_high_res    = 200.0 # meters (200 m for high resolution case)
+const avg_grid_spacing_low_res = 1000.0 # meters (1000 m for high resolution case)
 const temperature_base_lith_celsius = 1330.0
 
 function run_case(;case_name::String="case0")::Nothing
@@ -61,11 +61,11 @@ function run_case(;case_name::String="case0")::Nothing
     model_output_path = get_model_output_path(case_name, ROOT_PATH_OUTPUT)
     eb = setup_model(model_output_path=model_output_path)
     PRINT_SETTINGS.print_performance = true
-    eb.model_manager.config.solver.verbose_output = 1
+    eb.model_manager.config.solver.verbose_output = 0
     run_time_steps(
         eb,
         make_backup           = true,
-        ntimestep_max         = 5000,
+        ntimestep_max         = 6000,
         timestep_viscoelastic = ConversionFuncs.years_to_seconds(50_000.0),
         timestep_out          = ConversionFuncs.years_to_seconds(500_000.0)
     )
@@ -247,8 +247,8 @@ function initialize_stokes_continuity_solver(eb::EarthBoxState)::Nothing
     GlobalPlasticityLoop.initialize!(
         model,
         global_plasticity_loop = global_plasticity_names.NodalPlasticityLoop,
-        tolerance_picard       = 1e-2,
-        nglobal                = 3
+        tolerance_picard       = 1e-3,
+        nglobal                = 100
     )
     return nothing
 end

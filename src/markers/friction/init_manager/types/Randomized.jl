@@ -34,14 +34,14 @@ function initialize!(model::ModelData)
     marknum = model.markers.parameters.distribution.marknum.value
     for imarker in 1:marknum
         matid = marker_matid[imarker]
-        friction_coefficient = mat_plastic[matid][3]  # Julia is 1-indexed
+        friction_coefficient = mat_plastic[matid, 3]  # Julia is 1-indexed
         random_number = marker_random[imarker]
         friction_coefficient = randomize_initial_friction_coefficient(
             friction_coefficient, delta_fric_coef, random_number)
         
         # Avoid sticky air and water
         if matid in matids_sticky_air || matid in matids_sticky_water
-            marker_fric_ini[imarker] = mat_plastic[matid][3]  # Julia is 1-indexed
+            marker_fric_ini[imarker] = mat_plastic[matid, 3]  # Julia is 1-indexed
         else
             marker_fric_ini[imarker] = friction_coefficient
         end

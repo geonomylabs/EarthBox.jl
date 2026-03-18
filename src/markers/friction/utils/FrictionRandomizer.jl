@@ -20,4 +20,12 @@ Randomize initial friction coefficient.
     return friction_coefficient
 end
 
+function weaken_initial_friction_coefficient(
+    friction_coefficient::Float64,
+    delta_fric_coef::Float64,
+    random_number::Float64
+)::Float64
+    return friction_coefficient - random_number*delta_fric_coef
+end
+
 end # module 

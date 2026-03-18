@@ -51,12 +51,12 @@ end
 """ Test downhill diffusion for multiple time steps using a regular grid.
 """
 function run_test()
-    pelagic_sedimentation_rate = mm_yr_to_m_s(0.3) # m/s
+    pelagic_sedimentation_rate = mm_yr_to_m_s(0.0) # m/s
 
     sediment_transport_parameters = SedimentTransportParameters(
         m2_yr_to_m2_s(0.25),
         m_yr_to_m_s(1.0), 
-        1e-2,
+        1e-4,
         m2_yr_to_m2_s(1e2),
         2000.0,
         years_to_seconds(5_000.0),
