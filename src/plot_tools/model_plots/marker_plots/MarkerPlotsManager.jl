@@ -62,6 +62,7 @@ Base.@kwdef struct Registry
     CompositionHeatFlowGravity::String = "CompositionHeatFlowGravity"
     PlasticFailure::String = "PlasticFailure"
     Density::String = "Density"
+    CalculateHeatFlowGravity::String = "CalculateHeatFlowGravity"
 end
 
 function get_names(registry::Registry)::Vector{String}
@@ -71,7 +72,8 @@ function get_names(registry::Registry)::Vector{String}
         registry.CompositionGravity,
         registry.CompositionHeatFlowGravity,
         registry.PlasticFailure,
-        registry.Density
+        registry.Density,
+        registry.CalculateHeatFlowGravity
     ]
 end
 
@@ -279,6 +281,10 @@ $(get_keyword_arguments_string())
 - $(Registry().CompositionHeatFlowGravity)
 - $(Registry().PlasticFailure)
 - $(Registry().Density)
+- $(Registry().CalculateHeatFlowGravity)
+
+# Note that the CalculateHeatFlowGravity plot type is used to calculate the heat 
+flow and gravity grids and export them as jld files for use in other plotting tools.
 
 """
 function plot_markers(
@@ -349,7 +355,8 @@ function make_plot_functions_dict()::Dict{String, Function}
         "CompositionGravity" => make_marker_scalars_plot_gravity!,
         "CompositionHeatFlowGravity" => make_marker_scalars_plot_heatflow_gravity!,
         "PlasticFailure" => make_plastic_failure_plot!,
-        "Density" => make_density_plot!
+        "Density" => make_density_plot!,
+        "CalculateHeatFlowGravity" => calculate_heatflow_gravity!,
     )
 end
  
@@ -436,7 +443,7 @@ function make_marker_scalars_plot_gravity!(
     
     GravityPlotsManager.set_ioutput!(marker_plots.gravity_plots, ioutput)
     (
-        gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
+        _model_time, gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
     ) = GravityPlotsManager.get_gravity_grids(marker_plots.gravity_plots)
 
     GravityPlotsManager.plot_gravity(
@@ -486,7 +493,7 @@ function make_marker_scalars_plot_heatflow_gravity!(
 
     GravityPlotsManager.set_ioutput!(marker_plots.gravity_plots, ioutput)
     (
-        gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
+        _model_time, gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
     ) = GravityPlotsManager.get_gravity_grids(marker_plots.gravity_plots)
     GravityPlotsManager.plot_gravity(
         axes_gravity, gridx/1000.0, gravity_grid_mgal, gravity_grid_free_air_mgal,
@@ -497,41 +504,100 @@ function make_marker_scalars_plot_heatflow_gravity!(
         fig, axes_scatter, marker_plots.parameters, "marker_composition_heatflow_gravity")
     return nothing
 end
- 
- function make_plastic_failure_plot!(
-     marker_plots::MarkerPlots,
-     ioutput::Union{Int, Nothing},
-     model::Union{ModelData, Nothing}
- )::Nothing
-    initialize_marker_plot!(marker_plots, ioutput, model)
-    axes = initialize_axes_and_mesh!(marker_plots, cmap_name="Blues")
-    plot_plastic_failure(
-        marker_plots.parameters, marker_plots.marker_arrays, 
-        marker_plots.materials, marker_plots.colormap, axes
-    )
-    plot_temperature_contours(marker_plots.parameters, marker_plots.scalar_arrays, axes)
-    finalize_plot!(marker_plots, "marker_plastic", axes)
-    return nothing
- end
- 
- function make_density_plot!(
-     marker_plots::MarkerPlots,
-     ioutput::Union{Int, Nothing},
+
+function calculate_heatflow_gravity!(
+    marker_plots::MarkerPlots,
+    ioutput::Union{Int, Nothing},
     model::Union{ModelData, Nothing}
- )::Nothing
+)::Nothing
     initialize_marker_plot!(marker_plots, ioutput, model)
-    axes = initialize_axes_and_mesh!(marker_plots, cmap_name="Blues")
-    plot_topo!(marker_plots.parameters, marker_plots.topo_arrays, axes)
-    plot_density(
-        marker_plots.parameters, marker_plots.marker_arrays, 
-        marker_plots.materials, axes
+    
+    HeatflowPlotsManager.set_ioutput!(marker_plots.heat_flow_plots, ioutput)
+    println(">> Calculating heat flow grids for time step $ioutput")
+    (
+        heat_flow_x, hf_gridx, _, _, _, _
+    ) = HeatflowPlotsManager.get_heat_flow_grids(marker_plots.heat_flow_plots)
+    println(">> Done!")
+
+    println(">> hf_gridx min: ", minimum(hf_gridx))
+    println(">> hf_gridx max: ", maximum(hf_gridx))
+
+    println(">> Calculating basal heat flow grids for time step $ioutput")
+    heat_flow_basal_x, _, _, _, _, _ = HeatflowPlotsManager.get_heat_flow_grids(
+        marker_plots.heat_flow_plots,
+        materials=marker_plots.materials, 
+        use_sediment_thickness=true
     )
-    plot_temperature_contours(marker_plots.parameters, marker_plots.scalar_arrays, axes)
-    plot_contour_description!(marker_plots, axes)
-    finalize_plot!(marker_plots, "marker_density", axes)
+    println(">> Done!")
+
+    println(">> Calculating gravity grids for time step $ioutput")
+    GravityPlotsManager.set_ioutput!(marker_plots.gravity_plots, ioutput)
+    (
+        model_time, gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
+    ) = GravityPlotsManager.get_gravity_grids(marker_plots.gravity_plots)
+    println(">> Done!")
+
+    println(">> Saving heat flow grids to file for time step $ioutput")
+    HeatflowPlotsManager.make_jld2_heatflow_file(
+        hf_gridx, 
+        heat_flow_x, 
+        heat_flow_basal_x,
+        marker_plots.heat_flow_plots.output_dir_path,
+        marker_plots.heat_flow_plots.ioutput,
+        model_time,
+        "Myr"
+    )
+    println(">> Done!")
+    
+    println(">> Saving gravity grids to file for time step $ioutput")
+    GravityPlotsManager.make_jld2_gravity_file(
+        gridx/1000.0, 
+        gravity_grid_mgal, 
+        gravity_grid_free_air_mgal,
+        marker_plots.gravity_plots.output_dir_path,
+        marker_plots.gravity_plots.ioutput,
+        model_time,
+        "Myr"
+    )
+    println(">> Done!")
+
     return nothing
- end
+end
  
+function make_plastic_failure_plot!(
+    marker_plots::MarkerPlots,
+    ioutput::Union{Int, Nothing},
+    model::Union{ModelData, Nothing}
+)::Nothing
+   initialize_marker_plot!(marker_plots, ioutput, model)
+   axes = initialize_axes_and_mesh!(marker_plots, cmap_name="Blues")
+   plot_plastic_failure(
+       marker_plots.parameters, marker_plots.marker_arrays, 
+       marker_plots.materials, marker_plots.colormap, axes
+   )
+   plot_temperature_contours(marker_plots.parameters, marker_plots.scalar_arrays, axes)
+   finalize_plot!(marker_plots, "marker_plastic", axes)
+   return nothing
+end
+
+function make_density_plot!(
+    marker_plots::MarkerPlots,
+    ioutput::Union{Int, Nothing},
+   model::Union{ModelData, Nothing}
+)::Nothing
+   initialize_marker_plot!(marker_plots, ioutput, model)
+   axes = initialize_axes_and_mesh!(marker_plots, cmap_name="Blues")
+   plot_topo!(marker_plots.parameters, marker_plots.topo_arrays, axes)
+   plot_density(
+       marker_plots.parameters, marker_plots.marker_arrays, 
+       marker_plots.materials, axes
+   )
+   plot_temperature_contours(marker_plots.parameters, marker_plots.scalar_arrays, axes)
+   plot_contour_description!(marker_plots, axes)
+   finalize_plot!(marker_plots, "marker_density", axes)
+   return nothing
+end
+
 function initialize_marker_plot!(
     marker_plots::MarkerPlots,
     ioutput::Union{Int, Nothing},

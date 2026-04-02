@@ -2,6 +2,7 @@ module HeatflowPlotsManager
 
 using Printf
 import CairoMakie
+import JLD2
 import EarthBox.Markers.MarkerMaterials.MaterialsContainer: Materials
 import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_sediment_material_id
 import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_solidified_basalt_material_id
@@ -107,6 +108,56 @@ function get_temperature_grid(
         model_time, temp_gridy, temp_gridx, temp_array, _units_dict
     ) = get_jld_data(dataname, jld_filename)
     return model_time, temp_gridy, temp_gridx, temp_array
+end
+
+function make_jld2_heatflow_file(
+    gridx_km::Vector{Float64}, 
+    heat_flow_x::Vector{Float64}, 
+    heat_flow_basal_x::Vector{Float64},
+    output_dir::String,
+    ioutput::Int,
+    model_time::Float64,
+    time_units::String
+)::Nothing
+    jld_heatflow_filename = get_jld_heatflow_filename(output_dir, ioutput)
+    jld_heatflow_file_path = joinpath(output_dir, jld_heatflow_filename)
+    
+    JLD2.jldopen(jld_heatflow_file_path, "w") do file
+        file["Myr"] = model_time
+        file["noutput"] = ioutput
+        
+        group = JLD2.Group(file, "gridx")
+        group["array"] = gridx_km
+        group["name"] = "gridx"
+        group["units"] = "km"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+        
+        group = JLD2.Group(file, "heat_flow_x")
+        group["array"] = heat_flow_x
+        group["name"] = "heat_flow_x"
+        group["units"] = "mW/m²"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+
+        group = JLD2.Group(file, "heat_flow_basal_x")
+        group["array"] = heat_flow_basal_x
+        group["name"] = "heat_flow_basal_x"
+        group["units"] = "mW/m²"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+
+    end
+    return nothing
+end
+
+function get_jld_heatflow_filename(output_dir_path::String, ioutput::Int)::String
+    """Get the jld heatflow filename."""
+    jld_filename = joinpath(output_dir_path, "heatflow_$(intstr(ioutput)).jld")
+    return jld_filename
 end
 
 function get_therm_cond_grid(
