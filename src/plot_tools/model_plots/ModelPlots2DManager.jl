@@ -568,6 +568,69 @@ function plot_markers(;
 end
 
 """
+    calculate_heatflow_gravity(;
+        model_output_path::String,
+        material_library_file_path::String,
+        material_model_file_path::Union{String, Nothing}=nothing,
+        materials_input_dict::Union{Dict, Nothing}=nothing,
+        istart::Int64 = 1,
+        iend::Union{Int64, Nothing} = nothing,
+    )::Nothing
+
+# Arguments
+- `model_output_path::String`:
+    - Path to output directory containing model output files
+- `material_library_file_path::String`:
+    - Path to material collection library file with yaml format. See 
+       [Material Collection Files](@ref) for more information.
+- `material_model_file_path::Union{String, Nothing}`:
+    - Path to material model input file with yaml format. See 
+       [Material Input Files](@ref) for more information.
+- `materials_input_dict::Union{Dict, Nothing}`:
+    - Dictionary of material inputs where keys are material ID's and each key refers to a 
+       dictionary with keys for `mat_name`, `mat_type`, `mat_domain`, 
+       `red_fraction`, `green_fraction` and `blue_fraction`. See 
+       [Material Input Dictionaries](@ref) for more information.
+- `istart::Int64 = 1`:
+    - Initial starting time step
+- `iend::Union{Int64, Nothing} = nothing`:
+    - Final ending time step
+
+"""
+function calculate_heatflow_gravity(;
+    model_output_path::String,
+    material_library_file_path::String,
+    material_model_file_path::Union{String, Nothing}=nothing,
+    materials_input_dict::Union{Dict, Nothing}=nothing,
+    istart::Int64 = 1,
+    iend::Union{Int64, Nothing} = nothing,
+)::Nothing
+
+    if !isfile(material_library_file_path)
+        error("Material library file does not exist at: $material_library_file_path")
+    end
+    if isnothing(material_model_file_path) && isnothing(materials_input_dict)
+        error("material_model_file_path or materials_input_dict is required")
+    end
+    if isnothing(materials_input_dict) && !isfile(material_model_file_path)
+        error("material_model_file_path does not exist at: $material_model_file_path")
+    end
+
+    mp2d = get_model_plots_2d(
+        model_output_path          = model_output_path,
+        material_library_file_path = material_library_file_path,
+        material_model_file_path   = material_model_file_path,
+        materials_input_dict       = materials_input_dict,
+        istart                     = istart,
+        iend                       = iend;
+    )
+
+    MarkerPlotsManager.calculate_heatflow_gravity!(mp2d.marker_plots)
+    return nothing
+
+end
+
+"""
     plot_yield_stress(; 
         model_output_path::String,
         kwargs...
@@ -742,6 +805,7 @@ function run_cl_plotter(;
     velocity_plots_func::Union{Function, Nothing}=nothing,
     stokes_convergence_plots_func::Union{Function, Nothing}=nothing,
     yield_strength_plots_func::Union{Function, Nothing}=nothing,
+    heatflow_gravity_func::Union{Function, Nothing}=nothing,
 )::Nothing
     if isnothing(root_path_output)
         root_path_output = get_root_path_from_args()
@@ -763,7 +827,8 @@ function run_cl_plotter(;
         scalar_plots_func,
         velocity_plots_func,
         stokes_convergence_plots_func,
-        yield_strength_plots_func
+        yield_strength_plots_func,
+        heatflow_gravity_func
     )
     if option_name == "stokes_convergence_plots" || option_name == "yield_strength_plots"
         if !isnothing(plot_func)
@@ -798,14 +863,16 @@ function get_plot_func(
     scalar_plots_func::Union{Function, Nothing}=nothing,
     velocity_plots_func::Union{Function, Nothing}=nothing,
     stokes_convergence_plots_func::Union{Function, Nothing}=nothing,
-    yield_strength_plots_func::Union{Function, Nothing}=nothing
+    yield_strength_plots_func::Union{Function, Nothing}=nothing,
+    heatflow_gravity_func::Union{Function, Nothing}=nothing
 )::Union{Function, Nothing}
     func_dict = Dict(
         "marker_plots" => marker_plots_func,
         "scalar_plots" => scalar_plots_func,
         "velocity_plots" => velocity_plots_func,
         "stokes_convergence_plots" => stokes_convergence_plots_func,
-        "yield_strength_plots" => yield_strength_plots_func
+        "yield_strength_plots" => yield_strength_plots_func,
+        "heatflow_gravity" => heatflow_gravity_func
     )
     if !haskey(func_dict, option_name)
         throw(ArgumentError(
