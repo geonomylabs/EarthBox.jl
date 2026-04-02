@@ -494,7 +494,6 @@ end
 - `iend::Union{Int64, Nothing} = nothing`:
     - Final ending time step
 
-
 # Valid Plot Types
 - $(MarkerPlotsManager.Registry().Composition)
     - Marker composition is plotted using RBG values associated with each material

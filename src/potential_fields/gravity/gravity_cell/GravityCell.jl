@@ -95,7 +95,8 @@ function calculate_gravity_factor(
         theta3::Float64,
         theta4::Float64
 )::Float64
-    if radius1 == 0.0 || radius3 == 0.0 || radius4 == 0.0
+    min_radius = 1.0e-6
+    if radius1 < min_radius || radius3 < min_radius || radius4 < min_radius
         return 0.0
     end
     factor = (
@@ -241,13 +242,13 @@ function corner_lower_right(
     return radius4, theta4
 end
 
-function calculate_angle_between_radius_and_vertical(opposite::Float64, adjacent::Float64)::Float64
-    if adjacent == 0.0
-        theta = π / 2.0
-    else
-        theta = atan(opposite / adjacent)
+function calculate_angle_between_radius_and_vertical(
+    opposite::Float64, adjacent::Float64
+)::Float64
+    if adjacent == 0.0 && opposite == 0.0
+        return 0.0
     end
-    return theta
+    return atan(opposite, adjacent)
 end
 
 function calc_corner_observer_radius(x_corner::Float64, y_corner::Float64)::Float64

@@ -372,7 +372,10 @@ function get_y_upper_left(
         truncated_cell_height = 0.0
     end
 
-    y_upper_left = max(y_upper_left, y_sealevel)
+    # Offset by a small amount to avoid near-field singularity
+    # when the observer sits exactly at the cell's upper edge.
+    min_depth_below_datum = 1.0  # meters
+    y_upper_left = max(y_upper_left, y_sealevel + min_depth_below_datum)
     return y_upper_left, truncated_cell_height
 end
 

@@ -2,11 +2,13 @@ module GravityPlotsManager
 
 using Printf
 import CairoMakie
+import JLD2
 import EarthBox.JLDTools: intstr
 import EarthBox.JLDTools: get_jld_data, get_jld_topo_data
 import EarthBox.JLDTools: get_y_sealevel_from_jld_marker_data
 import EarthBox.JLDTools: get_base_level_shift_from_jld_marker_data
 import EarthBox.Gravity: calculate_free_air_and_bouguer
+import EarthBox.MathTools: smooth_surface
 import ..PlotDtypes: AxesType
 import ..PlotTimeSteppingManager: PlotTimeStepping
 import ..GridPlotsManager.DataNames: ScalarH5Datanames
@@ -38,11 +40,14 @@ end
 
 function get_gravity_grids(
     manager::GravityPlots
-)::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+)::Tuple{Float64, Vector{Float64}, Vector{Float64}, Vector{Float64}}
     """Calculate gravity grid at model gridx nodes and associated grids.
 
     Return
     ------
+    model_time : Float64
+        Model time (Myr).
+
     topo_gridx : Vector{Float64}
         Topography x (m).
 
@@ -52,7 +57,9 @@ function get_gravity_grids(
     gravity_grid_free_air_mgal : Vector{Float64}
         Gravity free air grid (mgal).
     """
-    (_model_time, gridy, gridx, rho_array) = get_density_grid(manager)
+    (model_time, gridy, gridx, rho_array) = get_density_grid(manager)
+    (topo_gridy, topo_gridx, _length_units) = get_topo_data(manager)
+    iout_tag = manager.ioutput === nothing ? "none" : intstr(manager.ioutput)
 
     println(">> Density min: ", minimum(rho_array))
     println(">> Density max: ", maximum(rho_array))
@@ -62,8 +69,6 @@ function get_gravity_grids(
 
     println(">> gridy min: ", minimum(gridy))
     println(">> gridy max: ", maximum(gridy))
-
-    (topo_gridy, topo_gridx, _length_units) = get_topo_data(manager)
 
     println(">> topo_gridx min: ", minimum(topo_gridx))
     println(">> topo_gridx max: ", maximum(topo_gridx))
@@ -80,6 +85,7 @@ function get_gravity_grids(
     y_sealevel = y_sealevel - base_level_shift
 
     println(">> y_sealevel (global): ", y_sealevel)
+
     (gravity_grid_mgal, gravity_grid_free_air_mgal) = 
         calculate_free_air_and_bouguer(
             gridx, gridy, rho_array, y_sealevel, topo_gridx, topo_gridy)
@@ -90,7 +96,58 @@ function get_gravity_grids(
     println(">> Gravity free air min: ", minimum(gravity_grid_free_air_mgal))
     println(">> Gravity free air max: ", maximum(gravity_grid_free_air_mgal))
 
-    return topo_gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
+    return model_time, topo_gridx, gravity_grid_mgal, gravity_grid_free_air_mgal
+end
+
+
+function make_jld2_gravity_file(
+    gridx_km::Vector{Float64}, 
+    gravity_grid_mgal::Vector{Float64}, 
+    gravity_grid_free_air_mgal::Vector{Float64},
+    output_dir::String,
+    ioutput::Int,
+    model_time::Float64,
+    time_units::String
+)::Nothing
+    jld_gravity_filename = get_jld_gravity_filename(output_dir, ioutput)
+    jld_gravity_file_path = joinpath(output_dir, jld_gravity_filename)
+    
+    JLD2.jldopen(jld_gravity_file_path, "w") do file
+        file["Myr"] = model_time
+        file["noutput"] = ioutput
+        
+        group = JLD2.Group(file, "gridx")
+        group["array"] = gridx_km
+        group["name"] = "gridx"
+        group["units"] = "km"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+        
+        group = JLD2.Group(file, "gravity_bouguer_mgal")
+        group["array"] = gravity_grid_mgal
+        group["name"] = "gravity_bouguer_mgal"
+        group["units"] = "mgal"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+
+        group = JLD2.Group(file, "gravity_free_air_mgal")
+        group["array"] = gravity_grid_free_air_mgal
+        group["name"] = "gravity_free_air_mgal"
+        group["units"] = "mgal"
+        group["noutput"] = ioutput
+        group["model_time"] = model_time
+        group["time_units"] = time_units
+
+    end
+    return nothing
+end
+
+function get_jld_gravity_filename(output_dir_path::String, ioutput::Int)::String
+    """Get the jld gravity filename."""
+    jld_filename = joinpath(output_dir_path, "gravity_$(intstr(ioutput)).jld")
+    return jld_filename
 end
 
 function get_density_grid(
@@ -159,6 +216,7 @@ function get_jld_topo_filename(manager::GravityPlots)::String
     return jld_filename
 end
 
+
 function plot_gravity(
     axes::CairoMakie.Axis,
     gridx::Vector{Float64},
@@ -183,8 +241,8 @@ function plot_density_test(manager::GravityPlots, rho_grid::Matrix{Float64})
     ax = CairoMakie.Axis(fig[1, 1])
     
     # Note: Julia uses column-major order, so we need to transpose for display
-    CairoMakie.heatmap!(ax, rho_grid'; colormap=:viridis)
-    CairoMakie.Colorbar(fig[1, 2], ax; label="Density")
+    hm_test = CairoMakie.heatmap!(ax, rho_grid'; colormap=:viridis)
+    CairoMakie.Colorbar(fig[1, 2], hm_test; label="Density")
     ax.title = "2D Density Grid"
     ax.xlabel = "X"
     ax.ylabel = "Y"
