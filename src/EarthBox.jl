@@ -59,7 +59,7 @@ import .PlotToolsManager: ModelPlots2DManager
 import .PlotToolsManager.ModelPlots2DManager: ModelPlots2D, GridPlotsManager, 
     MarkerPlotsManager, PlasticityPlotManager, RheologyPlotsManager,
     plot_scalars, plot_markers, plot_velocity, plot_yield_strength, 
-    plot_stokes_convergence, run_cl_plotter
+    plot_stokes_convergence, run_cl_plotter, calculate_heatflow_gravity
 import .PlotToolsManager.RunParallelPlot: run_parallel_marker_plotter
 # RunTools management
 import .RunTools: run_earthbox, remote_model_loop, local_model_loop
@@ -134,7 +134,7 @@ export get_model_output_path, get_storage_path
 export ModelPlots2DManager, ModelPlots2D, GridPlotsManager, MarkerPlotsManager 
 export PlasticityPlotManager, RheologyPlotsManager, run_parallel_marker_plotter 
 export plot_scalars, plot_markers, plot_velocity, plot_yield_strength
-export plot_stokes_convergence, run_cl_plotter
+export plot_stokes_convergence, run_cl_plotter, calculate_heatflow_gravity
 # Export RunTools tools
 export run_earthbox, remote_model_loop, local_model_loop
 export execute_remote_script_in_background, execute_earthbox_script

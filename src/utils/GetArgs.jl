@@ -123,10 +123,13 @@ function get_plot_option_name()::String
     if "yield_strength_plots" in ARGS
         plot_option_name = "yield_strength_plots"
     end
+    if "heatflow_gravity" in ARGS
+        plot_option_name = "heatflow_gravity"
+    end
     if isnothing(plot_option_name)
         throw(ArgumentError("No plot option name provided"))
     end
-    if !(plot_option_name in ["marker_plots", "scalar_plots", "stokes_convergence_plots", "velocity_plots", "yield_strength_plots"])
+    if !(plot_option_name in ["marker_plots", "scalar_plots", "stokes_convergence_plots", "velocity_plots", "yield_strength_plots", "heatflow_gravity"])
         throw(ArgumentError("$(plot_option_name) is not a valid option."))
     end
     return plot_option_name

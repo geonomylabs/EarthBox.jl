@@ -251,6 +251,7 @@ function get_keyword_arguments_string()::String
 end
 
 
+
 """
     plot_markers(
         marker_plots::MarkerPlots;
@@ -312,7 +313,7 @@ function plot_markers(
     end
     return nothing
 end
- 
+
 """ 
     set_parameters!(marker_plots::MarkerPlots; kwargs...)::Nothing
 
@@ -505,10 +506,19 @@ function make_marker_scalars_plot_heatflow_gravity!(
     return nothing
 end
 
-function calculate_heatflow_gravity!(
+function calculate_heatflow_gravity!(marker_plots::MarkerPlots)::Nothing
+    check_state(marker_plots.materials_state)
+    for ioutput in marker_plots.time_stepping.steps
+        println(">> Working on marker plot at time step $ioutput")
+        heatflow_gravity_calculator!(marker_plots, ioutput)
+    end
+    return nothing
+end
+
+function heatflow_gravity_calculator!(
     marker_plots::MarkerPlots,
     ioutput::Union{Int, Nothing},
-    model::Union{ModelData, Nothing}
+    model::Union{ModelData, Nothing}=nothing,
 )::Nothing
     initialize_marker_plot!(marker_plots, ioutput, model)
     
