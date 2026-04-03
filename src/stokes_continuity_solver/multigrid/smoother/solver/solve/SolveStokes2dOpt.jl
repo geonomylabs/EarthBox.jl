@@ -16,20 +16,26 @@ function solve_stokes_continuity_equations2d!(
     Θ_stokes = relaxation.relax_stokes
     Θ_continuity = relaxation.relax_continuity
 
-    Threads.@threads for j = 1:xnum+1
-        for i = 1:ynum+1
-            if j < xnum+1 # vx is not defined beyond xnum
-                if !on_vx_boundary2d(i, j, ynum, xnum)
-                    update_vx!(i, j, Θ_stokes, level_data)
+    for color = 0:1
+        Threads.@threads for j = 1:xnum+1
+            @inbounds for i = 1:ynum+1
+                if (i + j) & 1 != color
+                    continue
                 end
-            end
-            if i < ynum+1 # vy is not defined beyond ynum
-                if !on_vy_boundary2d(i, j, ynum, xnum)
-                    update_vy!(i, j, Θ_stokes, level_data)
+                if j < xnum+1
+                    if !on_vx_boundary2d(i, j, ynum, xnum)
+                        update_vx!(i, j, Θ_stokes, level_data)
+                    end
                 end
-            end
-            if i < ynum && j < xnum
-                update_pressure!(i, j, Θ_continuity, level_data)
+                if i < ynum+1
+                    if !on_vy_boundary2d(i, j, ynum, xnum)
+                        update_vy!(i, j, Θ_stokes, level_data)
+                    end
+                end
+                if i < ynum && j < xnum
+                    update_pressure!(
+                        i, j, Θ_continuity, level_data)
+                end
             end
         end
     end
@@ -44,7 +50,7 @@ function update_vx!(
     level_data::LevelData2d
 )::Nothing
     ΔR, Coef_vxC = Residuals.calculate_vx_residual(i, j, level_data)
-    level_data.vx.array[i,j] += ΔR/Coef_vxC*Θ_stokes
+    @inbounds level_data.vx.array[i,j] += ΔR/Coef_vxC*Θ_stokes
     return nothing
 end
 
@@ -56,7 +62,7 @@ function update_vy!(
     level_data::LevelData2d
 )::Nothing
     ΔR, Coef_vyC = Residuals.calculate_vy_residual(i, j, level_data)
-    level_data.vy.array[i,j] += ΔR/Coef_vyC*Θ_stokes
+    @inbounds level_data.vy.array[i,j] += ΔR/Coef_vyC*Θ_stokes
     return nothing
 end
 
@@ -67,7 +73,7 @@ function update_pressure!(
     level_data::LevelData2d
 )::Nothing
     ΔR = Residuals.calculate_pressure_residual(i, j, level_data)
-    level_data.pr.array[i,j] += level_data.etan.array[i,j]*ΔR*Θ_continuity
+    @inbounds level_data.pr.array[i,j] += level_data.etan.array[i,j]*ΔR*Θ_continuity
     return nothing
 end
 

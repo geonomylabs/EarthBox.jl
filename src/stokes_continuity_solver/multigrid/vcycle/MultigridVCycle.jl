@@ -15,6 +15,7 @@ import ..ResidualPlotting
 import ..ResidualPlottingCM
 import ..ArrayStats
 import ..CalculateMeanResiduals: calculate_scaled_and_mean_residuals!
+import ..CalculateMeanResiduals: accumulate_principle_residuals_3d!
 import ..Smoother: stokes_continuity3d_viscous_smoother!
 import ..Smoother: stokes_continuity2d_viscous_smoother!
 import .SmoothAndRestrict: smooth_and_restrict!
@@ -23,32 +24,97 @@ import .SmoothAndProlongate: smooth_and_prolongate!
 const DEBUG = false
 const DEBUG_WRITE_ARRAYS = false
 
+"""When `EARTHBOX_MG_TIMING=1`, accumulate per-phase times over all V-cycles and print one summary."""
+function mg_timing_enabled()::Bool
+    return get(ENV, "EARTHBOX_MG_TIMING", "0") == "1"
+end
+
 function execute_multigrid_vcycles!(
     multigrid_data::MultigridData3d
 )::Nothing
     use_multimulti = multigrid_data.vcycle.use_multimulti
     make_plots = multigrid_data.vcycle.make_plots
     nvcycles = multigrid_data.vcycle.nvcycles
+    
+    time_sr, time_sp, time_mr, time_vs, time_cv = 0.0
+
     for ivcycle = 1:nvcycles
         update_ivcycle!(multigrid_data.counters, ivcycle)
+        t0 = initialize_time()
+        
+        # Walk from fine to coarse levels, smoothing and restricting where restriction
+        # involves interpolating residuals to coarser levels that are then used to update
+        # the solution on the coarser levels via the smoother.
         smooth_and_restrict!(multigrid_data)
+        time_sr, t0 = update_time(time_sr, t0)
+
         ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1 = smooth_and_prolongate!(multigrid_data)
-        (
-            ΔRxL1_scaled, ΔRyL1_scaled, ΔRzL1_scaled, ΔRcL1_scaled
-        ) = calculate_mean_residuals!(multigrid_data, ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1)
+        time_sp, t0 = update_time(time_sp, t0)
 
         if make_plots
+            (
+                ΔRxL1_scaled, ΔRyL1_scaled, ΔRzL1_scaled, ΔRcL1_scaled
+            ) = calculate_mean_residuals!(multigrid_data, ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1)
             plot_residuals(multigrid_data, ΔRxL1_scaled, ΔRyL1_scaled, ΔRzL1_scaled, ΔRcL1_scaled)
+        else
+            calculate_mean_residuals_no_scaled_output!(multigrid_data, ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1)
         end
+        time_mr, t0 = update_time(time_mr, t0)
+
         if !use_multimulti
             ViscosityScaling.rescale_viscosity_for_levels!(multigrid_data)
         else
             ViscosityScaling.rescale_viscosity_for_levels_using_multimulti!(multigrid_data)
         end
-        if is_converged(multigrid_data)
+        time_vs, t0 = update_time(time_vs, t0)
+
+        converged = is_converged(multigrid_data)
+        time_cv, t0 = update_time(time_cv, t0)
+
+        if converged
             println(">>>> Multigrid iteration $ivcycle converged")
             break
         end
+    end
+
+    print_timing_summary(time_sr, time_sp, time_mr, time_vs, time_cv)
+    
+    return nothing
+end
+
+function initialize_time()::Float64
+    if mg_timing_enabled()
+        return time()
+    else
+        return 0.0
+    end
+end
+
+function update_time(time_sum::Float64, t0::Float64)::Union{Float64, Float64}
+    if mg_timing_enabled()
+        time_sum += time() - t0
+        t0 = time()
+        return time_sum, t0
+    else
+        return 0.0, 0.0
+    end
+end
+
+function print_timing_summary(  
+    time_sr::Float64, 
+    time_sp::Float64, 
+    time_mr::Float64,
+    time_vs::Float64,
+    time_cv::Float64,
+)::Nothing
+    if mg_timing_enabled()
+        tot = time_sr + time_sp + time_mr + time_vs + time_cv
+        println(">> MG timing (EARTHBOX_MG_TIMING=1): total tracked=$(tot)s")
+        println(">>   smooth_and_restrict: $(time_sr)s ($(100 * time_sr / tot)% )")
+        println(">>   smooth_and_prolongate: $(time_sp)s ($(100 * time_sp / tot)% )")
+        println(">>   mean_residuals: $(time_mr)s ($(100 * time_mr / tot)% )")
+        println(">>   viscosity_rescale: $(time_vs)s ($(100 * time_vs / tot)% )")
+        println(">>   convergence_check: $(time_cv)s ($(100 * time_cv / tot)% )")
     end
     return nothing
 end
@@ -157,6 +223,32 @@ function calculate_mean_residuals!(
     return ΔRxL1_scaled, ΔRyL1_scaled, ΔRzL1_scaled, ΔRcL1_scaled
 end
 
+function calculate_mean_residuals_no_scaled_output!(
+    multigrid_data::MultigridData3d,
+    ΔRxL1::Array{Float64, 3},
+    ΔRyL1::Array{Float64, 3},
+    ΔRzL1::Array{Float64, 3},
+    ΔRcL1::Array{Float64, 3}
+)::Nothing
+    ivcycle = multigrid_data.counters.ivcycle
+    level_vector = multigrid_data.level_vector
+    accumulate_principle_residuals_3d!(
+        ivcycle,
+        multigrid_data.residual_scaling_factors.stokesscale,
+        multigrid_data.residual_scaling_factors.continscale,
+        level_vector[1],
+        ΔRxL1,
+        ΔRyL1,
+        ΔRzL1,
+        ΔRcL1,
+        multigrid_data.mean_residuals.resx_principle,
+        multigrid_data.mean_residuals.resy_principle,
+        multigrid_data.mean_residuals.resz_principle,
+        multigrid_data.mean_residuals.resc_principle,
+    )
+    return nothing
+end
+
 function calculate_mean_residuals!(
     multigrid_data::MultigridData2d,
     ΔRxL1::Array{Float64, 2},
@@ -234,15 +326,16 @@ function is_converged(multigrid_data::MultigridData3d)::Bool
         nviscosity_jumps = multigrid_data.viscosity_scaling.nviscosity_jumps
         nvcycles_to_max_viscosity = nvcycles_viscosity_jump * nviscosity_jumps
         bool_test = max_principle_residual < criterion && ivcycle > nvcycles_to_max_viscosity
-        #if DEBUG
         println(">>>> ivcycle: $ivcycle, max_principle_residual: $max_principle_residual, criterion: $criterion, nvcycles_to_max_viscosity: $nvcycles_to_max_viscosity")
-        #end
     else
         max_global_residual = calculate_max_global_residual_3d(multigrid_data)
-        bool_test = max_global_residual < criterion
-        #if DEBUG
+        # Also check principle residuals (computed every V-cycle) to
+        # avoid wasting iterations between global residual updates.
+        max_principle_residual = calculate_max_principle_residual_3d(
+            multigrid_data)
+        bool_test = max_global_residual < criterion ||
+            max_principle_residual < criterion
         println(">>>> ivcycle: $ivcycle, max_global_residual: $max_global_residual, criterion: $criterion")
-        #end
     end
     return bool_test
 end

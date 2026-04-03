@@ -15,13 +15,45 @@ import ...ScalingFactors: calculate_residual_scaling_factors
 import ...MultigridSolver: run_multigrid_solver
 import .ModelParametersManager
 
+"""
+    run_stokes_sinker(; ...)
+
+Stokes sinker multigrid demo. For performance profiling of one solve, set
+`ENV["EARTHBOX_MG_TIMING"]="1"` to print per-phase V-cycle time fractions, and
+`ENV["EARTHBOX_MG_DEBUG"]="0"` to skip final solution statistics printing.
+
+Use `smoke_test=true` for a small 17³ grid and few iterations (CI / quick regression).
+"""
 function run_stokes_sinker(;
     make_plots::Bool=false, 
     use_multimulti::Bool=false, 
-    model_type::Symbol=:ThreeDimensional
+    model_type::Symbol=:ThreeDimensional,
+    smoke_test::Bool=false,
 )::Nothing
     # Create the multigrid data structure
-    if model_type == :ThreeDimensional
+    if smoke_test && model_type == :ThreeDimensional
+        use_multimulti = false
+        grid = (
+            ynum=17, xnum=17, znum=17,
+            ysize=100000.0, xsize=100000.0, zsize=100000.0,
+            grid_type=option_names.UniformGrid
+            )
+        vcycle = (
+            use_multimulti=false,
+            nvcycles=30, nvcycles_viscosity_jump=15, nviscosity_jumps=11.475031046555408,
+            smoothing_iterations_on_finest_level=2, convergence_criterion=1e-4,
+            make_plots=make_plots,
+            max_smoothing_on_coarsest=12,
+            )
+        relaxation = (
+            relax_stokes=0.9, relax_velocity=1.0, relax_continuity=0.3,
+            relax_pressure=1.0
+            )
+        multigrid_data = MultigridData3d(
+            grid=grid, vcycle=vcycle, relaxation=relaxation, pressure_bc=0.0,
+            gravitational_acceleration=9.81
+            )
+    elseif model_type == :ThreeDimensional
         grid = (
             ynum=97, xnum=97, znum=97,
             ysize=100000.0, xsize=100000.0, zsize=100000.0, 
@@ -31,7 +63,8 @@ function run_stokes_sinker(;
             use_multimulti=use_multimulti,
             nvcycles=250, nvcycles_viscosity_jump=15, nviscosity_jumps=11.475031046555408,
             smoothing_iterations_on_finest_level=5, convergence_criterion=1e-20,
-            make_plots=make_plots
+            make_plots=make_plots,
+            max_smoothing_on_coarsest=48,
             )
         relaxation = (
             relax_stokes=0.9, relax_velocity=1.0, relax_continuity=0.3,
@@ -51,7 +84,8 @@ function run_stokes_sinker(;
             use_multimulti=use_multimulti,
             nvcycles=500, nvcycles_viscosity_jump=17, nviscosity_jumps=12.0, #11.475031046555408,
             smoothing_iterations_on_finest_level=5, convergence_criterion=1e-5,
-            make_plots=make_plots
+            make_plots=make_plots,
+            max_smoothing_on_coarsest=48,
             )
         relaxation = (
             relax_stokes=0.9, relax_velocity=1.0, relax_continuity=0.3,

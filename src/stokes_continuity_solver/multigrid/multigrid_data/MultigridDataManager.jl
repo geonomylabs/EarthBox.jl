@@ -68,7 +68,11 @@ function MultigridData2d(;
 
     smoothing_iterations = zeros(Int64, length(level_vector))
     set_smoothing_iterations(
-        smoothing_iterations, vcycle.smoothing_iterations_on_finest_level)
+        smoothing_iterations,
+        vcycle.smoothing_iterations_on_finest_level;
+        level_multiplier = get(vcycle, :level_smoothing_multiplier, 2),
+        max_smoothing_on_coarsest = get(vcycle, :max_smoothing_on_coarsest, nothing),
+    )
 
     return MultigridData2d(
         gravitational_acceleration,
@@ -148,7 +152,11 @@ function MultigridData3d(;
     
     smoothing_iterations = zeros(Int64, length(level_vector))
     set_smoothing_iterations(
-        smoothing_iterations, vcycle.smoothing_iterations_on_finest_level)
+        smoothing_iterations,
+        vcycle.smoothing_iterations_on_finest_level;
+        level_multiplier = get(vcycle, :level_smoothing_multiplier, 2),
+        max_smoothing_on_coarsest = get(vcycle, :max_smoothing_on_coarsest, nothing),
+    )
 
     return MultigridData3d(
         gravitational_acceleration,
@@ -214,12 +222,20 @@ end
 
 function set_smoothing_iterations(
     smoothing_iterations::Vector{Int64},
-    smoothing_iterations_on_finest_level::Int64,
+    smoothing_iterations_on_finest_level::Int64;
+    level_multiplier::Int64 = 2,
+    max_smoothing_on_coarsest::Union{Nothing, Int64} = nothing,
 )::Nothing
     smoothing_iterations[1] = smoothing_iterations_on_finest_level
     max_levels = length(smoothing_iterations)
     for i = 2:max_levels
-        smoothing_iterations[i] = smoothing_iterations[i-1] * 2
+        smoothing_iterations[i] = smoothing_iterations[i - 1] * level_multiplier
+    end
+    if max_smoothing_on_coarsest !== nothing
+        for i = 2:max_levels
+            smoothing_iterations[i] = min(
+                smoothing_iterations[i], max_smoothing_on_coarsest)
+        end
     end
     return nothing
 end
