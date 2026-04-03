@@ -1,8 +1,5 @@
 module MultigridVCycle
 
-include("core/SmoothAndRestrict.jl")
-include("core/SmoothAndProlongate.jl")
-
 using Plots
 using Printf
 import EarthBox.ModelDataContainer.MultiGrids2dContainer: MultigridData
@@ -18,8 +15,6 @@ import ..CalculateMeanResiduals: calculate_scaled_and_mean_residuals!
 import ..CalculateMeanResiduals: accumulate_principle_residuals_3d!
 import ..Smoother: stokes_continuity3d_viscous_smoother!
 import ..Smoother: stokes_continuity2d_viscous_smoother!
-import .SmoothAndRestrict: smooth_and_restrict!
-import .SmoothAndProlongate: smooth_and_prolongate!
 
 const DEBUG = false
 const DEBUG_WRITE_ARRAYS = false
@@ -28,6 +23,60 @@ const DEBUG_WRITE_ARRAYS = false
 function mg_timing_enabled()::Bool
     return get(ENV, "EARTHBOX_MG_TIMING", "0") == "1"
 end
+
+"""When `EARTHBOX_MG_TIMING=1` and `EARTHBOX_MG_TIMING_DETAIL=1`, split restrict/prolong phases into smoother vs transfer."""
+function mg_timing_detail_enabled()::Bool
+    return mg_timing_enabled() && get(ENV, "EARTHBOX_MG_TIMING_DETAIL", "0") == "1"
+end
+
+const _mg_dt_sr_smooth = Ref(0.0)
+const _mg_dt_sr_restrict = Ref(0.0)
+const _mg_dt_sp_smooth = Ref(0.0)
+const _mg_dt_sp_prolong = Ref(0.0)
+
+function mg_timing_detail_reset!()::Nothing
+    if mg_timing_detail_enabled()
+        _mg_dt_sr_smooth[] = 0.0
+        _mg_dt_sr_restrict[] = 0.0
+        _mg_dt_sp_smooth[] = 0.0
+        _mg_dt_sp_prolong[] = 0.0
+    end
+    return nothing
+end
+
+function mg_timing_detail_add_sr_smooth!(dt::Float64)::Nothing
+    if mg_timing_detail_enabled()
+        _mg_dt_sr_smooth[] += dt
+    end
+    return nothing
+end
+
+function mg_timing_detail_add_sr_restrict!(dt::Float64)::Nothing
+    if mg_timing_detail_enabled()
+        _mg_dt_sr_restrict[] += dt
+    end
+    return nothing
+end
+
+function mg_timing_detail_add_sp_smooth!(dt::Float64)::Nothing
+    if mg_timing_detail_enabled()
+        _mg_dt_sp_smooth[] += dt
+    end
+    return nothing
+end
+
+function mg_timing_detail_add_sp_prolong!(dt::Float64)::Nothing
+    if mg_timing_detail_enabled()
+        _mg_dt_sp_prolong[] += dt
+    end
+    return nothing
+end
+
+include("core/SmoothAndRestrict.jl")
+include("core/SmoothAndProlongate.jl")
+
+import .SmoothAndRestrict: smooth_and_restrict!
+import .SmoothAndProlongate: smooth_and_prolongate!
 
 function execute_multigrid_vcycles!(
     multigrid_data::MultigridData3d
@@ -41,6 +90,7 @@ function execute_multigrid_vcycles!(
     time_mr = 0.0
     time_vs = 0.0
     time_cv = 0.0
+    mg_timing_detail_reset!()
 
     for ivcycle = 1:nvcycles
         update_ivcycle!(multigrid_data.counters, ivcycle)
@@ -119,6 +169,24 @@ function print_timing_summary(
         println(">>   mean_residuals: $(time_mr)s ($(100 * time_mr / tot)% )")
         println(">>   viscosity_rescale: $(time_vs)s ($(100 * time_vs / tot)% )")
         println(">>   convergence_check: $(time_cv)s ($(100 * time_cv / tot)% )")
+        if mg_timing_detail_enabled()
+            inner = _mg_dt_sr_smooth[] + _mg_dt_sr_restrict[] +
+                _mg_dt_sp_smooth[] + _mg_dt_sp_prolong[]
+            pct(x) = inner > 0 ? 100 * x / inner : 0.0
+            println(">> MG detail (EARTHBOX_MG_TIMING_DETAIL=1), summed over V-cycles:")
+            println(
+                ">>   SR smoother+residual: $(_mg_dt_sr_smooth[])s ($(pct(_mg_dt_sr_smooth[]))% of detail)",
+            )
+            println(
+                ">>   SR restriction: $(_mg_dt_sr_restrict[])s ($(pct(_mg_dt_sr_restrict[]))% of detail)",
+            )
+            println(
+                ">>   SP smoother+residual: $(_mg_dt_sp_smooth[])s ($(pct(_mg_dt_sp_smooth[]))% of detail)",
+            )
+            println(
+                ">>   SP prolongation+correction: $(_mg_dt_sp_prolong[])s ($(pct(_mg_dt_sp_prolong[]))% of detail)",
+            )
+        end
     end
     return nothing
 end

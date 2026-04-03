@@ -268,30 +268,32 @@ function initialize_grid!(
 end
 
 function save_original_viscosity!(level_data::LevelData)::Nothing
-    level_data.etaxyo.array = deepcopy(level_data.etaxy.array)
-    level_data.etaxzo.array = deepcopy(level_data.etaxz.array)
-    level_data.etayzo.array = deepcopy(level_data.etayz.array)
-    level_data.etano.array = deepcopy(level_data.etan.array)
+    copyto!(level_data.etaxyo.array, level_data.etaxy.array)
+    copyto!(level_data.etaxzo.array, level_data.etaxz.array)
+    copyto!(level_data.etayzo.array, level_data.etayz.array)
+    copyto!(level_data.etano.array, level_data.etan.array)
     return nothing
 end
 
 function save_original_viscosity!(level_data::LevelData2d)::Nothing
-    level_data.etaso.array = deepcopy(level_data.etas.array)
-    level_data.etano.array = deepcopy(level_data.etan.array)
+    copyto!(level_data.etaso.array, level_data.etas.array)
+    copyto!(level_data.etano.array, level_data.etan.array)
     return nothing
 end
 
 function save_original_viscosity!(level_vector::Vector{LevelData}, level_id::Int64)::Nothing
-    level_vector[level_id].etaxyo.array = deepcopy(level_vector[level_id].etaxy.array)
-    level_vector[level_id].etaxzo.array = deepcopy(level_vector[level_id].etaxz.array)
-    level_vector[level_id].etayzo.array = deepcopy(level_vector[level_id].etayz.array)
-    level_vector[level_id].etano.array = deepcopy(level_vector[level_id].etan.array)
+    ld = level_vector[level_id]
+    copyto!(ld.etaxyo.array, ld.etaxy.array)
+    copyto!(ld.etaxzo.array, ld.etaxz.array)
+    copyto!(ld.etayzo.array, ld.etayz.array)
+    copyto!(ld.etano.array, ld.etan.array)
     return nothing
 end
 
 function save_original_viscosity!(level_vector::Vector{LevelData2d}, level_id::Int64)::Nothing
-    level_vector[level_id].etaso.array = deepcopy(level_vector[level_id].etas.array)
-    level_vector[level_id].etano.array = deepcopy(level_vector[level_id].etan.array)
+    ld = level_vector[level_id]
+    copyto!(ld.etaso.array, ld.etas.array)
+    copyto!(ld.etano.array, ld.etan.array)
     return nothing
 end
 

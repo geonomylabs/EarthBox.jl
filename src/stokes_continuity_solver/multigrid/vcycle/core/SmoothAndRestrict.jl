@@ -1,11 +1,16 @@
 module SmoothAndRestrict
 
+using Base: time
+
 import ...MultigridDataManager: MultigridData3d, MultigridData2d
 import ...LevelManager: reset_solution_grids_to_zero!
 import ...Restriction: restrict_stokes3d_residuals!
 import ...Restriction: restrict_stokes2d_residuals!
 import ...Smoother: stokes_continuity3d_viscous_smoother!
 import ...Smoother: stokes_continuity2d_viscous_smoother!
+import ..MultigridVCycle: mg_timing_detail_add_sr_restrict!
+import ..MultigridVCycle: mg_timing_detail_add_sr_smooth!
+import ..MultigridVCycle: mg_timing_detail_enabled
 
 function smooth_and_restrict!(
     multigrid_data::MultigridData3d,
@@ -16,17 +21,26 @@ function smooth_and_restrict!(
     level_vector = multigrid_data.level_vector
 
     levelnum = length(level_vector)
+    detail = mg_timing_detail_enabled()
     for n = 1:levelnum
         if n > 1
             reset_solution_grids_to_zero!(level_vector[n])
         end
+        t0 = detail ? time() : 0.0
         (
             ΔRx_fine, ΔRy_fine, ΔRz_fine, ΔRc_fine
         ) = stokes_continuity3d_viscous_smoother!(
             pressure_bc, level_vector[n], smoothing_iterations, relaxation)
+        if detail
+            mg_timing_detail_add_sr_smooth!(time() - t0)
+        end
         if n < levelnum
+            t1 = detail ? time() : 0.0
             restrict_stokes3d_residuals!(
                 n, level_vector, ΔRx_fine, ΔRy_fine, ΔRz_fine, ΔRc_fine)
+            if detail
+                mg_timing_detail_add_sr_restrict!(time() - t1)
+            end
         end
     end
     return nothing
