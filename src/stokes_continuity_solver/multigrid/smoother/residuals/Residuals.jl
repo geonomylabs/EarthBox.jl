@@ -1,7 +1,7 @@
 module Residuals
 
-import ...LevelManager: LevelData, LevelData2d
-import ...Domain: on_vx_boundary3d, on_vy_boundary3d, on_vz_boundary3d
+import ...LevelManager: LevelData, LevelData2d, StencilArrays3d, current_stencil_arrays_3d
+import ...Domain: on_vx_boundary3d_limits, on_vy_boundary3d_limits, on_vz_boundary3d_limits
 import ...Domain: on_vx_boundary2d, on_vy_boundary2d
 import ...ArrayStats
 
@@ -11,6 +11,7 @@ const RESIDUAL_K_PARALLEL_MIN_ZNUM = 16
 function _compute_residuals_one_k!(
     k::Int,
     level_data::LevelData,
+    A::StencilArrays3d,
     ΔRx::Array{Float64,3},
     ΔRy::Array{Float64,3},
     ΔRz::Array{Float64,3},
@@ -19,31 +20,37 @@ function _compute_residuals_one_k!(
     ynum::Int,
     znum::Int,
 )::Nothing
+    ynum_vx = ynum + 1
+    znum_vx = znum + 1
+    xnum_vy = xnum + 1
+    znum_vy = znum + 1
+    xnum_vz = xnum + 1
+    ynum_vz = ynum + 1
     @inbounds for j = 1:xnum+1
         for i = 1:ynum+1
             if j < xnum+1
-                if on_vx_boundary3d(i, j, k, ynum, xnum, znum)
+                if on_vx_boundary3d_limits(i, j, k, ynum_vx, znum_vx, xnum)
                     ΔRx[i,j,k] = 0.0
                 else
-                    ΔRx[i,j,k], _ = calculate_vx_residual(i, j, k, level_data)
+                    ΔRx[i,j,k], _ = calculate_vx_residual(i, j, k, A)
                 end
             end
             if i < ynum+1
-                if on_vy_boundary3d(i, j, k, ynum, xnum, znum)
+                if on_vy_boundary3d_limits(i, j, k, ynum, xnum_vy, znum_vy)
                     ΔRy[i,j,k] = 0.0
                 else
-                    ΔRy[i,j,k], _ = calculate_vy_residual(i, j, k, level_data)
+                    ΔRy[i,j,k], _ = calculate_vy_residual(i, j, k, A)
                 end
             end
             if k < znum+1
-                if on_vz_boundary3d(i, j, k, ynum, xnum, znum)
+                if on_vz_boundary3d_limits(i, j, k, ynum_vz, xnum_vz, znum)
                     ΔRz[i,j,k] = 0.0
                 else
-                    ΔRz[i,j,k], _ = calculate_vz_residual(i, j, k, level_data)
+                    ΔRz[i,j,k], _ = calculate_vz_residual(i, j, k, A)
                 end
             end
             if i < ynum && j < xnum && k < znum
-                ΔRc[i,j,k] = calculate_pressure_residual(i, j, k, level_data)
+                ΔRc[i,j,k] = calculate_pressure_residual(i, j, k, A)
             end
         end
     end
@@ -66,14 +73,15 @@ function compute_residuals!(
     fill!(ΔRz, 0.0)
     fill!(ΔRc, 0.0)
 
+    A = current_stencil_arrays_3d(level_data)
     parallel_k = Threads.nthreads() > 1 && znum >= RESIDUAL_K_PARALLEL_MIN_ZNUM
     if parallel_k
         Threads.@threads for k = 1:znum+1
-            _compute_residuals_one_k!(k, level_data, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
+            _compute_residuals_one_k!(k, level_data, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
         end
     else
         for k = 1:znum+1
-            _compute_residuals_one_k!(k, level_data, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
+            _compute_residuals_one_k!(k, level_data, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
         end
     end
     return ΔRx, ΔRy, ΔRz, ΔRc
@@ -127,24 +135,24 @@ function calculate_vx_residual(
     i::Int64,
     j::Int64,
     k::Int64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Tuple{Float64, Float64}
     @inbounds begin
-    vx = level_data.vx.array
-    vy = level_data.vy.array
-    vz = level_data.vz.array
-    pr = level_data.pr.array
-    etaxy = level_data.etaxy.array
-    etaxz = level_data.etaxz.array
-    etan = level_data.etan.array
-    RX = level_data.RX.array
+    vx = A.vx
+    vy = A.vy
+    vz = A.vz
+    pr = A.pr
+    etaxy = A.etaxy
+    etaxz = A.etaxz
+    etan = A.etan
+    RX = A.RX
 
-    ystp_b = level_data.grid.arrays.basic.ystp_b.array
-    xstp_b = level_data.grid.arrays.basic.xstp_b.array
-    zstp_b = level_data.grid.arrays.basic.zstp_b.array
-    ystp_vx = level_data.grid.arrays.staggered_vx.ystp_vx.array
-    zstp_vx = level_data.grid.arrays.staggered_vx.zstp_vx.array
-    xstp_vy = level_data.grid.arrays.staggered_vy.xstp_vy.array
+    ystp_b = A.ystp_b
+    xstp_b = A.xstp_b
+    zstp_b = A.zstp_b
+    ystp_vx = A.ystp_vx
+    zstp_vx = A.zstp_vx
+    xstp_vy = A.xstp_vy
 
     ΔxL =  xstp_b[j-1]
     ΔxR =  xstp_b[j  ]
@@ -271,24 +279,24 @@ function calculate_vy_residual(
     i::Int64,
     j::Int64,
     k::Int64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Tuple{Float64, Float64}
     @inbounds begin
-    vx = level_data.vx.array
-    vy = level_data.vy.array
-    vz = level_data.vz.array
-    pr = level_data.pr.array
-    etaxy = level_data.etaxy.array
-    etayz = level_data.etayz.array
-    etan = level_data.etan.array
-    RY = level_data.RY.array
+    vx = A.vx
+    vy = A.vy
+    vz = A.vz
+    pr = A.pr
+    etaxy = A.etaxy
+    etayz = A.etayz
+    etan = A.etan
+    RY = A.RY
 
-    xstp_b = level_data.grid.arrays.basic.xstp_b.array
-    ystp_b = level_data.grid.arrays.basic.ystp_b.array
-    zstp_b = level_data.grid.arrays.basic.zstp_b.array
-    ystp_vx = level_data.grid.arrays.staggered_vx.ystp_vx.array
-    zstp_vx = level_data.grid.arrays.staggered_vx.zstp_vx.array
-    xstp_vy = level_data.grid.arrays.staggered_vy.xstp_vy.array
+    xstp_b = A.xstp_b
+    ystp_b = A.ystp_b
+    zstp_b = A.zstp_b
+    ystp_vx = A.ystp_vx
+    zstp_vx = A.zstp_vx
+    xstp_vy = A.xstp_vy
 
     ΔxL =  xstp_b[j-1]
     ΔxR = xstp_vy[j  ]
@@ -417,24 +425,24 @@ function calculate_vz_residual(
     i::Int64,
     j::Int64,
     k::Int64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Tuple{Float64, Float64}
     @inbounds begin
-    vx = level_data.vx.array
-    vy = level_data.vy.array
-    vz = level_data.vz.array
-    pr = level_data.pr.array
-    etaxz = level_data.etaxz.array
-    etayz = level_data.etayz.array
-    etan = level_data.etan.array
-    RZ = level_data.RZ.array
+    vx = A.vx
+    vy = A.vy
+    vz = A.vz
+    pr = A.pr
+    etaxz = A.etaxz
+    etayz = A.etayz
+    etan = A.etan
+    RZ = A.RZ
 
-    ystp_b = level_data.grid.arrays.basic.ystp_b.array
-    xstp_b = level_data.grid.arrays.basic.xstp_b.array
-    zstp_b = level_data.grid.arrays.basic.zstp_b.array
-    ystp_vx = level_data.grid.arrays.staggered_vx.ystp_vx.array
-    zstp_vx = level_data.grid.arrays.staggered_vx.zstp_vx.array
-    xstp_vy = level_data.grid.arrays.staggered_vy.xstp_vy.array
+    ystp_b = A.ystp_b
+    xstp_b = A.xstp_b
+    zstp_b = A.zstp_b
+    ystp_vx = A.ystp_vx
+    zstp_vx = A.zstp_vx
+    xstp_vy = A.xstp_vy
 
     ΔzR =  zstp_b[k  ]
     ΔzL =  zstp_b[k-1]
@@ -507,17 +515,17 @@ function calculate_pressure_residual(
     i::Int64,
     j::Int64,
     k::Int64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Float64
     @inbounds begin
-    vx = level_data.vx.array
-    vy = level_data.vy.array
-    vz = level_data.vz.array
-    RC = level_data.RC.array
+    vx = A.vx
+    vy = A.vy
+    vz = A.vz
+    RC = A.RC
 
-    xstp_b = level_data.grid.arrays.basic.xstp_b.array
-    ystp_b = level_data.grid.arrays.basic.ystp_b.array
-    zstp_b = level_data.grid.arrays.basic.zstp_b.array
+    xstp_b = A.xstp_b
+    ystp_b = A.ystp_b
+    zstp_b = A.zstp_b
 
     ΔxC = xstp_b[j]
     ΔyC = ystp_b[i]

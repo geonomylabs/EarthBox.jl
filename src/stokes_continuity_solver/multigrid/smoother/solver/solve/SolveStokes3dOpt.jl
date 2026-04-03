@@ -1,8 +1,8 @@
 module SolveStokes3dOpt
 
 import ....MultigridDataManager.MultigridStructures: RelaxationParameters
-import ....LevelManager: LevelData
-import ....Domain: on_vx_boundary3d, on_vy_boundary3d, on_vz_boundary3d
+import ....LevelManager: LevelData, StencilArrays3d, current_stencil_arrays_3d
+import ....Domain: on_vx_boundary3d_limits, on_vy_boundary3d_limits, on_vz_boundary3d_limits
 import ....ArrayStats
 import ...Residuals
 
@@ -17,30 +17,36 @@ function _relax_gs_one_kplane!(
     xnum::Int,
     ynum::Int,
     znum::Int,
-    level_data::LevelData,
+    A::StencilArrays3d,
 )::Nothing
+    ynum_vx = ynum + 1
+    znum_vx = znum + 1
+    xnum_vy = xnum + 1
+    znum_vy = znum + 1
+    xnum_vz = xnum + 1
+    ynum_vz = ynum + 1
     # Red-black: for fixed (j,k), parity of i is determined by color. Stride i by 2 — half the visits,
     # no per-cell parity branch (same updates as scanning all i with a continue).
     @inbounds for j = 1:xnum+1
         i0 = (((1 + j + k) & 1) == color) ? 1 : 2
         for i in i0:2:ynum+1
             if j < xnum+1
-                if !on_vx_boundary3d(i, j, k, ynum, xnum, znum)
-                    update_vx!(i, j, k, Θ_stokes, level_data)
+                if !on_vx_boundary3d_limits(i, j, k, ynum_vx, znum_vx, xnum)
+                    update_vx!(i, j, k, Θ_stokes, A)
                 end
             end
             if i < ynum+1
-                if !on_vy_boundary3d(i, j, k, ynum, xnum, znum)
-                    update_vy!(i, j, k, Θ_stokes, level_data)
+                if !on_vy_boundary3d_limits(i, j, k, ynum, xnum_vy, znum_vy)
+                    update_vy!(i, j, k, Θ_stokes, A)
                 end
             end
             if k < znum+1
-                if !on_vz_boundary3d(i, j, k, ynum, xnum, znum)
-                    update_vz!(i, j, k, Θ_stokes, level_data)
+                if !on_vz_boundary3d_limits(i, j, k, ynum_vz, xnum_vz, znum)
+                    update_vz!(i, j, k, Θ_stokes, A)
                 end
             end
             if i < ynum && j < xnum && k < znum
-                update_pressure!(i, j, k, Θ_continuity, level_data)
+                update_pressure!(i, j, k, Θ_continuity, A)
             end
         end
     end
@@ -58,6 +64,7 @@ function solve_stokes_continuity_equations3d!(
     Θ_stokes = relaxation.relax_stokes
     Θ_continuity = relaxation.relax_continuity
     parallel_k = Threads.nthreads() > 1 && znum >= GS_K_PARALLEL_MIN_ZNUM
+    A = current_stencil_arrays_3d(level_data)
 
     # Red-black (checkerboard) Gauss-Seidel: two sweeps per iteration.
     # Within each color, no two updated cells are direct neighbors,
@@ -85,12 +92,12 @@ function solve_stokes_continuity_equations3d!(
         if parallel_k
             Threads.@threads for k = 1:znum+1
                 _relax_gs_one_kplane!(
-                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, level_data)
+                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, A)
             end
         else
             for k = 1:znum+1
                 _relax_gs_one_kplane!(
-                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, level_data)
+                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, A)
             end
         end
     end
@@ -103,10 +110,10 @@ end
     j::Int64,
     k::Int64,
     Θ_stokes::Float64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Nothing
-    ΔR, Coef_vxC = Residuals.calculate_vx_residual(i, j, k, level_data)
-    @inbounds level_data.vx.array[i,j,k] += ΔR/Coef_vxC*Θ_stokes
+    ΔR, Coef_vxC = Residuals.calculate_vx_residual(i, j, k, A)
+    @inbounds A.vx[i,j,k] += ΔR/Coef_vxC*Θ_stokes
     return nothing
 end
 
@@ -116,10 +123,10 @@ end
     j::Int64,
     k::Int64,
     Θ_stokes::Float64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Nothing
-    ΔR, Coef_vyC = Residuals.calculate_vy_residual(i, j, k, level_data)
-    @inbounds level_data.vy.array[i,j,k] += ΔR/Coef_vyC*Θ_stokes
+    ΔR, Coef_vyC = Residuals.calculate_vy_residual(i, j, k, A)
+    @inbounds A.vy[i,j,k] += ΔR/Coef_vyC*Θ_stokes
     return nothing
 end
 
@@ -129,10 +136,10 @@ end
     j::Int64,
     k::Int64,
     Θ_stokes::Float64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Nothing
-    ΔR, Coef_vzC = Residuals.calculate_vz_residual(i, j, k, level_data)
-    @inbounds level_data.vz.array[i,j,k] += ΔR/Coef_vzC*Θ_stokes
+    ΔR, Coef_vzC = Residuals.calculate_vz_residual(i, j, k, A)
+    @inbounds A.vz[i,j,k] += ΔR/Coef_vzC*Θ_stokes
     return nothing
 end
 
@@ -141,10 +148,10 @@ end
     j::Int64,
     k::Int64,
     Θ_continuity::Float64,
-    level_data::LevelData
+    A::StencilArrays3d,
 )::Nothing
-    ΔR = Residuals.calculate_pressure_residual(i, j, k, level_data)
-    @inbounds level_data.pr.array[i,j,k] += level_data.etan.array[i,j,k]*ΔR*Θ_continuity
+    ΔR = Residuals.calculate_pressure_residual(i, j, k, A)
+    @inbounds A.pr[i,j,k] += A.etan[i,j,k]*ΔR*Θ_continuity
     return nothing
 end
 

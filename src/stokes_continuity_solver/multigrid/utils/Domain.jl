@@ -196,4 +196,41 @@ function get_znum_pressure_grid(znum::Int64)::Int64
     return znum - 1
 end
 
+# --- Hoisted 3D boundary tests (match on_*_boundary3d) ---------------------------------------------
+# Precompute ynum_vx = ynum+1, znum_vx = znum+1, xnum_vy = xnum+1, znum_vy = znum+1,
+# xnum_vz = xnum+1, ynum_vz = ynum+1 once per k-plane sweep; avoids repeated get_*_grid in hot loops.
+
+@inline function on_vx_boundary3d_limits(
+    i::Int,
+    j::Int,
+    k::Int,
+    ynum_vx::Int,
+    znum_vx::Int,
+    xnum::Int,
+)::Bool
+    i == 1 || i == ynum_vx || j == 1 || j == xnum || k == 1 || k == znum_vx
+end
+
+@inline function on_vy_boundary3d_limits(
+    i::Int,
+    j::Int,
+    k::Int,
+    ynum::Int,
+    xnum_vy::Int,
+    znum_vy::Int,
+)::Bool
+    i == 1 || i == ynum || j == 1 || j == xnum_vy || k == 1 || k == znum_vy
+end
+
+@inline function on_vz_boundary3d_limits(
+    i::Int,
+    j::Int,
+    k::Int,
+    ynum_vz::Int,
+    xnum_vz::Int,
+    znum::Int,
+)::Bool
+    i == 1 || i == ynum_vz || j == 1 || j == xnum_vz || k == 1 || k == znum
+end
+
 end # module
