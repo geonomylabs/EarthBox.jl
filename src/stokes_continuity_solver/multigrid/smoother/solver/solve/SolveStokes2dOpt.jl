@@ -18,10 +18,8 @@ function solve_stokes_continuity_equations2d!(
 
     for color = 0:1
         Threads.@threads for j = 1:xnum+1
-            @inbounds for i = 1:ynum+1
-                if (i + j) & 1 != color
-                    continue
-                end
+            i0 = (((1 + j) & 1) == color) ? 1 : 2
+            @inbounds for i in i0:2:ynum+1
                 if j < xnum+1
                     if !on_vx_boundary2d(i, j, ynum, xnum)
                         update_vx!(i, j, Θ_stokes, level_data)
@@ -43,7 +41,7 @@ function solve_stokes_continuity_equations2d!(
 end
 
 # x-Stokes equation dSIGMAxx/dx+dSIGMAxy/dy+SIGMAxz/dz-dP/dx=RX
-function update_vx!(
+@inline function update_vx!(
     i::Int64,
     j::Int64,
     Θ_stokes::Float64,
@@ -55,7 +53,7 @@ function update_vx!(
 end
 
 # y-Stokes equation dSIGMAyx/dx+dSIGMAyy/dy+SIGMAyz/dz-dP/dy=RY
-function update_vy!(
+@inline function update_vy!(
     i::Int64,
     j::Int64,
     Θ_stokes::Float64,
@@ -66,7 +64,7 @@ function update_vy!(
     return nothing
 end
 
-function update_pressure!(
+@inline function update_pressure!(
     i::Int64,
     j::Int64,
     Θ_continuity::Float64,

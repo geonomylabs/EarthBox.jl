@@ -43,6 +43,10 @@ import ..LevelManager: LevelData, LevelData2d
 # Match SolveStokes3dOpt / Residuals: avoid thread overhead on tiny coarse grids.
 const RESTRICT_DIVIDE_K_PARALLEL_MIN_ZNUM = 16
 
+# Parallel restriction accumulation: partition fine k-planes across threads; each thread sums into
+# coarse-sized buffers (LevelData.restrict_thread_accum), then reduce into RX/weights.
+const RESTRICT_NUMER_K_PARALLEL_MIN_ZNUM = 16
+
 """
     restrict_stokes3d_residuals!(n, level_vector, resx, resy, resz, resc)
 
@@ -109,6 +113,65 @@ function interpolate_residuals_to_coarser_level!(
     return nothing
 end
 
+function _restrict_numer_fine_k_q_ranges(n_k::Int, nt::Int)::Vector{Tuple{Int,Int}}
+    base = div(n_k, nt)
+    extra = mod(n_k, nt)
+    offset = 0
+    ranges = Vector{Tuple{Int,Int}}(undef, nt)
+    @inbounds for t in 1:nt
+        len = base + (t <= extra ? 1 : 0)
+        q_start = offset + 1
+        q_end = offset + len
+        ranges[t] = (q_start, q_end)
+        offset += len
+    end
+    return ranges
+end
+
+function _calculate_numerator_one_k_range!(
+    k_lo::Int,
+    k_hi::Int,
+    xnumf::Int,
+    ynumf::Int,
+    znumf::Int,
+    vx_map,
+    vy_map,
+    vz_map,
+    pr_map,
+    ΔRx_fine::Array{Float64,3},
+    ΔRy_fine::Array{Float64,3},
+    ΔRz_fine::Array{Float64,3},
+    etan_resc::Array{Float64,3},
+    ΔRx_coarse::Array{Float64,3},
+    ΔRy_coarse::Array{Float64,3},
+    ΔRz_coarse::Array{Float64,3},
+    ΔRc_coarse::Array{Float64,3},
+    wtx::Array{Float64,3},
+    wty::Array{Float64,3},
+    wtz::Array{Float64,3},
+    wtc::Array{Float64,3},
+)::Nothing
+    @inbounds for k in k_lo:k_hi
+        for j in 2:xnumf
+            for i in 2:ynumf
+                if j < xnumf
+                    add_to_numerator_and_denominator!(i, j, k, vx_map, ΔRx_coarse, wtx, ΔRx_fine)
+                end
+                if i < ynumf
+                    add_to_numerator_and_denominator!(i, j, k, vy_map, ΔRy_coarse, wty, ΔRy_fine)
+                end
+                if k < znumf
+                    add_to_numerator_and_denominator!(i, j, k, vz_map, ΔRz_coarse, wtz, ΔRz_fine)
+                end
+                if i < ynumf && j < xnumf && k < znumf
+                    add_to_numerator_and_denominator!(i, j, k, pr_map, ΔRc_coarse, wtc, etan_resc)
+                end
+            end
+        end
+    end
+    return nothing
+end
+
 function calculate_numerator_and_denominator_for_trilinear_interpolation!(
     n::Int64,
     level_vector::Vector{LevelData},
@@ -140,31 +203,76 @@ function calculate_numerator_and_denominator_for_trilinear_interpolation!(
     vy_map = fine_to_coarse_mapping.vy_map
     vz_map = fine_to_coarse_mapping.vz_map
     pr_map = fine_to_coarse_mapping.pr_map
-    
-    # Interpolating residuals from finer level nodes
-    # Cycle of node of finer (n) level
-    @inbounds for k in 2:znumf
-        for j in 2:xnumf
-            for i in 2:ynumf
-                # x-Stokes equation residual
-                if j < xnumf
-                    add_to_numerator_and_denominator!(i, j, k, vx_map, ΔRx_coarse, wtx, ΔRx_fine)
-                end
-                # y-Stokes equation residual
-                if i < ynumf
-                    add_to_numerator_and_denominator!(i, j, k, vy_map, ΔRy_coarse, wty, ΔRy_fine)
-                end
-                # z-Stokes equation residual
-                if k < znumf
-                    add_to_numerator_and_denominator!(i, j, k, vz_map, ΔRz_coarse, wtz, ΔRz_fine)
-                end
-                # Continuity equation residual
-                if i < ynumf && j < xnumf && k < znumf
-                    add_to_numerator_and_denominator!(i, j, k, pr_map, ΔRc_coarse, wtc, etan_resc)
-                end
-            
-            end
-        end            
+
+    coarse_ld = level_vector[n+1]
+    bufs = coarse_ld.restrict_thread_accum
+    n_k = znumf - 1
+    nt_req = Threads.nthreads()
+    parallel_k =
+        nt_req > 1 &&
+        znumf >= RESTRICT_NUMER_K_PARALLEL_MIN_ZNUM &&
+        bufs !== nothing &&
+        n_k >= 1 &&
+        length(bufs) >= nt_req
+
+    if !parallel_k
+        _calculate_numerator_one_k_range!(
+            2, znumf, xnumf, ynumf, znumf,
+            vx_map, vy_map, vz_map, pr_map,
+            ΔRx_fine, ΔRy_fine, ΔRz_fine, etan_resc,
+            ΔRx_coarse, ΔRy_coarse, ΔRz_coarse, ΔRc_coarse,
+            wtx, wty, wtz, wtc,
+        )
+        return nothing
+    end
+
+    nt = nt_req
+    ranges = _restrict_numer_fine_k_q_ranges(n_k, nt)
+    Threads.@threads for t in 1:nt
+        q_start, q_end = ranges[t]
+        b = bufs[t]
+        ΔRx_th, wtx_th, ΔRy_th, wty_th, ΔRz_th, wtz_th, ΔRc_th, wtc_th = b
+        fill!(ΔRx_th, 0.0)
+        fill!(wtx_th, 0.0)
+        fill!(ΔRy_th, 0.0)
+        fill!(wty_th, 0.0)
+        fill!(ΔRz_th, 0.0)
+        fill!(wtz_th, 0.0)
+        fill!(ΔRc_th, 0.0)
+        fill!(wtc_th, 0.0)
+        if q_end < q_start
+            continue
+        end
+        k_lo = q_start + 1
+        k_hi = q_end + 1
+        _calculate_numerator_one_k_range!(
+            k_lo, k_hi, xnumf, ynumf, znumf,
+            vx_map, vy_map, vz_map, pr_map,
+            ΔRx_fine, ΔRy_fine, ΔRz_fine, etan_resc,
+            ΔRx_th, ΔRy_th, ΔRz_th, ΔRc_th,
+            wtx_th, wty_th, wtz_th, wtc_th,
+        )
+    end
+
+    b1 = bufs[1]
+    copyto!(ΔRx_coarse, b1[1])
+    copyto!(wtx, b1[2])
+    copyto!(ΔRy_coarse, b1[3])
+    copyto!(wty, b1[4])
+    copyto!(ΔRz_coarse, b1[5])
+    copyto!(wtz, b1[6])
+    copyto!(ΔRc_coarse, b1[7])
+    copyto!(wtc, b1[8])
+    @inbounds for t in 2:nt
+        bt = bufs[t]
+        @. ΔRx_coarse += bt[1]
+        @. wtx += bt[2]
+        @. ΔRy_coarse += bt[3]
+        @. wty += bt[4]
+        @. ΔRz_coarse += bt[5]
+        @. wtz += bt[6]
+        @. ΔRc_coarse += bt[7]
+        @. wtc += bt[8]
     end
     return nothing
 end
