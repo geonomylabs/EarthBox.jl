@@ -10,6 +10,71 @@ import ..GridMappingManager: calculate_mapping_group!
 
 const MAX_LEVELS = 10
 
+"""
+Raw array handles for 3D Stokes residual / GS stencil evaluation.
+Built via `build_stencil_arrays_3d` / `current_stencil_arrays_3d` so hot loops avoid
+repeated `grid.arrays.*` property chains (not cached on `LevelData`).
+"""
+struct StencilArrays3d
+    vx::Array{Float64,3}
+    vy::Array{Float64,3}
+    vz::Array{Float64,3}
+    pr::Array{Float64,3}
+    etaxy::Array{Float64,3}
+    etaxz::Array{Float64,3}
+    etayz::Array{Float64,3}
+    etan::Array{Float64,3}
+    RX::Array{Float64,3}
+    RY::Array{Float64,3}
+    RZ::Array{Float64,3}
+    RC::Array{Float64,3}
+    # Staggered grid spacing storage is 1D per direction (not 3D arrays).
+    xstp_b::Vector{Float64}
+    ystp_b::Vector{Float64}
+    zstp_b::Vector{Float64}
+    ystp_vx::Vector{Float64}
+    zstp_vx::Vector{Float64}
+    xstp_vy::Vector{Float64}
+end
+
+"""Bundle raw arrays for 3D Stokes kernels; call this instead of repeating field lists."""
+function build_stencil_arrays_3d(
+    grid::Grids3d,
+    vx::ScalarArray3DState,
+    vy::ScalarArray3DState,
+    vz::ScalarArray3DState,
+    pr::ScalarArray3DState,
+    etaxy::ScalarArray3DState,
+    etaxz::ScalarArray3DState,
+    etayz::ScalarArray3DState,
+    etan::ScalarArray3DState,
+    RX::ScalarArray3DState,
+    RY::ScalarArray3DState,
+    RZ::ScalarArray3DState,
+    RC::ScalarArray3DState,
+)::StencilArrays3d
+    return StencilArrays3d(
+        vx.array,
+        vy.array,
+        vz.array,
+        pr.array,
+        etaxy.array,
+        etaxz.array,
+        etayz.array,
+        etan.array,
+        RX.array,
+        RY.array,
+        RZ.array,
+        RC.array,
+        grid.arrays.basic.xstp_b.array,
+        grid.arrays.basic.ystp_b.array,
+        grid.arrays.basic.zstp_b.array,
+        grid.arrays.staggered_vx.ystp_vx.array,
+        grid.arrays.staggered_vx.zstp_vx.array,
+        grid.arrays.staggered_vy.xstp_vy.array,
+    )
+end
+
 mutable struct LevelData
     # level ID equal to multigrid level number with larger numbers for coarser grids
     level_id::Int64
@@ -177,6 +242,24 @@ function LevelData(
         etan_resc_buf,
         prolong_dvx, prolong_dvy, prolong_dvz, prolong_dpr,
         restrict_thread_accum,
+    )
+end
+
+@inline function current_stencil_arrays_3d(ld::LevelData)::StencilArrays3d
+    return build_stencil_arrays_3d(
+        ld.grid,
+        ld.vx,
+        ld.vy,
+        ld.vz,
+        ld.pr,
+        ld.etaxy,
+        ld.etaxz,
+        ld.etayz,
+        ld.etan,
+        ld.RX,
+        ld.RY,
+        ld.RZ,
+        ld.RC,
     )
 end
 
