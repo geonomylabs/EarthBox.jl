@@ -19,8 +19,11 @@ import .ModelParametersManager
     run_stokes_sinker(; ...)
 
 Stokes sinker multigrid demo. For performance profiling of one solve, set
-`ENV["EARTHBOX_MG_TIMING"]="1"` to print per-phase V-cycle time fractions, and
-`ENV["EARTHBOX_MG_DEBUG"]="0"` to skip final solution statistics printing.
+`ENV["EARTHBOX_MG_TIMING"]="1"` to print per-phase V-cycle time fractions;
+optionally `ENV["EARTHBOX_MG_TIMING_DETAIL"]="1"` (with timing on) for smoother vs restriction vs
+prolongation splits. Use `ENV["EARTHBOX_MG_DEBUG"]="0"` to skip final solution statistics printing.
+
+For a sampling profile: `using Profile`; then `Profile.clear(); @profile run_stokes_sinker(...); Profile.print()`.
 
 Use `smoke_test=true` for a small 17³ grid and few iterations (CI / quick regression).
 """

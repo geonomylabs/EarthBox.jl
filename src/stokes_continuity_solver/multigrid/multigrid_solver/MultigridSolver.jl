@@ -82,6 +82,30 @@ Red-black Gauss-Seidel ordering - Split the single threaded GS sweep into two pa
 (i+j+k) % 2 == 0 then "black" cells (i+j+k) % 2 == 1. Each pass is safe for parallel execution since 
 no two cells of the same color are direct neighbors, eliminating data races from the previous approach.
 
+Profiling (one-off)
+
+Set `ENV["EARTHBOX_MG_TIMING"]="1"` and optionally `ENV["EARTHBOX_MG_TIMING_DETAIL"]="1"` for a breakdown
+of smoother vs restriction vs prolongation inside the restrict/prolong legs (see MultigridVCycle).
+
+For a sampling profile in the REPL after `using Profile` and importing your driver (e.g. StokesSinker):
+
+    Profile.clear()
+    @profile StokesSinker.run_stokes_sinker(make_plots=false, use_multimulti=true, model_type=:ThreeDimensional)
+    Profile.print(maxdepth=30)
+
+Use a shorter grid or fewer `nvcycles` if the run is too long. For flame graphs, use ProfileView.jl or
+record with `Profile.Allocs` if investigating allocations.
+
+3D restriction (weight divide on the coarse grid) and prolongation parallelize over k-planes when
+`Threads.nthreads() > 1` and the relevant z extent is at least 16 (same threshold style as GS/residuals).
+
+Optional algorithmic next steps (not implemented here; benchmark before/after)
+
+- Direct or sparse solve on the coarsest staggered level instead of many GS sweeps.
+- W-cycle or F-cycle (more coarse work per outer cycle; may reduce outer iteration count).
+- `restot` in ViscosityScaling.jl (non-multimulti ramp) uses `resx` four times; using all four principle
+  components changes continuation timing and is a tuning decision, not a pure micro-optimization.
+
 """
 function run_multigrid_solver(
     multigrid_data::Union{MultigridData3d, MultigridData2d}

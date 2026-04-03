@@ -37,6 +37,9 @@ import ..TriLinearInterpolation: coarse2fine_trilinear_interpolation!
 import ..BiLinearInterpolation: coarse2fine_bilinear_interpolation!
 import ..LevelManager: LevelData, LevelData2d
 
+# Match GS / Residuals / Restriction: parallel k-planes only on large enough fine grids.
+const PROLONG_K_PLANE_PARALLEL_MIN_ZNUM = 16
+
 """
     prolongate_stokes3d_solution(n, level_vector)
 
@@ -54,6 +57,43 @@ and produces updated solutions (dvx,dvy,dvz,dpr) for this finer level.
 - `dvz::Array{Float64,3}`: z-velocity corrections for finer grid
 - `dpr::Array{Float64,3}`: pressure corrections for finer grid
 """
+function _prolongate_stokes3d_solution_kplane!(
+    k::Int,
+    xnumf::Int,
+    ynumf::Int,
+    znumf::Int,
+    vx::Array{Float64,3},
+    vy::Array{Float64,3},
+    vz::Array{Float64,3},
+    pr::Array{Float64,3},
+    dvx::Array{Float64,3},
+    dvy::Array{Float64,3},
+    dvz::Array{Float64,3},
+    dpr::Array{Float64,3},
+    vx_map,
+    vy_map,
+    vz_map,
+    pr_map,
+)::Nothing
+    @inbounds for j = 1:xnumf+1
+        for i = 1:ynumf+1
+            if j < xnumf+1
+                coarse2fine_trilinear_interpolation!(i, j, k, vx_map, vx, dvx)
+            end
+            if i < ynumf+1
+                coarse2fine_trilinear_interpolation!(i, j, k, vy_map, vy, dvy)
+            end
+            if k < znumf+1
+                coarse2fine_trilinear_interpolation!(i, j, k, vz_map, vz, dvz)
+            end
+            if i < ynumf && j < xnumf && k < znumf
+                coarse2fine_trilinear_interpolation!(i, j, k, pr_map, pr, dpr)
+            end
+        end
+    end
+    return nothing
+end
+
 function prolongate_stokes3d_solution(
     n::Int, 
     level_vector::Vector{LevelData},
@@ -83,29 +123,22 @@ function prolongate_stokes3d_solution(
     vy_map = fine_to_coarse_mapping.vy_map
     vz_map = fine_to_coarse_mapping.vz_map
     pr_map = fine_to_coarse_mapping.pr_map
-    
-    @inbounds for k = 1:znumf+1
-        for j = 1:xnumf+1
-            for i = 1:ynumf+1
-                # x-Stokes correction
-                if j < xnumf+1
-                    coarse2fine_trilinear_interpolation!(i, j, k, vx_map, vx, dvx)
-                end
-                # y-Stokes correction
-                if i < ynumf+1
-                    coarse2fine_trilinear_interpolation!(i, j, k, vy_map, vy, dvy)
-                end
-                # z-Stokes correction
-                if k < znumf+1
-                    coarse2fine_trilinear_interpolation!(i, j, k, vz_map, vz, dvz)
-                end
-                # Continuity equation correction
-                if i < ynumf && j < xnumf && k < znumf
-                    coarse2fine_trilinear_interpolation!(i, j, k, pr_map, pr, dpr)
-                end
-            
-            end
-        end            
+
+    parallel_k = Threads.nthreads() > 1 && znumf >= PROLONG_K_PLANE_PARALLEL_MIN_ZNUM
+    if parallel_k
+        Threads.@threads for k = 1:znumf+1
+            _prolongate_stokes3d_solution_kplane!(
+                k, xnumf, ynumf, znumf, vx, vy, vz, pr, dvx, dvy, dvz, dpr,
+                vx_map, vy_map, vz_map, pr_map,
+            )
+        end
+    else
+        for k = 1:znumf+1
+            _prolongate_stokes3d_solution_kplane!(
+                k, xnumf, ynumf, znumf, vx, vy, vz, pr, dvx, dvy, dvz, dpr,
+                vx_map, vy_map, vz_map, pr_map,
+            )
+        end
     end
     return dvx, dvy, dvz, dpr
 end

@@ -40,6 +40,9 @@ import ..TriLinearInterpolation: add_to_numerator_and_denominator!
 import ..BiLinearInterpolation: add_to_numerator_and_denominator_2d!
 import ..LevelManager: LevelData, LevelData2d
 
+# Match SolveStokes3dOpt / Residuals: avoid thread overhead on tiny coarse grids.
+const RESTRICT_DIVIDE_K_PARALLEL_MIN_ZNUM = 16
+
 """
     restrict_stokes3d_residuals!(n, level_vector, resx, resy, resz, resc)
 
@@ -166,6 +169,63 @@ function calculate_numerator_and_denominator_for_trilinear_interpolation!(
     return nothing
 end
 
+function _divide_restricted_residuals_on_coarser_kplane!(
+    kc::Int,
+    xnumc::Int,
+    ynumc::Int,
+    znumc::Int,
+    ΔRx_coarse::Array{Float64,3},
+    ΔRy_coarse::Array{Float64,3},
+    ΔRz_coarse::Array{Float64,3},
+    ΔRc_coarse::Array{Float64,3},
+    wtx::Array{Float64,3},
+    wty::Array{Float64,3},
+    wtz::Array{Float64,3},
+    wtc::Array{Float64,3},
+    etanc::Array{Float64,3},
+)::Nothing
+    @inbounds for jc in 1:xnumc+1
+        for ic in 1:ynumc+1
+            # x-Stokes
+            if jc < xnumc+1
+                if wtx[ic,jc,kc] != 0 && ic > 1 && ic < ynumc+1 &&
+                   jc > 1 && jc < xnumc && kc > 1 && kc < znumc+1
+                    ΔRx_coarse[ic,jc,kc] = ΔRx_coarse[ic,jc,kc] / wtx[ic,jc,kc]
+                else
+                    ΔRx_coarse[ic,jc,kc] = 0
+                end
+            end
+            # y-Stokes
+            if ic < ynumc+1
+                if wty[ic,jc,kc] != 0 && ic > 1 && ic < ynumc &&
+                   jc > 1 && jc < xnumc+1 && kc > 1 && kc < znumc+1
+                    ΔRy_coarse[ic,jc,kc] = ΔRy_coarse[ic,jc,kc] / wty[ic,jc,kc]
+                else
+                    ΔRy_coarse[ic,jc,kc] = 0
+                end
+            end
+            # z-Stokes
+            if kc < znumc+1
+                if wtz[ic,jc,kc] != 0 && ic > 1 && ic < ynumc+1 &&
+                   jc > 1 && jc < xnumc+1 && kc > 1 && kc < znumc
+                    ΔRz_coarse[ic,jc,kc] = ΔRz_coarse[ic,jc,kc] / wtz[ic,jc,kc]
+                else
+                    ΔRz_coarse[ic,jc,kc] = 0
+                end
+            end
+            # Continuity
+            if ic < ynumc && jc < xnumc && kc < znumc
+                if wtc[ic,jc,kc] != 0
+                    ΔRc_coarse[ic,jc,kc] = ΔRc_coarse[ic,jc,kc] / wtc[ic,jc,kc] / etanc[ic,jc,kc]
+                else
+                    ΔRc_coarse[ic,jc,kc] = 0
+                end
+            end
+        end
+    end
+    return nothing
+end
+
 function calculate_residuals_on_coarser_level!(
     n::Int64,
     level_vector::Vector{LevelData},
@@ -183,52 +243,25 @@ function calculate_residuals_on_coarser_level!(
     ynumc = gridc.parameters.geometry.ynum.value
     znumc = gridc.parameters.geometry.znum.value
     etanc = level_vector[n+1].etan.array
-    # Recomputing right parts (RX, RY, RZ, RC)
-    # for the coarser level (n+1)
-    @inbounds for kc in 1:znumc+1
-        for jc in 1:xnumc+1
-            for ic in 1:ynumc+1
-                # x-Stokes
-                if jc < xnumc+1
-                    # Check for non-zero weights 
-                    if wtx[ic,jc,kc] != 0 && ic > 1 && ic < ynumc+1 && 
-                       jc > 1 && jc < xnumc && kc > 1 && kc < znumc+1
-                        ΔRx_coarse[ic,jc,kc] = ΔRx_coarse[ic,jc,kc]/wtx[ic,jc,kc]
-                    else
-                        ΔRx_coarse[ic,jc,kc] = 0
-                    end
-                end
-                # y-Stokes
-                if ic < ynumc+1
-                    # Check for non-zero weights 
-                    if wty[ic,jc,kc] != 0 && ic > 1 && ic < ynumc && 
-                       jc > 1 && jc < xnumc+1 && kc > 1 && kc < znumc+1
-                        ΔRy_coarse[ic,jc,kc] = ΔRy_coarse[ic,jc,kc]/wty[ic,jc,kc]
-                    else
-                        ΔRy_coarse[ic,jc,kc] = 0
-                    end
-                end
-                # z-Stokes
-                if kc < znumc+1
-                    # Check for non-zero weights 
-                    if wtz[ic,jc,kc] != 0 && ic > 1 && ic < ynumc+1 && 
-                       jc > 1 && jc < xnumc+1 && kc > 1 && kc < znumc
-                        ΔRz_coarse[ic,jc,kc] = ΔRz_coarse[ic,jc,kc]/wtz[ic,jc,kc]
-                    else
-                        ΔRz_coarse[ic,jc,kc] = 0
-                    end
-                end
-                # Continuity
-                if ic < ynumc && jc < xnumc && kc < znumc
-                    if wtc[ic,jc,kc] != 0
-                        ΔRc_coarse[ic,jc,kc] = ΔRc_coarse[ic,jc,kc]/wtc[ic,jc,kc]/etanc[ic,jc,kc]
-                    else
-                        ΔRc_coarse[ic,jc,kc] = 0
-                    end
-                end
-            
-            end
-        end            
+    # Recomputing right parts (RX, RY, RZ, RC) for the coarser level (n+1).
+    # Each kc-plane is independent (one write per coarse cell).
+    parallel_kc = Threads.nthreads() > 1 && znumc >= RESTRICT_DIVIDE_K_PARALLEL_MIN_ZNUM
+    if parallel_kc
+        Threads.@threads for kc in 1:znumc+1
+            _divide_restricted_residuals_on_coarser_kplane!(
+                kc, xnumc, ynumc, znumc,
+                ΔRx_coarse, ΔRy_coarse, ΔRz_coarse, ΔRc_coarse,
+                wtx, wty, wtz, wtc, etanc,
+            )
+        end
+    else
+        for kc in 1:znumc+1
+            _divide_restricted_residuals_on_coarser_kplane!(
+                kc, xnumc, ynumc, znumc,
+                ΔRx_coarse, ΔRy_coarse, ΔRz_coarse, ΔRc_coarse,
+                wtx, wty, wtz, wtc, etanc,
+            )
+        end
     end
     return nothing
 end

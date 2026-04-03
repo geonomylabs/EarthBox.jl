@@ -1,10 +1,15 @@
 module SmoothAndProlongate
 
+using Base: time
+
 import ...MultigridDataManager: MultigridData3d, MultigridData2d
 import ...Smoother: stokes_continuity3d_viscous_smoother!
 import ...Smoother: stokes_continuity2d_viscous_smoother!
 import ...Prolongation: prolongate_stokes3d_solution
 import ...Prolongation: prolongate_stokes2d_solution
+import ..MultigridVCycle: mg_timing_detail_add_sp_prolong!
+import ..MultigridVCycle: mg_timing_detail_add_sp_smooth!
+import ..MultigridVCycle: mg_timing_detail_enabled
 
 function smooth_and_prolongate!(
     multigrid_data::MultigridData3d,
@@ -21,13 +26,23 @@ function smooth_and_prolongate!(
     ΔRyL1 = level_vector[1].res_vy_buf
     ΔRzL1 = level_vector[1].res_vz_buf
     ΔRcL1 = level_vector[1].res_pr_buf
+    detail = mg_timing_detail_enabled()
     for n = levelnum:-1:1
         if n == 1
+            t0 = detail ? time() : 0.0
             ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1 = stokes_continuity3d_viscous_smoother!(
                     pressure_bc, level_vector[n], smoothing_iterations, relaxation)
+            if detail
+                mg_timing_detail_add_sp_smooth!(time() - t0)
+            end
         else
+            t0 = detail ? time() : 0.0
             stokes_continuity3d_viscous_smoother!(
                 0.0, level_vector[n], smoothing_iterations, relaxation)
+            if detail
+                mg_timing_detail_add_sp_smooth!(time() - t0)
+            end
+            t1 = detail ? time() : 0.0
             dvx, dvy, dvz, dpr = prolongate_stokes3d_solution(n, level_vector)
             finer = level_vector[n-1]
             # Common case (e.g. StokesSinker): relax factors 1 → add corrections in-place
@@ -41,6 +56,9 @@ function smooth_and_prolongate!(
                 @. finer.vy.array += dvy * relax_velocity
                 @. finer.vz.array += dvz * relax_velocity
                 @. finer.pr.array += dpr * relax_pressure
+            end
+            if detail
+                mg_timing_detail_add_sp_prolong!(time() - t1)
             end
         end
     end
