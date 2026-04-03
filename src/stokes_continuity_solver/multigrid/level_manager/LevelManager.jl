@@ -63,6 +63,8 @@ mutable struct LevelData
     prolong_dvy::Array{Float64,3}
     prolong_dvz::Array{Float64,3}
     prolong_dpr::Array{Float64,3}
+    # Per-thread scratch for parallel restriction accumulation (coarse level only); summed after.
+    restrict_thread_accum::Union{Nothing, Vector{NTuple{8, Array{Float64,3}}}}
 end
 
 """
@@ -137,6 +139,30 @@ function LevelData(
     prolong_dvz = zeros(Float64, size(vz.array))
     prolong_dpr = zeros(Float64, size(pr.array))
 
+    sz_vx = size(vx.array)
+    sz_vy = size(vy.array)
+    sz_vz = size(vz.array)
+    sz_pr = size(pr.array)
+    nt = Threads.nthreads()
+    restrict_thread_accum =
+        if level_id >= 1
+            [
+                (
+                    zeros(Float64, sz_vx),
+                    zeros(Float64, sz_vx),
+                    zeros(Float64, sz_vy),
+                    zeros(Float64, sz_vy),
+                    zeros(Float64, sz_vz),
+                    zeros(Float64, sz_vz),
+                    zeros(Float64, sz_pr),
+                    zeros(Float64, sz_pr),
+                )
+                for _ in 1:nt
+            ]
+        else
+            nothing
+        end
+
     return LevelData(
         level_id,
         vx, vy, vz, pr, rho, 
@@ -150,6 +176,7 @@ function LevelData(
         restrict_wtx, restrict_wty, restrict_wtz, restrict_wtc,
         etan_resc_buf,
         prolong_dvx, prolong_dvy, prolong_dvz, prolong_dpr,
+        restrict_thread_accum,
     )
 end
 

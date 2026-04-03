@@ -57,6 +57,11 @@ function run_stokes_sinker(;
             gravitational_acceleration=9.81
             )
     elseif model_type == :ThreeDimensional
+        # >>>> Final solution on level 0: solution statistics:
+        # vx_min: -4.2119579914364494e-11, vx_max: 4.211957996402347e-11, vx_avg: -2.567088411350265e-21
+        # vy_min: -4.197699474594335e-11, vy_max: 1.7940593152637914e-10, vy_avg: -8.485606364741891e-13
+        # vz_min: -4.211958001886245e-11, vz_max: 4.211957993380327e-11, vz_avg: 1.068050295825112e-21
+        # pr_min: -293557.97057322855, pr_max: 2.9131995909993834e9, pr_avg: 1.4564530165141766e9
         grid = (
             ynum=97, xnum=97, znum=97,
             ysize=100000.0, xsize=100000.0, zsize=100000.0, 

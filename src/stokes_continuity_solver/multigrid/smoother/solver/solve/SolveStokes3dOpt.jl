@@ -19,11 +19,11 @@ function _relax_gs_one_kplane!(
     znum::Int,
     level_data::LevelData,
 )::Nothing
+    # Red-black: for fixed (j,k), parity of i is determined by color. Stride i by 2 — half the visits,
+    # no per-cell parity branch (same updates as scanning all i with a continue).
     @inbounds for j = 1:xnum+1
-        for i = 1:ynum+1
-            if (i + j + k) & 1 != color
-                continue
-            end
+        i0 = (((1 + j + k) & 1) == color) ? 1 : 2
+        for i in i0:2:ynum+1
             if j < xnum+1
                 if !on_vx_boundary3d(i, j, k, ynum, xnum, znum)
                     update_vx!(i, j, k, Θ_stokes, level_data)
@@ -98,7 +98,7 @@ function solve_stokes_continuity_equations3d!(
 end
 
 # x-Stokes equation dSIGMAxx/dx+dSIGMAxy/dy+SIGMAxz/dz-dP/dx=RX
-function update_vx!(
+@inline function update_vx!(
     i::Int64,
     j::Int64,
     k::Int64,
@@ -111,7 +111,7 @@ function update_vx!(
 end
 
 # y-Stokes equation dSIGMAyx/dx+dSIGMAyy/dy+SIGMAyz/dz-dP/dy=RY
-function update_vy!(
+@inline function update_vy!(
     i::Int64,
     j::Int64,
     k::Int64,
@@ -124,7 +124,7 @@ function update_vy!(
 end
 
 # z-Stokes equation dSIGMAzx/dx+dSIGMAzy/dy+SIGMAzz/dz-dP/dz=RZ
-function update_vz!(
+@inline function update_vz!(
     i::Int64,
     j::Int64,
     k::Int64,
@@ -136,7 +136,7 @@ function update_vz!(
     return nothing
 end
 
-function update_pressure!(
+@inline function update_pressure!(
     i::Int64,
     j::Int64,
     k::Int64,

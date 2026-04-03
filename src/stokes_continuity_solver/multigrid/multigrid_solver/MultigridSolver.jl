@@ -81,6 +81,8 @@ as a cap to ALL levels (not just the last), preventing over-smoothing on interme
 Red-black Gauss-Seidel ordering - Split the single threaded GS sweep into two passes: "red" cells 
 (i+j+k) % 2 == 0 then "black" cells (i+j+k) % 2 == 1. Each pass is safe for parallel execution since 
 no two cells of the same color are direct neighbors, eliminating data races from the previous approach.
+Within each (j,k) line the pass uses i = i0:2:ynum+1 (and 2D: i = i0:2:ynum+1 per j) so only half the i 
+iterations run, matching full-grid parity checks without a per-cell branch.
 
 Profiling (one-off)
 
@@ -96,8 +98,9 @@ For a sampling profile in the REPL after `using Profile` and importing your driv
 Use a shorter grid or fewer `nvcycles` if the run is too long. For flame graphs, use ProfileView.jl or
 record with `Profile.Allocs` if investigating allocations.
 
-3D restriction (weight divide on the coarse grid) and prolongation parallelize over k-planes when
-`Threads.nthreads() > 1` and the relevant z extent is at least 16 (same threshold style as GS/residuals).
+3D restriction (fine-to-coarse trilinear accumulation into numerators/weights, then divide on the coarse
+grid) and prolongation parallelize when `Threads.nthreads() > 1` and the relevant z extent is at least 16
+(accumulation partitions fine k-ranges; divide uses kc-planes; same threshold style as GS/residuals).
 
 Optional algorithmic next steps (not implemented here; benchmark before/after)
 
