@@ -6,6 +6,47 @@ import ....Domain: on_vx_boundary3d, on_vy_boundary3d, on_vz_boundary3d
 import ....ArrayStats
 import ...Residuals
 
+# Parallelize over k only when there are enough k-planes; coarse grids pay thread overhead otherwise.
+const GS_K_PARALLEL_MIN_ZNUM = 16
+
+function _relax_gs_one_kplane!(
+    color::Int,
+    k::Int,
+    Θ_stokes::Float64,
+    Θ_continuity::Float64,
+    xnum::Int,
+    ynum::Int,
+    znum::Int,
+    level_data::LevelData,
+)::Nothing
+    @inbounds for j = 1:xnum+1
+        for i = 1:ynum+1
+            if (i + j + k) & 1 != color
+                continue
+            end
+            if j < xnum+1
+                if !on_vx_boundary3d(i, j, k, ynum, xnum, znum)
+                    update_vx!(i, j, k, Θ_stokes, level_data)
+                end
+            end
+            if i < ynum+1
+                if !on_vy_boundary3d(i, j, k, ynum, xnum, znum)
+                    update_vy!(i, j, k, Θ_stokes, level_data)
+                end
+            end
+            if k < znum+1
+                if !on_vz_boundary3d(i, j, k, ynum, xnum, znum)
+                    update_vz!(i, j, k, Θ_stokes, level_data)
+                end
+            end
+            if i < ynum && j < xnum && k < znum
+                update_pressure!(i, j, k, Θ_continuity, level_data)
+            end
+        end
+    end
+    return nothing
+end
+
 function solve_stokes_continuity_equations3d!(
     relaxation::RelaxationParameters,
     level_data::LevelData
@@ -16,43 +57,40 @@ function solve_stokes_continuity_equations3d!(
 
     Θ_stokes = relaxation.relax_stokes
     Θ_continuity = relaxation.relax_continuity
+    parallel_k = Threads.nthreads() > 1 && znum >= GS_K_PARALLEL_MIN_ZNUM
 
     # Red-black (checkerboard) Gauss-Seidel: two sweeps per iteration.
     # Within each color, no two updated cells are direct neighbors,
     # so the sweep is safe for parallel execution.
+
+    # (i + j + k) & 1 is the parity of the sum i + j + k: it is 0 when that sum 
+    # is even, and 1 when it is odd. (Same idea as mod(i + j + k, 2), implemented with a bitwise AND.)
+    
+    # In Julia, & is bitwise AND on integers.
+    # For two integers, each bit of the result is 1 only where both operands have a 1 in that position.
+    # So (i + j + k) & 1 keeps only the least significant bit of the sum:
+    # If the sum is even, that bit is 0.
+    # If the sum is odd, that bit is 1.
+
+    # The outer loop runs for color = 0:1 (lines 23–24), so there are two sweeps per relaxation pass:
+
+    # color == 0: only grid points with even i + j + k are updated.
+    # color == 1: only grid points with odd i + j + k are updated.
+    # if (i + j + k) & 1 != color → continue means: “this (i,j,k) belongs to the other color; skip 
+    # it on this sweep.”
+
+    # So on a given color, the loop still visits every (i,j,k) in the nested ranges, but only 
+    # executes the update_*! calls for cells on that color.
     for color = 0:1
-        Threads.@threads for k = 1:znum+1
-            @inbounds for j = 1:xnum+1
-                for i = 1:ynum+1
-                    if (i + j + k) & 1 != color
-                        continue
-                    end
-                    if j < xnum+1
-                        if !on_vx_boundary3d(
-                                i, j, k, ynum, xnum, znum)
-                            update_vx!(
-                                i, j, k, Θ_stokes, level_data)
-                        end
-                    end
-                    if i < ynum+1
-                        if !on_vy_boundary3d(
-                                i, j, k, ynum, xnum, znum)
-                            update_vy!(
-                                i, j, k, Θ_stokes, level_data)
-                        end
-                    end
-                    if k < znum+1
-                        if !on_vz_boundary3d(
-                                i, j, k, ynum, xnum, znum)
-                            update_vz!(
-                                i, j, k, Θ_stokes, level_data)
-                        end
-                    end
-                    if i < ynum && j < xnum && k < znum
-                        update_pressure!(
-                            i, j, k, Θ_continuity, level_data)
-                    end
-                end
+        if parallel_k
+            Threads.@threads for k = 1:znum+1
+                _relax_gs_one_kplane!(
+                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, level_data)
+            end
+        else
+            for k = 1:znum+1
+                _relax_gs_one_kplane!(
+                    color, k, Θ_stokes, Θ_continuity, xnum, ynum, znum, level_data)
             end
         end
     end
