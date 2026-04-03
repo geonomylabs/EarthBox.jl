@@ -37,7 +37,8 @@ import ..Smoother: update_rhs_parts_on_level1_using_global_level0_residuals
 import ..MultigridVCycle
 import ..ArrayStats
 
-const DEBUG = true
+"""When `ENV["EARTHBOX_MG_DEBUG"] != "1"`, skip verbose final solution statistics."""
+mg_debug_stats_enabled() = (get(ENV, "EARTHBOX_MG_DEBUG", "1") == "1")
 
 function run_multigrid_solver(
     multigrid_data::Union{MultigridData3d, MultigridData2d}
@@ -57,7 +58,7 @@ function run_multigrid_solver(
     t2 = time()
     println(">> Finished multigrid solver in $(t2-t1) seconds")
 
-    if DEBUG
+    if mg_debug_stats_enabled()
         print_final_solution_stats(multigrid_data)
     end
     return nothing

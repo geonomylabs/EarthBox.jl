@@ -17,26 +17,41 @@ function solve_stokes_continuity_equations3d!(
     Θ_stokes = relaxation.relax_stokes
     Θ_continuity = relaxation.relax_continuity
 
-    Threads.@threads for k = 1:znum+1
-        for j = 1:xnum+1
-            for i = 1:ynum+1
-                if j < xnum+1 # vx is not defined beyond xnum
-                    if !on_vx_boundary3d(i, j, k, ynum, xnum, znum)
-                        update_vx!(i, j, k, Θ_stokes, level_data)
+    # Red-black (checkerboard) Gauss-Seidel: two sweeps per iteration.
+    # Within each color, no two updated cells are direct neighbors,
+    # so the sweep is safe for parallel execution.
+    for color = 0:1
+        Threads.@threads for k = 1:znum+1
+            @inbounds for j = 1:xnum+1
+                for i = 1:ynum+1
+                    if (i + j + k) & 1 != color
+                        continue
                     end
-                end
-                if i < ynum+1 # vy is not defined beyond ynum
-                    if !on_vy_boundary3d(i, j, k, ynum, xnum, znum)
-                        update_vy!(i, j, k, Θ_stokes, level_data)
+                    if j < xnum+1
+                        if !on_vx_boundary3d(
+                                i, j, k, ynum, xnum, znum)
+                            update_vx!(
+                                i, j, k, Θ_stokes, level_data)
+                        end
                     end
-                end
-                if k < znum+1 # vz is not defined beyond znum
-                    if !on_vz_boundary3d(i, j, k, ynum, xnum, znum)
-                        update_vz!(i, j, k, Θ_stokes, level_data)
+                    if i < ynum+1
+                        if !on_vy_boundary3d(
+                                i, j, k, ynum, xnum, znum)
+                            update_vy!(
+                                i, j, k, Θ_stokes, level_data)
+                        end
                     end
-                end
-                if i < ynum && j < xnum && k < znum
-                    update_pressure!(i, j, k, Θ_continuity, level_data)
+                    if k < znum+1
+                        if !on_vz_boundary3d(
+                                i, j, k, ynum, xnum, znum)
+                            update_vz!(
+                                i, j, k, Θ_stokes, level_data)
+                        end
+                    end
+                    if i < ynum && j < xnum && k < znum
+                        update_pressure!(
+                            i, j, k, Θ_continuity, level_data)
+                    end
                 end
             end
         end
@@ -53,7 +68,7 @@ function update_vx!(
     level_data::LevelData
 )::Nothing
     ΔR, Coef_vxC = Residuals.calculate_vx_residual(i, j, k, level_data)
-    level_data.vx.array[i,j,k] += ΔR/Coef_vxC*Θ_stokes
+    @inbounds level_data.vx.array[i,j,k] += ΔR/Coef_vxC*Θ_stokes
     return nothing
 end
 
@@ -66,7 +81,7 @@ function update_vy!(
     level_data::LevelData
 )::Nothing
     ΔR, Coef_vyC = Residuals.calculate_vy_residual(i, j, k, level_data)
-    level_data.vy.array[i,j,k] += ΔR/Coef_vyC*Θ_stokes
+    @inbounds level_data.vy.array[i,j,k] += ΔR/Coef_vyC*Θ_stokes
     return nothing
 end
 
@@ -79,7 +94,7 @@ function update_vz!(
     level_data::LevelData
 )::Nothing
     ΔR, Coef_vzC = Residuals.calculate_vz_residual(i, j, k, level_data)
-    level_data.vz.array[i,j,k] += ΔR/Coef_vzC*Θ_stokes
+    @inbounds level_data.vz.array[i,j,k] += ΔR/Coef_vzC*Θ_stokes
     return nothing
 end
 
@@ -91,7 +106,7 @@ function update_pressure!(
     level_data::LevelData
 )::Nothing
     ΔR = Residuals.calculate_pressure_residual(i, j, k, level_data)
-    level_data.pr.array[i,j,k] += level_data.etan.array[i,j,k]*ΔR*Θ_continuity
+    @inbounds level_data.pr.array[i,j,k] += level_data.etan.array[i,j,k]*ΔR*Θ_continuity
     return nothing
 end
 

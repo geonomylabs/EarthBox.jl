@@ -2,6 +2,67 @@ module CalculateMeanResiduals
 
 import ..LevelManager: LevelData, LevelData2d
 
+"""
+    accumulate_principle_residuals_3d!(...)
+
+Same RMS reduction as `calculate_scaled_and_mean_residuals!` for 3D, but without allocating
+four scaled residual arrays (used when `make_plots` is false).
+"""
+function accumulate_principle_residuals_3d!(
+    ivcycle::Int64,
+    stokesscale::Float64,
+    continscale::Float64,
+    level1_data::LevelData,
+    ΔRxL::Array{Float64,3},
+    ΔRyL::Array{Float64,3},
+    ΔRzL::Array{Float64,3},
+    ΔRcL::Array{Float64,3},
+    resx::Vector{Float64},
+    resy::Vector{Float64},
+    resz::Vector{Float64},
+    resc::Vector{Float64}
+)::Nothing
+    ynum = level1_data.grid.parameters.geometry.ynum.value
+    xnum = level1_data.grid.parameters.geometry.xnum.value
+    znum = level1_data.grid.parameters.geometry.znum.value
+
+    resx[ivcycle] = 0.0
+    resy[ivcycle] = 0.0
+    resz[ivcycle] = 0.0
+    resc[ivcycle] = 0.0
+
+    inv_ss = inv(stokesscale)
+    inv_cc = inv(continscale)
+
+    @inbounds for k = 1:znum
+        for j = 1:xnum
+            for i = 1:ynum
+                if i > 1 && j > 1 && k > 1 && j < xnum
+                    rx = ΔRxL[i, j, k] * inv_ss
+                    resx[ivcycle] += rx * rx
+                end
+                if i > 1 && j > 1 && k > 1 && i < ynum
+                    ry = ΔRyL[i, j, k] * inv_ss
+                    resy[ivcycle] += ry * ry
+                end
+                if i > 1 && j > 1 && k > 1 && k < znum
+                    rz = ΔRzL[i, j, k] * inv_ss
+                    resz[ivcycle] += rz * rz
+                end
+                if j < xnum && i < ynum && k < znum
+                    rc = ΔRcL[i, j, k] * inv_cc
+                    resc[ivcycle] += rc * rc
+                end
+            end
+        end
+    end
+    resx[ivcycle] = log10(sqrt(resx[ivcycle] / ((ynum - 1) * (xnum - 2) * (znum - 1))))
+    resy[ivcycle] = log10(sqrt(resy[ivcycle] / ((ynum - 2) * (xnum - 1) * (znum - 1))))
+    resz[ivcycle] = log10(sqrt(resz[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 2))))
+    resc[ivcycle] = log10(sqrt(resc[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 1))))
+    return nothing
+end
+
 function calculate_scaled_and_mean_residuals!(
     ivcycle::Int64,
     stokesscale::Float64,

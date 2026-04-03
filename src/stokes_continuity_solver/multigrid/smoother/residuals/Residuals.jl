@@ -8,48 +8,49 @@ import ...ArrayStats
 function compute_residuals!(
     level_data::LevelData
 )::Tuple{Array{Float64, 3}, Array{Float64, 3}, Array{Float64, 3}, Array{Float64, 3}}
-    vx = level_data.vx.array
-    vy = level_data.vy.array
-    vz = level_data.vz.array
-    pr = level_data.pr.array
-
     xnum = level_data.grid.parameters.geometry.xnum.value
     ynum = level_data.grid.parameters.geometry.ynum.value
     znum = level_data.grid.parameters.geometry.znum.value
 
-    # Initialize residual arrays
-    ΔRx = zeros(Float64, size(vx))
-    ΔRy = zeros(Float64, size(vy))
-    ΔRz = zeros(Float64, size(vz))
-    ΔRc = zeros(Float64, size(pr))
+    ΔRx = level_data.res_vx_buf
+    ΔRy = level_data.res_vy_buf
+    ΔRz = level_data.res_vz_buf
+    ΔRc = level_data.res_pr_buf
+    fill!(ΔRx, 0.0)
+    fill!(ΔRy, 0.0)
+    fill!(ΔRz, 0.0)
+    fill!(ΔRc, 0.0)
 
-    # Computing final state of residuals
     Threads.@threads for k = 1:znum+1
-        for j = 1:xnum+1
+        @inbounds for j = 1:xnum+1
             for i = 1:ynum+1
                 if j < xnum+1
                     if on_vx_boundary3d(i, j, k, ynum, xnum, znum)
                         ΔRx[i,j,k] = 0.0
                     else
-                        ΔRx[i,j,k], _ = calculate_vx_residual(i, j, k, level_data)
+                        ΔRx[i,j,k], _ = calculate_vx_residual(
+                            i, j, k, level_data)
                     end
                 end
                 if i < ynum+1
                     if on_vy_boundary3d(i, j, k, ynum, xnum, znum)
                         ΔRy[i,j,k] = 0.0
                     else
-                        ΔRy[i,j,k], _ = calculate_vy_residual(i, j, k, level_data)
+                        ΔRy[i,j,k], _ = calculate_vy_residual(
+                            i, j, k, level_data)
                     end
                 end
                 if k < znum+1
                     if on_vz_boundary3d(i, j, k, ynum, xnum, znum)
                         ΔRz[i,j,k] = 0.0
                     else
-                        ΔRz[i,j,k], _ = calculate_vz_residual(i, j, k, level_data)
+                        ΔRz[i,j,k], _ = calculate_vz_residual(
+                            i, j, k, level_data)
                     end
                 end
                 if i < ynum && j < xnum && k < znum
-                    ΔRc[i,j,k] = calculate_pressure_residual(i, j, k, level_data)
+                    ΔRc[i,j,k] = calculate_pressure_residual(
+                        i, j, k, level_data)
                 end
             end
         end
@@ -107,7 +108,7 @@ function calculate_vx_residual(
     k::Int64,
     level_data::LevelData
 )::Tuple{Float64, Float64}
-
+    @inbounds begin
     vx = level_data.vx.array
     vy = level_data.vy.array
     vz = level_data.vz.array
@@ -136,8 +137,6 @@ function calculate_vx_residual(
     ΔzB = zstp_vx[k-1]
     ΔzC =  zstp_b[k-1]
 
-    # Define viscosity, pressure and velocity terms relative to
-    # VxC = vx[i,j,k]
     η_nR  = etan[i-1, j  , k-1]
     η_nL  = etan[i-1, j-1, k-1]
     η_xyU = etaxy[i-1, j  , k-1]
@@ -175,12 +174,12 @@ function calculate_vx_residual(
 
     ΔR = RX[i,j,k] + dp_dx - dσxx_dx - dσxy_dy - dσxz_dz
 
-    # Coefficients for VxC
     Coef_vxC = (
         - 2.0*(η_nR/ΔxR/ΔxC  + η_nL/ΔxL/ΔxC)
         - (η_xyD/ΔyD/ΔyC + η_xyU/ΔyU/ΔyC)
         - (η_xzF/ΔzF/ΔzC + η_xzB/ΔzB/ΔzC)
         )
+    end # @inbounds
 
     return ΔR, Coef_vxC
 end
@@ -253,7 +252,7 @@ function calculate_vy_residual(
     k::Int64,
     level_data::LevelData
 )::Tuple{Float64, Float64}
-
+    @inbounds begin
     vx = level_data.vx.array
     vy = level_data.vy.array
     vz = level_data.vz.array
@@ -326,6 +325,7 @@ function calculate_vy_residual(
         -     (η_xyR/ΔxR/ΔxC + η_xyL/ΔxL/ΔxC) 
         -     (η_yzF/ΔzF/ΔzC + η_yzB/ΔzB/ΔzC)
         )
+    end # @inbounds
 
     return ΔR, Coef_vyC
 end
@@ -398,7 +398,7 @@ function calculate_vz_residual(
     k::Int64,
     level_data::LevelData
 )::Tuple{Float64, Float64}
-
+    @inbounds begin
     vx = level_data.vx.array
     vy = level_data.vy.array
     vz = level_data.vz.array
@@ -473,6 +473,7 @@ function calculate_vz_residual(
         -     (η_xzR/ΔxF/ΔxC + η_xzL/ΔxB/ΔxC) 
         -     (η_yzD/ΔyD/ΔyC + η_yzU/ΔyU/ΔyC)
         )
+    end # @inbounds
 
     return ΔR, Coeff_vzC
 end
@@ -487,7 +488,7 @@ function calculate_pressure_residual(
     k::Int64,
     level_data::LevelData
 )::Float64
-
+    @inbounds begin
     vx = level_data.vx.array
     vy = level_data.vy.array
     vz = level_data.vz.array
@@ -508,13 +509,12 @@ function calculate_pressure_residual(
     vzF = vz[i+1, j+1, k+1]
     vzB = vz[i+1, j+1, k  ]
 
-    # Solving Continuity equation by adjusting pressure
-    # Computing current residual
     ΔR = RC[i,j,k] - (
         (vxR - vxL)/ΔxC
         + (vyD - vyU)/ΔyC
         + (vzF - vzB)/ΔzC
         )
+    end # @inbounds
 
     return ΔR
 end

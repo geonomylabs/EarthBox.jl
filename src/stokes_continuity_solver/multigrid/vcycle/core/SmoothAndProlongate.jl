@@ -15,24 +15,25 @@ function smooth_and_prolongate!(
     level_vector = multigrid_data.level_vector
 
     levelnum = length(level_vector)
-    ΔRxL1 = zeros(Float64, 2, 2, 2)
-    ΔRyL1 = zeros(Float64, 2, 2, 2)
-    ΔRzL1 = zeros(Float64, 2, 2, 2)
-    ΔRcL1 = zeros(Float64, 2, 2, 2)
+    relax_velocity = relaxation.relax_velocity
+    relax_pressure = relaxation.relax_pressure
+    ΔRxL1 = level_vector[1].res_vx_buf
+    ΔRyL1 = level_vector[1].res_vy_buf
+    ΔRzL1 = level_vector[1].res_vz_buf
+    ΔRcL1 = level_vector[1].res_pr_buf
     for n = levelnum:-1:1
         if n == 1
             ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1 = stokes_continuity3d_viscous_smoother!(
                     pressure_bc, level_vector[n], smoothing_iterations, relaxation)
         else
-            _, _, _, _ = stokes_continuity3d_viscous_smoother!(
+            stokes_continuity3d_viscous_smoother!(
                 0.0, level_vector[n], smoothing_iterations, relaxation)
             dvx, dvy, dvz, dpr = prolongate_stokes3d_solution(n, level_vector)
-            relax_velocity = multigrid_data.relaxation.relax_velocity
-            relax_pressure = multigrid_data.relaxation.relax_pressure
-            level_vector[n-1].vx.array .+= dvx * relax_velocity
-            level_vector[n-1].vy.array .+= dvy * relax_velocity
-            level_vector[n-1].vz.array .+= dvz * relax_velocity
-            level_vector[n-1].pr.array .+= dpr * relax_pressure
+            finer = level_vector[n-1]
+            @. finer.vx.array += dvx * relax_velocity
+            @. finer.vy.array += dvy * relax_velocity
+            @. finer.vz.array += dvz * relax_velocity
+            @. finer.pr.array += dpr * relax_pressure
         end
     end
     return ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1
@@ -74,9 +75,9 @@ function smooth_and_prolongate!(
             tt1 = time()
             relax_velocity = multigrid_data.relaxation.relax_velocity
             relax_pressure = multigrid_data.relaxation.relax_pressure
-            level_vector[n-1].vx.array .+= dvx * relax_velocity
-            level_vector[n-1].vy.array .+= dvy * relax_velocity
-            level_vector[n-1].pr.array .+= dpr * relax_pressure
+            @. level_vector[n-1].vx.array += dvx * relax_velocity
+            @. level_vector[n-1].vy.array += dvy * relax_velocity
+            @. level_vector[n-1].pr.array += dpr * relax_pressure
             tt2 = time()
             println("+++ Time taken to relax level $n: $(tt2-tt1) seconds")
         end

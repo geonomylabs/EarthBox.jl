@@ -58,7 +58,8 @@ function prolongate_stokes3d_solution(
     n::Int, 
     level_vector::Vector{LevelData},
 )::Tuple{Array{Float64,3}, Array{Float64,3}, Array{Float64,3}, Array{Float64,3}}
-    gridf = level_vector[n-1].grid
+    fine_ld = level_vector[n-1]
+    gridf = fine_ld.grid
     xnumf = gridf.parameters.geometry.xnum.value
     ynumf = gridf.parameters.geometry.ynum.value
     znumf = gridf.parameters.geometry.znum.value
@@ -68,18 +69,22 @@ function prolongate_stokes3d_solution(
     vz = level_vector[n].vz.array
     pr = level_vector[n].pr.array
 
-    dvx = grid_array3D(ynumf, xnumf, znumf, Val(:vx))
-    dvy = grid_array3D(ynumf, xnumf, znumf, Val(:vy))
-    dvz = grid_array3D(ynumf, xnumf, znumf, Val(:vz))
-    dpr = grid_array3D(ynumf, xnumf, znumf, Val(:pressure))
+    dvx = fine_ld.prolong_dvx
+    dvy = fine_ld.prolong_dvy
+    dvz = fine_ld.prolong_dvz
+    dpr = fine_ld.prolong_dpr
+    fill!(dvx, 0.0)
+    fill!(dvy, 0.0)
+    fill!(dvz, 0.0)
+    fill!(dpr, 0.0)
 
-    fine_to_coarse_mapping = level_vector[n-1].fine_to_coarse_mapping
+    fine_to_coarse_mapping = fine_ld.fine_to_coarse_mapping
     vx_map = fine_to_coarse_mapping.vx_map
     vy_map = fine_to_coarse_mapping.vy_map
     vz_map = fine_to_coarse_mapping.vz_map
     pr_map = fine_to_coarse_mapping.pr_map
     
-    for k = 1:znumf+1
+    @inbounds for k = 1:znumf+1
         for j = 1:xnumf+1
             for i = 1:ynumf+1
                 # x-Stokes correction
@@ -126,7 +131,7 @@ function prolongate_stokes2d_solution(
     vy_map = fine_to_coarse_mapping.vy_map
     pr_map = fine_to_coarse_mapping.pr_map
     
-    for j = 1:xnumf+1
+    @inbounds for j = 1:xnumf+1
         for i = 1:ynumf+1
             # x-Stokes correction
             if j < xnumf+1

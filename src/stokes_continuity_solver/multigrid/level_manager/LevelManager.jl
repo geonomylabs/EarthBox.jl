@@ -44,6 +44,25 @@ mutable struct LevelData
     coarse_to_fine_mapping::MappingGroup
     # grid type symbol
     grid_type::Symbol
+    # pre-allocated workspace buffers for residual computation
+    res_vx_buf::Array{Float64,3}
+    res_vy_buf::Array{Float64,3}
+    res_vz_buf::Array{Float64,3}
+    res_pr_buf::Array{Float64,3}
+    # pre-allocated workspace for restriction weights (used when this level
+    # receives restriction from finer level)
+    restrict_wtx::Array{Float64,3}
+    restrict_wty::Array{Float64,3}
+    restrict_wtz::Array{Float64,3}
+    restrict_wtc::Array{Float64,3}
+    # pre-allocated workspace for etan*residual temp in restriction
+    etan_resc_buf::Array{Float64,3}
+    # pre-allocated workspace for prolongation corrections (used when this
+    # level receives corrections from coarser level)
+    prolong_dvx::Array{Float64,3}
+    prolong_dvy::Array{Float64,3}
+    prolong_dvz::Array{Float64,3}
+    prolong_dpr::Array{Float64,3}
 end
 
 """
@@ -104,6 +123,20 @@ function LevelData(
     fine_to_coarse_mapping = MappingGroup(vx, vy, vz, pr, etaxy, etaxz, etayz)
     coarse_to_fine_mapping = MappingGroup(vx, vy, vz, pr, etaxy, etaxz, etayz)
 
+    res_vx_buf = zeros(Float64, size(vx.array))
+    res_vy_buf = zeros(Float64, size(vy.array))
+    res_vz_buf = zeros(Float64, size(vz.array))
+    res_pr_buf = zeros(Float64, size(pr.array))
+    restrict_wtx = zeros(Float64, size(vx.array))
+    restrict_wty = zeros(Float64, size(vy.array))
+    restrict_wtz = zeros(Float64, size(vz.array))
+    restrict_wtc = zeros(Float64, size(pr.array))
+    etan_resc_buf = zeros(Float64, size(etan.array))
+    prolong_dvx = zeros(Float64, size(vx.array))
+    prolong_dvy = zeros(Float64, size(vy.array))
+    prolong_dvz = zeros(Float64, size(vz.array))
+    prolong_dpr = zeros(Float64, size(pr.array))
+
     return LevelData(
         level_id,
         vx, vy, vz, pr, rho, 
@@ -112,7 +145,11 @@ function LevelData(
         etano, etaxyo, etaxzo, etayzo,
         grid, fine_to_coarse_mapping, 
         coarse_to_fine_mapping,
-        grid_type
+        grid_type,
+        res_vx_buf, res_vy_buf, res_vz_buf, res_pr_buf,
+        restrict_wtx, restrict_wty, restrict_wtz, restrict_wtc,
+        etan_resc_buf,
+        prolong_dvx, prolong_dvy, prolong_dvz, prolong_dpr,
     )
 end
 

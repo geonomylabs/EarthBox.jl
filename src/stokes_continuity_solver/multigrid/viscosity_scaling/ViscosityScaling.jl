@@ -48,12 +48,14 @@ function scale_viscosity_for_all_levels!(
     viscosity_min_cur = viscosity_scaling.viscosity_min_cur
     viscosity_max_cur = viscosity_scaling.viscosity_max_cur
     eta_coeff = log(viscosity_max_cur / viscosity_min_cur) / log(viscosity_max_o / viscosity_min_o)
+    inv_min_o = inv(viscosity_min_o)
     levelnum = length(level_vector)
     for n = 1:levelnum
-        level_vector[n].etaxy.array .= viscosity_min_cur * exp.(log.(level_vector[n].etaxyo.array ./ viscosity_min_o) * eta_coeff)
-        level_vector[n].etaxz.array .= viscosity_min_cur * exp.(log.(level_vector[n].etaxzo.array ./ viscosity_min_o) * eta_coeff)
-        level_vector[n].etayz.array .= viscosity_min_cur * exp.(log.(level_vector[n].etayzo.array ./ viscosity_min_o) * eta_coeff)
-        level_vector[n].etan.array .= viscosity_min_cur * exp.(log.(level_vector[n].etano.array ./ viscosity_min_o) * eta_coeff)
+        ld = level_vector[n]
+        @. ld.etaxy.array = viscosity_min_cur * (ld.etaxyo.array * inv_min_o) ^ eta_coeff
+        @. ld.etaxz.array = viscosity_min_cur * (ld.etaxzo.array * inv_min_o) ^ eta_coeff
+        @. ld.etayz.array = viscosity_min_cur * (ld.etayzo.array * inv_min_o) ^ eta_coeff
+        @. ld.etan.array  = viscosity_min_cur * (ld.etano.array  * inv_min_o) ^ eta_coeff
     end
     return nothing
 end
@@ -67,10 +69,12 @@ function scale_viscosity_for_all_levels!(
     viscosity_min_cur = viscosity_scaling.viscosity_min_cur
     viscosity_max_cur = viscosity_scaling.viscosity_max_cur
     eta_coeff = log(viscosity_max_cur / viscosity_min_cur) / log(viscosity_max_o / viscosity_min_o)
+    inv_min_o = inv(viscosity_min_o)
     levelnum = length(level_vector)
     for n = 1:levelnum
-        level_vector[n].etas.array .= viscosity_min_cur * exp.(log.(level_vector[n].etaso.array ./ viscosity_min_o) * eta_coeff)
-        level_vector[n].etan.array .= viscosity_min_cur * exp.(log.(level_vector[n].etano.array ./ viscosity_min_o) * eta_coeff)
+        ld = level_vector[n]
+        @. ld.etas.array = viscosity_min_cur * (ld.etaso.array * inv_min_o) ^ eta_coeff
+        @. ld.etan.array = viscosity_min_cur * (ld.etano.array * inv_min_o) ^ eta_coeff
     end
     return nothing
 end

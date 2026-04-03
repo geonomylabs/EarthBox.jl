@@ -62,12 +62,7 @@ function restrict_stokes3d_residuals!(
     ΔRz_fine::Array{Float64,3}, 
     ΔRc_fine::Array{Float64,3},
 )::Nothing
-    (
-        level_vector[n+1].RX.array,
-        level_vector[n+1].RY.array,
-        level_vector[n+1].RZ.array,
-        level_vector[n+1].RC.array
-    ) = interpolate_residuals_to_coarser_level!(
+    interpolate_residuals_to_coarser_level!(
         n, level_vector, ΔRx_fine, ΔRy_fine, ΔRz_fine, ΔRc_fine)
     return nothing
 end
@@ -79,22 +74,24 @@ function interpolate_residuals_to_coarser_level!(
     ΔRy_fine::Array{Float64,3}, 
     ΔRz_fine::Array{Float64,3}, 
     ΔRc_fine::Array{Float64,3},
-)::Tuple{Array{Float64,3}, Array{Float64,3}, Array{Float64,3}, Array{Float64,3}}
-    gridc = level_vector[n+1].grid
-    xnumc = gridc.parameters.geometry.xnum.value
-    ynumc = gridc.parameters.geometry.ynum.value
-    znumc = gridc.parameters.geometry.znum.value
-    # Creating arrays for the coarser level
-    # Right parts
-    ΔRx_coarse = grid_array3D(ynumc, xnumc, znumc, Val(:vx))
-    ΔRy_coarse = grid_array3D(ynumc, xnumc, znumc, Val(:vy))
-    ΔRz_coarse = grid_array3D(ynumc, xnumc, znumc, Val(:vz))
-    ΔRc_coarse = grid_array3D(ynumc, xnumc, znumc, Val(:pressure))
-    # Interpolation weights
-    wtx = grid_array3D(ynumc, xnumc, znumc, Val(:vx))
-    wty = grid_array3D(ynumc, xnumc, znumc, Val(:vy))
-    wtz = grid_array3D(ynumc, xnumc, znumc, Val(:vz))
-    wtc = grid_array3D(ynumc, xnumc, znumc, Val(:pressure))
+)::Nothing
+    coarse_ld = level_vector[n+1]
+    ΔRx_coarse = coarse_ld.RX.array
+    ΔRy_coarse = coarse_ld.RY.array
+    ΔRz_coarse = coarse_ld.RZ.array
+    ΔRc_coarse = coarse_ld.RC.array
+    fill!(ΔRx_coarse, 0.0)
+    fill!(ΔRy_coarse, 0.0)
+    fill!(ΔRz_coarse, 0.0)
+    fill!(ΔRc_coarse, 0.0)
+    wtx = coarse_ld.restrict_wtx
+    wty = coarse_ld.restrict_wty
+    wtz = coarse_ld.restrict_wtz
+    wtc = coarse_ld.restrict_wtc
+    fill!(wtx, 0.0)
+    fill!(wty, 0.0)
+    fill!(wtz, 0.0)
+    fill!(wtc, 0.0)
     calculate_numerator_and_denominator_for_trilinear_interpolation!(
         n, level_vector,
         ΔRx_fine, ΔRy_fine, ΔRz_fine, ΔRc_fine, 
@@ -106,7 +103,7 @@ function interpolate_residuals_to_coarser_level!(
         ΔRx_coarse, ΔRy_coarse, ΔRz_coarse, ΔRc_coarse, 
         wtx, wty, wtz, wtc
         )
-    return ΔRx_coarse, ΔRy_coarse, ΔRz_coarse, ΔRc_coarse
+    return nothing
 end
 
 function calculate_numerator_and_denominator_for_trilinear_interpolation!(
@@ -132,7 +129,8 @@ function calculate_numerator_and_denominator_for_trilinear_interpolation!(
     znumf = gridf.parameters.geometry.znum.value
 
     etanf = level_vector[n].etan.array
-    etan_resc = etanf .* ΔRc_fine
+    etan_resc = level_vector[n].etan_resc_buf
+    @. etan_resc = etanf * ΔRc_fine
 
     fine_to_coarse_mapping = level_vector[n].fine_to_coarse_mapping
     vx_map = fine_to_coarse_mapping.vx_map
@@ -142,7 +140,7 @@ function calculate_numerator_and_denominator_for_trilinear_interpolation!(
     
     # Interpolating residuals from finer level nodes
     # Cycle of node of finer (n) level
-    for k in 2:znumf
+    @inbounds for k in 2:znumf
         for j in 2:xnumf
             for i in 2:ynumf
                 # x-Stokes equation residual
@@ -187,7 +185,7 @@ function calculate_residuals_on_coarser_level!(
     etanc = level_vector[n+1].etan.array
     # Recomputing right parts (RX, RY, RZ, RC)
     # for the coarser level (n+1)
-    for kc in 1:znumc+1
+    @inbounds for kc in 1:znumc+1
         for jc in 1:xnumc+1
             for ic in 1:ynumc+1
                 # x-Stokes
@@ -309,7 +307,7 @@ function calculate_numerator_and_denominator_for_bilinear_interpolation!(
     vy_map = fine_to_coarse_mapping.vy_map
     pr_map = fine_to_coarse_mapping.pr_map
     
-    for j in 2:xnumf
+    @inbounds for j in 2:xnumf
         for i in 2:ynumf
             if j < xnumf
                 add_to_numerator_and_denominator_2d!(i, j, vx_map, ΔRx_coarse, wtx, ΔRx_fine)
@@ -339,7 +337,7 @@ function calculate_residuals_on_coarser_level_2d!(
     xnumc = gridc.parameters.geometry.xnum.value
     ynumc = gridc.parameters.geometry.ynum.value
     etanc = level_vector[n+1].etan.array
-    for jc in 1:xnumc+1
+    @inbounds for jc in 1:xnumc+1
         for ic in 1:ynumc+1
             if jc < xnumc+1
                 if wtx[ic,jc] != 0 && ic > 1 && ic < ynumc+1 && jc > 1 && jc < xnumc
