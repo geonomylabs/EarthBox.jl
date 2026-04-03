@@ -35,8 +35,12 @@ function execute_multigrid_vcycles!(
     use_multimulti = multigrid_data.vcycle.use_multimulti
     make_plots = multigrid_data.vcycle.make_plots
     nvcycles = multigrid_data.vcycle.nvcycles
-    
-    time_sr, time_sp, time_mr, time_vs, time_cv = 0.0
+
+    time_sr = 0.0
+    time_sp = 0.0
+    time_mr = 0.0
+    time_vs = 0.0
+    time_cv = 0.0
 
     for ivcycle = 1:nvcycles
         update_ivcycle!(multigrid_data.counters, ivcycle)
@@ -90,13 +94,13 @@ function initialize_time()::Float64
     end
 end
 
-function update_time(time_sum::Float64, t0::Float64)::Union{Float64, Float64}
+function update_time(time_sum::Float64, t0::Float64)::Tuple{Float64, Float64}
     if mg_timing_enabled()
         time_sum += time() - t0
         t0 = time()
         return time_sum, t0
     else
-        return 0.0, 0.0
+        return time_sum, t0
     end
 end
 
@@ -328,14 +332,15 @@ function is_converged(multigrid_data::MultigridData3d)::Bool
         bool_test = max_principle_residual < criterion && ivcycle > nvcycles_to_max_viscosity
         println(">>>> ivcycle: $ivcycle, max_principle_residual: $max_principle_residual, criterion: $criterion, nvcycles_to_max_viscosity: $nvcycles_to_max_viscosity")
     else
+        # Multimulti: use global residual only (same as 2D multimulti). Principle RMS is updated every
+        # V-cycle and can show sawtooth spikes that do not indicate sustained convergence; global
+        # residuals are recorded at global viscosity-update steps and reflect continuation progress.
         max_global_residual = calculate_max_global_residual_3d(multigrid_data)
-        # Also check principle residuals (computed every V-cycle) to
-        # avoid wasting iterations between global residual updates.
-        max_principle_residual = calculate_max_principle_residual_3d(
-            multigrid_data)
-        bool_test = max_global_residual < criterion ||
-            max_principle_residual < criterion
-        println(">>>> ivcycle: $ivcycle, max_global_residual: $max_global_residual, criterion: $criterion")
+        bool_test = max_global_residual < criterion
+        println(
+            ">>>> ivcycle: $ivcycle, max_global_residual: $max_global_residual, " *
+            "criterion: $criterion, bool_test: $bool_test",
+        )
     end
     return bool_test
 end

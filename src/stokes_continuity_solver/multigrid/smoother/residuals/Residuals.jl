@@ -5,6 +5,51 @@ import ...Domain: on_vx_boundary3d, on_vy_boundary3d, on_vz_boundary3d
 import ...Domain: on_vx_boundary2d, on_vy_boundary2d
 import ...ArrayStats
 
+# Match SolveStokes3dOpt: parallelize over k only when coarse-grid overhead is negligible.
+const RESIDUAL_K_PARALLEL_MIN_ZNUM = 16
+
+function _compute_residuals_one_k!(
+    k::Int,
+    level_data::LevelData,
+    ΔRx::Array{Float64,3},
+    ΔRy::Array{Float64,3},
+    ΔRz::Array{Float64,3},
+    ΔRc::Array{Float64,3},
+    xnum::Int,
+    ynum::Int,
+    znum::Int,
+)::Nothing
+    @inbounds for j = 1:xnum+1
+        for i = 1:ynum+1
+            if j < xnum+1
+                if on_vx_boundary3d(i, j, k, ynum, xnum, znum)
+                    ΔRx[i,j,k] = 0.0
+                else
+                    ΔRx[i,j,k], _ = calculate_vx_residual(i, j, k, level_data)
+                end
+            end
+            if i < ynum+1
+                if on_vy_boundary3d(i, j, k, ynum, xnum, znum)
+                    ΔRy[i,j,k] = 0.0
+                else
+                    ΔRy[i,j,k], _ = calculate_vy_residual(i, j, k, level_data)
+                end
+            end
+            if k < znum+1
+                if on_vz_boundary3d(i, j, k, ynum, xnum, znum)
+                    ΔRz[i,j,k] = 0.0
+                else
+                    ΔRz[i,j,k], _ = calculate_vz_residual(i, j, k, level_data)
+                end
+            end
+            if i < ynum && j < xnum && k < znum
+                ΔRc[i,j,k] = calculate_pressure_residual(i, j, k, level_data)
+            end
+        end
+    end
+    return nothing
+end
+
 function compute_residuals!(
     level_data::LevelData
 )::Tuple{Array{Float64, 3}, Array{Float64, 3}, Array{Float64, 3}, Array{Float64, 3}}
@@ -21,38 +66,14 @@ function compute_residuals!(
     fill!(ΔRz, 0.0)
     fill!(ΔRc, 0.0)
 
-    Threads.@threads for k = 1:znum+1
-        @inbounds for j = 1:xnum+1
-            for i = 1:ynum+1
-                if j < xnum+1
-                    if on_vx_boundary3d(i, j, k, ynum, xnum, znum)
-                        ΔRx[i,j,k] = 0.0
-                    else
-                        ΔRx[i,j,k], _ = calculate_vx_residual(
-                            i, j, k, level_data)
-                    end
-                end
-                if i < ynum+1
-                    if on_vy_boundary3d(i, j, k, ynum, xnum, znum)
-                        ΔRy[i,j,k] = 0.0
-                    else
-                        ΔRy[i,j,k], _ = calculate_vy_residual(
-                            i, j, k, level_data)
-                    end
-                end
-                if k < znum+1
-                    if on_vz_boundary3d(i, j, k, ynum, xnum, znum)
-                        ΔRz[i,j,k] = 0.0
-                    else
-                        ΔRz[i,j,k], _ = calculate_vz_residual(
-                            i, j, k, level_data)
-                    end
-                end
-                if i < ynum && j < xnum && k < znum
-                    ΔRc[i,j,k] = calculate_pressure_residual(
-                        i, j, k, level_data)
-                end
-            end
+    parallel_k = Threads.nthreads() > 1 && znum >= RESIDUAL_K_PARALLEL_MIN_ZNUM
+    if parallel_k
+        Threads.@threads for k = 1:znum+1
+            _compute_residuals_one_k!(k, level_data, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
+        end
+    else
+        for k = 1:znum+1
+            _compute_residuals_one_k!(k, level_data, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
         end
     end
     return ΔRx, ΔRy, ΔRz, ΔRc

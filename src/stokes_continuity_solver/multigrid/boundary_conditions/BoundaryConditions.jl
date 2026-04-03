@@ -102,35 +102,75 @@ function set_boundary_conditions3d!(level_data::LevelData)::Nothing
     ynum_vz = get_ynum_vz_grid(ynum)
 
     dims = (
-        xnum=xnum, ynum=ynum, znum=znum, 
-        ynum_vx=ynum_vx, znum_vx=znum_vx, 
-        xnum_vy=xnum_vy, znum_vy=znum_vy, 
+        xnum=xnum, ynum=ynum, znum=znum,
+        ynum_vx=ynum_vx, znum_vx=znum_vx,
+        xnum_vy=xnum_vy, znum_vy=znum_vy,
         xnum_vz=xnum_vz, ynum_vz=ynum_vz
         )
 
-    Threads.@threads for k = 1:znum+1
-        for j = 1:xnum+1
-            for i = 1:ynum+1
-                if j < xnum+1 # vx is not defined beyond xnum
-                    if on_vx_boundary3d(i, j, k, ynum, xnum, znum)
-                        set_vx_boundary_conditions3d!(i,j,k, dims, level_data)
-                    end
-                end
-                if i < ynum+1 # vy is not defined beyond ynum
-                    if on_vy_boundary3d(i, j, k, ynum, xnum, znum)
-                        set_vy_boundary_conditions3d!(i, j, k, dims, level_data)
-                    end
-                end
-                if k < znum+1 # vz is not defined beyond znum
-                    if on_vz_boundary3d(i, j, k, ynum, xnum, znum)
-                        set_vz_boundary_conditions3d!(i, j, k, dims, level_data)
-                    end
-                end
-            end
+    # Vx boundary: valid range i in 1:ynum_vx, j in 1:xnum, k in 1:znum_vx
+    # Visit each boundary cell exactly once via 6 non-overlapping face loops.
+    @inbounds begin
+    for j = 1:xnum
+        for i = 1:ynum_vx
+            set_vx_boundary_conditions3d!(i, j, 1, dims, level_data)
+            set_vx_boundary_conditions3d!(i, j, znum_vx, dims, level_data)
         end
     end
+    for k = 2:znum_vx-1
+        for j = 1:xnum
+            set_vx_boundary_conditions3d!(1, j, k, dims, level_data)
+            set_vx_boundary_conditions3d!(ynum_vx, j, k, dims, level_data)
+        end
+    end
+    for k = 2:znum_vx-1
+        for i = 2:ynum_vx-1
+            set_vx_boundary_conditions3d!(i, 1, k, dims, level_data)
+            set_vx_boundary_conditions3d!(i, xnum, k, dims, level_data)
+        end
+    end
+
+    # Vy boundary: valid range i in 1:ynum, j in 1:xnum_vy, k in 1:znum_vy
+    for j = 1:xnum_vy
+        for i = 1:ynum
+            set_vy_boundary_conditions3d!(i, j, 1, dims, level_data)
+            set_vy_boundary_conditions3d!(i, j, znum_vy, dims, level_data)
+        end
+    end
+    for k = 2:znum_vy-1
+        for j = 1:xnum_vy
+            set_vy_boundary_conditions3d!(1, j, k, dims, level_data)
+            set_vy_boundary_conditions3d!(ynum, j, k, dims, level_data)
+        end
+    end
+    for k = 2:znum_vy-1
+        for i = 2:ynum-1
+            set_vy_boundary_conditions3d!(i, 1, k, dims, level_data)
+            set_vy_boundary_conditions3d!(i, xnum_vy, k, dims, level_data)
+        end
+    end
+
+    # Vz boundary: valid range i in 1:ynum_vz, j in 1:xnum_vz, k in 1:znum
+    for j = 1:xnum_vz
+        for i = 1:ynum_vz
+            set_vz_boundary_conditions3d!(i, j, 1, dims, level_data)
+            set_vz_boundary_conditions3d!(i, j, znum, dims, level_data)
+        end
+    end
+    for k = 2:znum-1
+        for j = 1:xnum_vz
+            set_vz_boundary_conditions3d!(1, j, k, dims, level_data)
+            set_vz_boundary_conditions3d!(ynum_vz, j, k, dims, level_data)
+        end
+    end
+    for k = 2:znum-1
+        for i = 2:ynum_vz-1
+            set_vz_boundary_conditions3d!(i, 1, k, dims, level_data)
+            set_vz_boundary_conditions3d!(i, xnum_vz, k, dims, level_data)
+        end
+    end
+    end # @inbounds
     return nothing
 end
-
 
 end

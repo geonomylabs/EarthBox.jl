@@ -40,6 +40,49 @@ import ..ArrayStats
 """When `ENV["EARTHBOX_MG_DEBUG"] != "1"`, skip verbose final solution statistics."""
 mg_debug_stats_enabled() = (get(ENV, "EARTHBOX_MG_DEBUG", "1") == "1")
 
+
+"""Run the multigrid solver.
+
+Here's a summary of all the optimizations Cursor(Opus 4.6) implemented:
+
+Phase 1: Reduce Per-Iteration Cost
+
+@inbounds on all hot-loop kernels - Added to SolveStokes3dOpt.jl, SolveStokes2dOpt.jl, Residuals.jl 
+(all 4 residual calculation functions + the compute loop), Restriction.jl (all 4 loop nests), 
+Prolongation.jl (both 2D/3D loops), TriLinearInterpolation.jl, and BiLinearInterpolation.jl. Also 
+cached scalar_fine[i,j,k] to a local val in interpolation functions to avoid redundant lookups.
+
+Fused viscosity scaling - Replaced exp.(log.(...)) with @. fused broadcasting using (x/min_o)^eta_coeff, 
+eliminating all temporary array allocations in scale_viscosity_for_all_levels!.
+
+Pre-allocated residual arrays - Added res_vx_buf, res_vy_buf, res_vz_buf, res_pr_buf to LevelData. 
+compute_residuals! now fills them in-place with fill! + reuse instead of allocating zeros(...) every call.
+
+Pre-allocated restriction workspace - Restriction now writes directly into level_vector[n+1].RX.array etc. 
+instead of allocating new arrays. Weight arrays restrict_wtx/wty/wtz/wtc are pre-allocated in LevelData. 
+The etan_resc temp is pre-allocated in etan_resc_buf and filled with @. fusion.
+
+Pre-allocated prolongation corrections - prolongate_stokes3d_solution now uses prolong_dvx/dvy/dvz/dpr 
+buffers from the finer LevelData instead of allocating via grid_array3D.
+
+In-place prolongation relaxation - Replaced dvx * relax_velocity temporaries with @. fused operations: @. 
+finer.vx.array += dvx * relax_velocity.
+
+Phase 2: Reduce Total V-Cycle Count
+
+Multimulti convergence (3D) uses max_global_residual only (aligned with 2D multimulti). Principle
+residuals are still accumulated each V-cycle for diagnostics/plots but are not used for stopping,
+since they can show transient sawtooth drops that do not reflect sustained convergence.
+
+Smoothing cap on all coarse levels - set_smoothing_iterations now applies max_smoothing_on_coarsest 
+as a cap to ALL levels (not just the last), preventing over-smoothing on intermediate coarse grids 
+(e.g., 80 iterations on a 7^3 grid is now capped).
+
+Red-black Gauss-Seidel ordering - Split the single threaded GS sweep into two passes: "red" cells 
+(i+j+k) % 2 == 0 then "black" cells (i+j+k) % 2 == 1. Each pass is safe for parallel execution since 
+no two cells of the same color are direct neighbors, eliminating data races from the previous approach.
+
+"""
 function run_multigrid_solver(
     multigrid_data::Union{MultigridData3d, MultigridData2d}
 )::Nothing

@@ -30,10 +30,18 @@ function smooth_and_prolongate!(
                 0.0, level_vector[n], smoothing_iterations, relaxation)
             dvx, dvy, dvz, dpr = prolongate_stokes3d_solution(n, level_vector)
             finer = level_vector[n-1]
-            @. finer.vx.array += dvx * relax_velocity
-            @. finer.vy.array += dvy * relax_velocity
-            @. finer.vz.array += dvz * relax_velocity
-            @. finer.pr.array += dpr * relax_pressure
+            # Common case (e.g. StokesSinker): relax factors 1 → add corrections in-place
+            if relax_velocity == 1.0 && relax_pressure == 1.0
+                finer.vx.array .+= dvx
+                finer.vy.array .+= dvy
+                finer.vz.array .+= dvz
+                finer.pr.array .+= dpr
+            else
+                @. finer.vx.array += dvx * relax_velocity
+                @. finer.vy.array += dvy * relax_velocity
+                @. finer.vz.array += dvz * relax_velocity
+                @. finer.pr.array += dpr * relax_pressure
+            end
         end
     end
     return ΔRxL1, ΔRyL1, ΔRzL1, ΔRcL1

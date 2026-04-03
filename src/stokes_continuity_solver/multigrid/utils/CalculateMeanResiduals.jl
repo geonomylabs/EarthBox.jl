@@ -7,6 +7,9 @@ import ..LevelManager: LevelData, LevelData2d
 
 Same RMS reduction as `calculate_scaled_and_mean_residuals!` for 3D, but without allocating
 four scaled residual arrays (used when `make_plots` is false).
+
+Serial k,j,i loop only: threading each k-plane was tried but spawns O(znum) tasks per
+V-cycle and dominated wall time (mean_residuals became several percent of total).
 """
 function accumulate_principle_residuals_3d!(
     ivcycle::Int64,
@@ -56,10 +59,14 @@ function accumulate_principle_residuals_3d!(
             end
         end
     end
-    resx[ivcycle] = log10(sqrt(resx[ivcycle] / ((ynum - 1) * (xnum - 2) * (znum - 1))))
-    resy[ivcycle] = log10(sqrt(resy[ivcycle] / ((ynum - 2) * (xnum - 1) * (znum - 1))))
-    resz[ivcycle] = log10(sqrt(resz[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 2))))
-    resc[ivcycle] = log10(sqrt(resc[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 1))))
+    resx[ivcycle] = log10(sqrt(
+        resx[ivcycle] / ((ynum - 1) * (xnum - 2) * (znum - 1))))
+    resy[ivcycle] = log10(sqrt(
+        resy[ivcycle] / ((ynum - 2) * (xnum - 1) * (znum - 1))))
+    resz[ivcycle] = log10(sqrt(
+        resz[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 2))))
+    resc[ivcycle] = log10(sqrt(
+        resc[ivcycle] / ((ynum - 1) * (xnum - 1) * (znum - 1))))
     return nothing
 end
 
