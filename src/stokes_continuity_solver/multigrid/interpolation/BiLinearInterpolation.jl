@@ -1,6 +1,5 @@
 module BiLinearInterpolation
 
-import ..WeightFuncs2d
 import ..GridMappingManager: GridMapping2d
 
 """ Add to bilinear interpolation numerator and denominator
@@ -31,20 +30,22 @@ function add_to_numerator_and_denominator_2d!(
     iULy  = grid_map.IULy[i,j]
     jULx  = grid_map.JULx[i,j]
     dyUL = grid_map.DyUL[i,j]
-    dxUL = grid_map.DxUL[i,j] 
+    dxUL = grid_map.DxUL[i,j]
     val = scalar_fine[i,j]
-    wt = WeightFuncs2d.upper_left_node_weight(dxUL, dyUL)
-    scalar_coarse[iULy  , jULx  ] += wt * val
-    weight_coarse[iULy  , jULx  ] += wt
-    wt = WeightFuncs2d.lower_left_node_weight(dxUL, dyUL)
-    scalar_coarse[iULy+1, jULx  ] += wt * val
-    weight_coarse[iULy+1, jULx  ] += wt
-    wt = WeightFuncs2d.upper_right_node_weight(dxUL, dyUL)
-    scalar_coarse[iULy  , jULx+1] += wt * val
-    weight_coarse[iULy  , jULx+1] += wt
-    wt = WeightFuncs2d.lower_right_node_weight(dxUL, dyUL)
-    scalar_coarse[iULy+1, jULx+1] += wt * val
-    weight_coarse[iULy+1, jULx+1] += wt
+    omx = 1.0 - dxUL
+    omy = 1.0 - dyUL
+    w00 = omx * omy
+    w01 = omx * dyUL
+    w10 = dxUL * omy
+    w11 = dxUL * dyUL
+    scalar_coarse[iULy  , jULx  ] += w00 * val
+    weight_coarse[iULy  , jULx  ] += w00
+    scalar_coarse[iULy+1, jULx  ] += w01 * val
+    weight_coarse[iULy+1, jULx  ] += w01
+    scalar_coarse[iULy  , jULx+1] += w10 * val
+    weight_coarse[iULy  , jULx+1] += w10
+    scalar_coarse[iULy+1, jULx+1] += w11 * val
+    weight_coarse[iULy+1, jULx+1] += w11
     end # @inbounds
     return nothing
 end
@@ -61,14 +62,16 @@ function coarse2fine_bilinear_interpolation!(
     jULx  = grid_map.JULx[i,j]
     dyUL = grid_map.DyUL[i,j]
     dxUL = grid_map.DxUL[i,j]
-    wt = WeightFuncs2d.upper_left_node_weight(dxUL, dyUL)
-    scalar_fine[i,j] += wt * scalar_coarse[iULy  , jULx  ]
-    wt = WeightFuncs2d.lower_left_node_weight(dxUL, dyUL)
-    scalar_fine[i,j] += wt * scalar_coarse[iULy+1, jULx  ]
-    wt = WeightFuncs2d.upper_right_node_weight(dxUL, dyUL)
-    scalar_fine[i,j] += wt * scalar_coarse[iULy  , jULx+1]
-    wt = WeightFuncs2d.lower_right_node_weight(dxUL, dyUL)
-    scalar_fine[i,j] += wt * scalar_coarse[iULy+1, jULx+1]
+    omx = 1.0 - dxUL
+    omy = 1.0 - dyUL
+    w00 = omx * omy
+    w01 = omx * dyUL
+    w10 = dxUL * omy
+    w11 = dxUL * dyUL
+    scalar_fine[i,j] += w00 * scalar_coarse[iULy  , jULx  ]
+    scalar_fine[i,j] += w01 * scalar_coarse[iULy+1, jULx  ]
+    scalar_fine[i,j] += w10 * scalar_coarse[iULy  , jULx+1]
+    scalar_fine[i,j] += w11 * scalar_coarse[iULy+1, jULx+1]
     end # @inbounds
     return nothing
 end

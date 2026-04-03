@@ -10,7 +10,6 @@ const RESIDUAL_K_PARALLEL_MIN_ZNUM = 16
 
 function _compute_residuals_one_k!(
     k::Int,
-    level_data::LevelData,
     A::StencilArrays3d,
     ΔRx::Array{Float64,3},
     ΔRy::Array{Float64,3},
@@ -19,13 +18,13 @@ function _compute_residuals_one_k!(
     xnum::Int,
     ynum::Int,
     znum::Int,
+    ynum_vx::Int,
+    znum_vx::Int,
+    xnum_vy::Int,
+    znum_vy::Int,
+    xnum_vz::Int,
+    ynum_vz::Int,
 )::Nothing
-    ynum_vx = ynum + 1
-    znum_vx = znum + 1
-    xnum_vy = xnum + 1
-    znum_vy = znum + 1
-    xnum_vz = xnum + 1
-    ynum_vz = ynum + 1
     @inbounds for j = 1:xnum+1
         for i = 1:ynum+1
             if j < xnum+1
@@ -63,6 +62,12 @@ function compute_residuals!(
     xnum = level_data.grid.parameters.geometry.xnum.value
     ynum = level_data.grid.parameters.geometry.ynum.value
     znum = level_data.grid.parameters.geometry.znum.value
+    ynum_vx = ynum + 1
+    znum_vx = znum + 1
+    xnum_vy = xnum + 1
+    znum_vy = znum + 1
+    xnum_vz = xnum + 1
+    ynum_vz = ynum + 1
 
     ΔRx = level_data.res_vx_buf
     ΔRy = level_data.res_vy_buf
@@ -77,11 +82,17 @@ function compute_residuals!(
     parallel_k = Threads.nthreads() > 1 && znum >= RESIDUAL_K_PARALLEL_MIN_ZNUM
     if parallel_k
         Threads.@threads for k = 1:znum+1
-            _compute_residuals_one_k!(k, level_data, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
+            _compute_residuals_one_k!(
+                k, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum,
+                ynum_vx, znum_vx, xnum_vy, znum_vy, xnum_vz, ynum_vz,
+            )
         end
     else
         for k = 1:znum+1
-            _compute_residuals_one_k!(k, level_data, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum)
+            _compute_residuals_one_k!(
+                k, A, ΔRx, ΔRy, ΔRz, ΔRc, xnum, ynum, znum,
+                ynum_vx, znum_vx, xnum_vy, znum_vy, xnum_vz, ynum_vz,
+            )
         end
     end
     return ΔRx, ΔRy, ΔRz, ΔRc
