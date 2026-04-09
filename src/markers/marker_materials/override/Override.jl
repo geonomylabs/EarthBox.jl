@@ -8,6 +8,7 @@ import ..GetMaterialIDs: get_ids_for_lithospheric_strong_zones
 import ..GetMaterialIDs: get_ids_for_continental_crust
 import ..GetMaterialIDs: get_ids_for_felsic_and_mafic_continental_crust
 import ..GetMaterialIDs: get_ids_for_asthenospheric_mantle
+import ..GetMaterialIDs: get_ids_for_mantle_lithosphere
 
 function override_material_properties!(
     materials::Materials; 
@@ -27,6 +28,7 @@ function override_material_properties!(
     override_plasticity_in_strong_zones!(materials; input_dict)
     override_radiogenic_heat_production_in_continental_crust!(materials; input_dict)
     override_pre_exponential_factors_in_asthenosphere!(materials; input_dict)
+    override_pre_exponential_factors_in_mantle_lithosphere!(materials; input_dict)
     override_pre_exponential_factors_in_continental_crust!(materials; input_dict)
     return nothing
 end
@@ -132,6 +134,47 @@ function override_pre_exponential_factors_in_asthenosphere!(
             )
         end
         
+        if scale_factor_mantle_diffusion_creep !== nothing
+            diff_creep = flow_law.diffusion_creep
+            pre_exponential = diff_creep.pre_exponential_difc.value
+            set_value!(
+                diff_creep,
+                diff_creep.pre_exponential_difc.name,
+                pre_exponential * scale_factor_mantle_diffusion_creep
+            )
+        end
+    end
+    return nothing
+end
+
+function override_pre_exponential_factors_in_mantle_lithosphere!(
+    materials::Materials;
+    input_dict::Dict{Symbol, Any}
+)::Nothing
+    """ Override pre-exponential factors in mantle lithosphere (incl. strong zone). """
+    keys = get_eb_parameters()
+    material_ids = get_ids_for_mantle_lithosphere(materials)
+    materials_dict = materials.materials
+
+    scale_factor_mantle_dislocation_creep = get(
+        input_dict, keys.scale_factor_mantle_dislocation_creep.name, nothing)
+    scale_factor_mantle_diffusion_creep = get(
+        input_dict, keys.scale_factor_mantle_diffusion_creep.name, nothing)
+
+    for material_id in material_ids
+        material = materials_dict[string(material_id)]
+        flow_law = material.flow_law
+
+        if scale_factor_mantle_dislocation_creep !== nothing
+            disloc_creep = flow_law.dislocation_creep
+            pre_exponential = disloc_creep.pre_exponential_dc.value
+            set_value!(
+                disloc_creep,
+                disloc_creep.pre_exponential_dc.name,
+                pre_exponential * scale_factor_mantle_dislocation_creep
+            )
+        end
+
         if scale_factor_mantle_diffusion_creep !== nothing
             diff_creep = flow_law.diffusion_creep
             pre_exponential = diff_creep.pre_exponential_difc.value

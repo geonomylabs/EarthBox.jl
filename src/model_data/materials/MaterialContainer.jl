@@ -112,6 +112,20 @@ function override_pre_exponential_factors_in_asthenosphere!(
     end
 end
 
+function override_pre_exponential_factors_in_mantle_lithosphere!(
+    state::Materials,
+    scale_factor_for_dislocation_creep::Union{Float64, Nothing},
+    scale_factor_for_diffusion_creep::Union{Float64, Nothing},
+    material_ids_mantle_lithosphere::Vector{Int16}
+)
+    for material_id in material_ids_mantle_lithosphere
+        ArrayCollection.scale_pre_exponential_factor_dislocation_creep(
+            state.arrays, material_id, scale_factor_for_dislocation_creep)
+        ArrayCollection.scale_pre_exponential_factor_diffusion_creep(
+            state.arrays, material_id, scale_factor_for_diffusion_creep)
+    end
+end
+
 function override_pre_exponential_factors_in_continental_crust!(
     state::Materials,
     scale_factor_for_dislocation_creep::Union{Float64, Nothing},

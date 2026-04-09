@@ -12,10 +12,20 @@ import ..CaseTypes: CaseCollectionType, CaseParameter
         units::String,
         fixed_parameter_name::Union{String, Nothing}=nothing,
         fixed_value::Union{Float64, Nothing}=nothing,
+        fixed_units::Union{String, Nothing}=nothing,
+        fixed_parameter_name2::Union{String, Nothing}=nothing,
+        fixed_value2::Union{Float64, Nothing}=nothing,
+        fixed_units2::Union{String, Nothing}=nothing,
+        fixed_parameter_name3::Union{String, Nothing}=nothing,
+        fixed_value3::Union{Float64, Nothing}=nothing,
+        fixed_units3::Union{String, Nothing}=nothing,
+        fixed_parameter_name4::Union{String, Nothing}=nothing,
+        fixed_value4::Union{Float64, Nothing}=nothing,
+        fixed_units4::Union{String, Nothing}=nothing,
     )::Int
 
 Define case inputs for a given target parameter name and a list of values. 
-An optional fixed key can be set to a fixed value for all cases.
+Optional fixed keys (up to four) can be set to fixed values for all cases.
 
 # Arguments
 - `case_inputs::CaseCollectionType`
@@ -29,12 +39,12 @@ An optional fixed key can be set to a fixed value for all cases.
     - List of values to assign to the parameter name for each case.
 - `units::String`
     - Units to assign to the parameter name for each case.
-- `fixed_parameter_name::Union{String, Nothing}`
-    - Parameter name key to set a fixed value for all cases.
-- `fixed_value::Union{Float64, Nothing}`
-    - Fixed value to assign to the fixed_parameter_name for all cases.
-- `fixed_units::Union{String, Nothing}`
-    - Units to assign to the fixed_parameter_name for all cases.
+- `fixed_parameter_name`, `fixed_parameter_name2`, …, `fixed_parameter_name4` (`Union{String, Nothing}`)
+    - Parameter name keys to set to fixed values for all cases.
+- `fixed_value`, `fixed_value2`, …, `fixed_value4` (`Union{Float64, Nothing}`)
+    - Fixed values for the corresponding fixed parameter names.
+- `fixed_units`, `fixed_units2`, …, `fixed_units4` (`Union{String, Nothing}`)
+    - Units for the corresponding fixed parameter names.
 
 # Returns
 - `case_id::Int`: The case ID of the last case built
@@ -48,7 +58,16 @@ function define_case_group!(
     units::String,
     fixed_parameter_name::Union{String, Nothing}=nothing,
     fixed_value::Union{Float64, Nothing}=nothing,
-    fixed_units::Union{String, Nothing}=nothing
+    fixed_units::Union{String, Nothing}=nothing,
+    fixed_parameter_name2::Union{String, Nothing}=nothing,
+    fixed_value2::Union{Float64, Nothing}=nothing,
+    fixed_units2::Union{String, Nothing}=nothing,
+    fixed_parameter_name3::Union{String, Nothing}=nothing,
+    fixed_value3::Union{Float64, Nothing}=nothing,
+    fixed_units3::Union{String, Nothing}=nothing,
+    fixed_parameter_name4::Union{String, Nothing}=nothing,
+    fixed_value4::Union{Float64, Nothing}=nothing,
+    fixed_units4::Union{String, Nothing}=nothing,
 )::Int
     keys = get_eb_parameters()
     valid_keys = [getfield(keys, f).name for f in fieldnames(typeof(get_eb_parameters()))]
@@ -58,15 +77,23 @@ function define_case_group!(
             "Invalid target key: $parameter_name. Expected one of $valid_keys"
         ))
     end
-    
-    if fixed_parameter_name !== nothing
-        if !(fixed_parameter_name in valid_keys)
-            throw(ArgumentError(
-                "Invalid fixed key: $fixed_parameter_name. Expected one of $valid_keys"
-            ))
-        end
-        if fixed_units == nothing
-            throw(ArgumentError("Fixed units cannot be nothing if fixed key is set."))
+
+    fixed_triples = (
+        (fixed_parameter_name, fixed_value, fixed_units),
+        (fixed_parameter_name2, fixed_value2, fixed_units2),
+        (fixed_parameter_name3, fixed_value3, fixed_units3),
+        (fixed_parameter_name4, fixed_value4, fixed_units4),
+    )
+    for (fpn, _fv, fu) in fixed_triples
+        if fpn !== nothing
+            if !(fpn in valid_keys)
+                throw(ArgumentError(
+                    "Invalid fixed key: $fpn. Expected one of $valid_keys"
+                ))
+            end
+            if fu === nothing
+                throw(ArgumentError("Fixed units cannot be nothing if fixed key is set."))
+            end
         end
     end
     
@@ -79,8 +106,10 @@ function define_case_group!(
         case_id = case_id_ini + icount
         case = "case$case_id"
         case_inputs[case][parameter_name] = CaseParameter(value, units)
-        if fixed_parameter_name !== nothing && fixed_value !== nothing
-            case_inputs[case][fixed_parameter_name] = CaseParameter(fixed_value, fixed_units)
+        for (fpn, fv, fu) in fixed_triples
+            if fpn !== nothing && fv !== nothing
+                case_inputs[case][fpn] = CaseParameter(fv, fu)
+            end
         end
         icount += 1
     end

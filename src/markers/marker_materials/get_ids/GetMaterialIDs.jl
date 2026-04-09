@@ -21,15 +21,18 @@ end
 
 """ Get material IDs for asthenospheric mantle.
 
-This includes the following material types:
-- UltramaficMantleFertile
-- UltramaficMantlePartiallyMolten
-- UltramaficMantleRefactory
+Excludes layered lithospheric mantle and the ``LithosphericMantleStrongZone`` ID;
+includes remaining mantle rock IDs.
 """
 function get_ids_for_asthenospheric_mantle(materials::Materials)::Vector{Int16}
     material_id_lists = get_material_id_lists(materials)
     asthenospheric_mantle = material_id_lists["asthenospheric_mantle"]
     return asthenospheric_mantle
+end
+
+""" Material IDs for mantle lithosphere creep scaling (layers + strong-zone mantle). """
+function get_ids_for_mantle_lithosphere(materials::Materials)::Vector{Int16}
+    return get_mantle_lithosphere_ids_for_pre_exponential_scaling(materials)
 end
 
 """ Get material IDs for felsic and mafic continental crust.
@@ -214,7 +217,7 @@ material_id_lists : Dict{String, Vector{Int16}}
     - 'strong_continental_crust': list of strong continental crust material ids.
     - 'weak_mantle': list of normal mantle material ids.
     - 'strong_mantle': list of molten mantle material ids.
-    - 'asthenospheric_mantle': list of asthenospheric mantle material ids.
+    - 'asthenospheric_mantle': mantle ids not in lithosphere layers or strong-zone mantle.
     - 'felsic_continental_crust': list of felsic continental crust material ids.
     - 'mafic_continental_crust': list of mafic continental crust material ids.
     - 'gabbroic_crust': list of non-magma gabbroic crust material ids.
@@ -309,22 +312,36 @@ function get_mantle_ids_lists(
     return ids_weak_mantle, ids_strong_mantle
 end
 
+"""
+Layered lithosphere mantle IDs plus lithospheric mantle strong-zone ID, deduplicated with
+``unique`` (layered domains can alias one ``MantleLithosphere`` material).
+"""
+function get_mantle_lithosphere_ids_for_pre_exponential_scaling(
+    materials::Materials
+)::Vector{Int16}
+    ids = get_mantle_lithosphere_ids(materials)
+    id_mantle_strong_zone = get_mantle_strong_zone_id(materials)
+    return unique(vcat(ids, [id_mantle_strong_zone]))
+end
+
 """ Get list of asthenospheric_mantle material ids.
 
 Returns
 -------
 ids_asthenospheric_mantle : Vector{Int16}
-    List of asthenospheric mantle material ids.
+    Mantle rock IDs not in lithosphere layers or lithospheric mantle strong zone.
 """
 function get_asthenospheric_mantle_ids_lists(
     materials::Materials
 )::Vector{Int16}
     ids_mantle = get_mantle_ids_array(materials)
     ids_mantle_lithosphere = get_mantle_lithosphere_ids(materials)
+    id_mantle_strong_zone = get_mantle_strong_zone_id(materials)
+    ids_excluded = vcat(ids_mantle_lithosphere, [id_mantle_strong_zone])
 
-    ids_asthenospheric_mantle = Int64[]
+    ids_asthenospheric_mantle = Int16[]
     for matid in ids_mantle
-        if matid ∉ ids_mantle_lithosphere
+        if matid ∉ ids_excluded
             push!(ids_asthenospheric_mantle, matid)
         end
     end
