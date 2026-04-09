@@ -51,8 +51,8 @@ const thick_air                = 10_000.0 # meters
 const thick_crust              = 32_000.0 # meters
 const thick_upper_crust        = 22_000.0 # meters
 const thick_lith               = 125_000.0 # meters
-const marker_spacing           = 100.0 # meters (50 m for high resolution case)
-const grid_spacing_high_res    = 500.0 # meters (200 m for high resolution case)
+const marker_spacing           = 25.0 # meters (25 m for high resolution case)
+const grid_spacing_high_res    = 200.0 # meters (200 m for high resolution case)
 const avg_grid_spacing_low_res = 2000.0 # meters
 const temperature_base_lith_celsius = 1345.0 # C, this is the final cooler temperature at the base of the lithosphere
 

@@ -9,7 +9,7 @@ To print a table of case inputs from he Julia REPL, run:
 using EarthBox
 PRINT_SETTINGS.print_case_info = true;
 include("CaseInputs.jl");
-CaseInputs.define_case_inputs();
+CaseInputs.define_case_parameters();
 ```
 """
 module CaseInputs
@@ -23,7 +23,7 @@ function define_case_parameters(model_case_name::String="case0")::CaseType
         # ThermalBottomTransientBoundaryCondition
         PARAMS.delta_temperature_transient.name => CaseParameter(100.0, "deltaK"),
         # GlobalPlasticityLoop
-        PARAMS.tolerance_picard.name => CaseParameter(1e-3, "None"),
+        PARAMS.tolerance_picard.name => CaseParameter(1e-4, "None"),
         PARAMS.nglobal.name          => CaseParameter(100, "None"),
         # AdvectionModel
         PARAMS.marker_cell_displ_max.name => CaseParameter(0.3, "fraction"),

@@ -8,6 +8,7 @@ import ..MaterialGroupIDs: get_ids_for_plastic_materials_with_strain_weakening
 import ..MaterialGroupIDs: get_ids_for_lithospheric_strong_zones
 import ..MaterialGroupIDs: get_ids_for_felsic_and_mafic_continental_crust
 import ..MaterialGroupIDs: get_ids_for_asthenospheric_mantle
+import ..MaterialGroupIDs: get_ids_for_mantle_lithosphere
 import ..MaterialGroupIDs: get_ids_for_all_mantle_rocks
 import ..MaterialGroupIDs: get_ids_for_solidified_basalt
 import ..MaterialGroupIDs: get_ids_for_oceanic_crust
@@ -78,9 +79,9 @@ Override material properties for model materials using a case type.
     - "UpperContinentalCrustStrongZone"
     - "LowerContinentalCrustStrongZone"
 - Parameters:
-    - `$(PARAMS.strain_final.name)` 
-    - `$(PARAMS.friction_angle_initial.name)`
-    - `$(PARAMS.friction_angle_final.name)`
+    - `$(PARAMS.strain_final_strong_zone.name)` 
+    - `$(PARAMS.friction_angle_initial_strong_zone.name)`
+    - `$(PARAMS.friction_angle_final_strong_zone.name)`
 ## Radiogenic Heat Production in Continental Crust
 - type_names:
     - "FelsicContinentalCrustFertile"
@@ -93,12 +94,17 @@ Override material properties for model materials using a case type.
     - `$(PARAMS.heat_production_upper_crust.name)`
     - `$(PARAMS.heat_production_lower_crust.name)`
 ## Pre-Exponential Factors in Asthenosphere
-- type_names:
-    If not in domains ["UpperMantleLithosphere", "MiddleMantleLithosphere", "LowerMantleLithosphere"]):
-        - "UltramaficMantleFertile"
-        - "UltramaficMantlePartiallyMolten"
-        - "UltramaficMantleRefactory"
+- Mantle rock IDs that are not in domains ``UpperMantleLithosphere``,
+  ``MiddleMantleLithosphere``, ``LowerMantleLithosphere``, or
+  ``LithosphericMantleStrongZone``.
 - Parameters:
+    - `$(PARAMS.scale_factor_mantle_dislocation_creep.name)`
+    - `$(PARAMS.scale_factor_mantle_diffusion_creep.name)`
+## Pre-Exponential Factors in Mantle Lithosphere (including strong zone)
+- Domain names:
+    - ``UpperMantleLithosphere``, ``MiddleMantleLithosphere``, ``LowerMantleLithosphere``,
+      ``LithosphericMantleStrongZone``
+- Parameters (same keys as asthenosphere):
     - `$(PARAMS.scale_factor_mantle_dislocation_creep.name)`
     - `$(PARAMS.scale_factor_mantle_diffusion_creep.name)`
 ## Pre-Exponential Factors in Continental Crust
@@ -178,6 +184,7 @@ function override_material_properties(model::ModelData; input_dict::Dict{Symbol,
     override_plasticity_in_solidified_basalt(model; input_dict)
     override_plasticity_in_sediment(model; input_dict)
     override_pre_exponential_factors_in_asthenosphere(model; input_dict)
+    override_pre_exponential_factors_in_mantle_lithosphere(model; input_dict)
     override_pre_exponential_factors_in_continental_crust(model; input_dict)
     override_pre_exponential_factors_in_oceanic_crust(model; input_dict)
     override_pre_exponential_factors_in_solidified_basalt(model; input_dict)
@@ -328,6 +335,21 @@ function override_pre_exponential_factors_in_asthenosphere(model::ModelData; inp
     MaterialContainer.override_pre_exponential_factors_in_asthenosphere!(
         model.materials, scale_factor_mantle_dislocation_creep,
         scale_factor_mantle_diffusion_creep, material_ids_asthenosphere
+    )
+end
+
+function override_pre_exponential_factors_in_mantle_lithosphere(
+    model::ModelData;
+    input_dict::Dict{Symbol, Any}
+)
+    scale_factor_mantle_dislocation_creep =
+        get(input_dict, Symbol(keys.scale_factor_mantle_dislocation_creep.name), nothing)
+    scale_factor_mantle_diffusion_creep =
+        get(input_dict, Symbol(keys.scale_factor_mantle_diffusion_creep.name), nothing)
+    material_ids_mantle_lithosphere = get_ids_for_mantle_lithosphere(model)
+    MaterialContainer.override_pre_exponential_factors_in_mantle_lithosphere!(
+        model.materials, scale_factor_mantle_dislocation_creep,
+        scale_factor_mantle_diffusion_creep, material_ids_mantle_lithosphere
     )
 end
 

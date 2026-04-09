@@ -73,7 +73,12 @@ function make_lithosphere_model_from_user_inputs(;
     kwargs...
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}, Vector{Float64}, LithosphereThicknesses}
     
-    iuse_linear_segments = get(kwargs, :iuse_linear_segments, true)
+    iuse_linear_segments_raw = get(kwargs, :iuse_linear_segments, true)
+    iuse_linear_segments = if iuse_linear_segments_raw isa Bool
+        iuse_linear_segments_raw ? Int64(1) : Int64(0)
+    else
+        Int64(iuse_linear_segments_raw)
+    end
     thickness_upr_cont_crust_meters = get(kwargs, :thickness_upr_cont_crust_meters, 22_000.0)
     thickness_lwr_cont_crust_meters = get(kwargs, :thickness_lwr_cont_crust_meters, 10_000.0)
     thickness_lithosphere_meters = get(kwargs, :thickness_lithosphere_meters, 125_000.0)

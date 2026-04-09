@@ -17,18 +17,30 @@ function get_ids_for_all_mantle_rocks(model::ModelData)::Vector{Int16}
 end
 
 """
-    get_ids_for_asthenospheric_mantle(model::ModelData)::Vector{Int64}
+    get_ids_for_asthenospheric_mantle(model::ModelData)::Vector{Int16}
 
 Get material IDs for asthenospheric mantle.
 
-This includes the following material types:
-- UltramaficMantleFertile
-- UltramaficMantlePartiallyMolten
-- UltramaficMantleRefactory
+Mantle material IDs that belong to lithospheric layers (upper, middle, lower)
+or to the ``LithosphericMantleStrongZone`` domain are excluded; all other mantle
+rock IDs are included (true asthenosphere and any other non-lithospheric
+mantle entries).
 """
 function get_ids_for_asthenospheric_mantle(model::ModelData)::Vector{Int16}
     material_id_lists = get_material_id_lists(model)
     return material_id_lists["asthenospheric_mantle"]
+end
+
+"""
+    get_ids_for_mantle_lithosphere(model::ModelData)::Vector{Int16}
+
+Material IDs for mantle lithosphere creep scaling: the three lithosphere-layer
+mantle domains plus the ``LithosphericMantleStrongZone`` domain. Used with the
+same `scale_factor_mantle_dislocation_creep` (and diffusion) as asthenospheric
+scaling.
+"""
+function get_ids_for_mantle_lithosphere(model::ModelData)::Vector{Int16}
+    return get_mantle_lithosphere_ids_for_pre_exponential_scaling(model)
 end
 
 """
@@ -194,7 +206,7 @@ Returns a dictionary with the following keys:
 - strong_continental_crust: list of strong continental crust material ids
 - weak_mantle: list of normal mantle material ids
 - strong_mantle: list of molten mantle material ids
-- asthenospheric_mantle: list of asthenospheric mantle material ids
+- asthenospheric_mantle: mantle ids not in lithosphere layers or lithospheric mantle strong zone
 - felsic_continental_crust: list of felsic continental crust material ids
 - mafic_continental_crust: list of mafic continental crust material ids
 - gabbroic_crust: list of non-magma gabbroic crust material ids
@@ -284,20 +296,37 @@ function get_mantle_ids_lists(model::ModelData)::Tuple{Vector{Int16}, Vector{Int
 end
 
 """
+    get_mantle_lithosphere_ids_for_pre_exponential_scaling(model::ModelData)::Vector{Int16}
+
+Return material IDs for the layered lithospheric mantle plus the lithospheric
+mantle strong-zone ID (domains that are excluded from asthenospheric creep scaling).
+
+The result is deduplicated with ``unique``: ``UpperMantleLithosphere``,
+``MiddleMantleLithosphere``, and ``LowerMantleLithosphere`` share one material ID when
+the model uses a single ``MantleLithosphere`` entry, so ``get_mantle_lithosphere_ids``
+may list that ID three times; scaling must be applied once per distinct material ID.
+"""
+function get_mantle_lithosphere_ids_for_pre_exponential_scaling(model::ModelData)::Vector{Int16}
+    ids = get_mantle_lithosphere_ids(model)
+    id_mantle_strong_zone = get_mantle_strong_zone_id(model)
+    return unique(vcat(ids, [id_mantle_strong_zone]))
+end
+
+"""
     get_asthenospheric_mantle_ids_lists(model::ModelData)::Vector{Int16}
 
-Get list of asthenospheric_mantle material ids.
-
-Returns:
-- ids_asthenospheric_mantle: List of asthenospheric mantle material ids
+Get list of asthenospheric_mantle material ids (mantle rocks not in lithosphere
+layers and not in the lithospheric mantle strong-zone domain).
 """
 function get_asthenospheric_mantle_ids_lists(model::ModelData)::Vector{Int16}
     ids_mantle = get_mantle_ids_array(model)
     ids_mantle_lithosphere = get_mantle_lithosphere_ids(model)
+    id_mantle_strong_zone = get_mantle_strong_zone_id(model)
+    ids_excluded = vcat(ids_mantle_lithosphere, [id_mantle_strong_zone])
     ids_asthenospheric_mantle = Int16[]
-    
+
     for matid in ids_mantle
-        if matid ∉ ids_mantle_lithosphere
+        if matid ∉ ids_excluded
             push!(ids_asthenospheric_mantle, matid)
         end
     end
@@ -307,7 +336,7 @@ end
 """
     get_all_mantle_ids_lists(model::ModelData)::Vector{Int16}
 
-Get list of asthenospheric_mantle material ids.
+Get list of all mantle rock material ids.
 
 Returns:
 - ids_mantle: List mantle material ids
