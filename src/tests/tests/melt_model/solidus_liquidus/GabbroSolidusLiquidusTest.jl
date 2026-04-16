@@ -21,7 +21,7 @@ function plot_gabbro_solidus_liquidus()::Nothing
     depth_km_list = Float64[]
 
     dz = 1000  # meters
-    total_depth = 6000.0  # meters
+    total_depth = 12000.0  # meters
     nvals = floor(Int, total_depth / dz) + 1
 
     for i in 1:nvals
@@ -49,7 +49,7 @@ function plot_gabbro_solidus_liquidus()::Nothing
         plot!(p, temperature_liquidus_list, depth_km_list, label="Liquidus (Gerya 2010)")
         plot!(p, temperature_solidus_list, depth_km_list, label="Solidus (Gerya 2010)")
         ylabel!("Depth (km)")
-        ylims!(0, 6)
+        ylims!(0, 12)
     end
     
     xlims!(950, 1500)

@@ -168,7 +168,9 @@ Override material properties for model materials using a case type.
 
 """
 function override_material_properties!(model::ModelData, case_inputs_active::CaseType)
-    input_dict = Dict(Symbol(key) => case_inputs_active[key].value for key in Base.keys(case_inputs_active))
+    input_dict = Dict{Symbol, Any}(
+        Symbol(key) => case_inputs_active[key].value for key in Base.keys(case_inputs_active)
+    )
     override_material_properties(model; input_dict)
 end
 
@@ -309,20 +311,22 @@ function override_latent_heat_in_oceanic_crust(model::ModelData; input_dict::Dic
 end
 
 function override_mantle_solidus(model::ModelData; input_dict::Dict{Symbol, Any})
-    solidus_model_new = 
+    solidus_model_new =
         get(input_dict, Symbol(keys.mantle_solidus.name), nothing)
     material_ids_target = get_ids_for_all_mantle_rocks(model)
+    solidus_str = solidus_model_new === nothing ? nothing : string(solidus_model_new)
     MaterialContainer.override_solidus!(
-        model.materials, String(solidus_model_new), material_ids_target
+        model.materials, solidus_str, material_ids_target
     )
 end
 
 function override_mantle_liquidus(model::ModelData; input_dict::Dict{Symbol, Any})
-    liquidus_model_new = 
+    liquidus_model_new =
         get(input_dict, Symbol(keys.mantle_liquidus.name), nothing)
     material_ids_target = get_ids_for_all_mantle_rocks(model)
+    liquidus_str = liquidus_model_new === nothing ? nothing : string(liquidus_model_new)
     MaterialContainer.override_liquidus!(
-        model.materials, String(liquidus_model_new), material_ids_target
+        model.materials, liquidus_str, material_ids_target
     )
 end
 

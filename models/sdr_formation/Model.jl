@@ -14,7 +14,13 @@ docs for more details on command line arguments and usage.
 
 Quick Start:
 
-From the REPL, run:
+EarthBox is expected to be loaded from your default Julia environment via
+`Pkg.develop(path/to/EarthBox)` (not a separate project in `EarthBox_models`).
+After pulling EarthBox changes that add dependencies, run `Pkg.resolve()` or
+`Pkg.instantiate()` in that environment so packages such as CodecZlib (marker JLD
+compression) are installed.
+
+From the REPL (default env active, EarthBox dev'd):
 
 ```julia
 include("Model.jl")
@@ -23,7 +29,7 @@ Model.run_case(case_name="case1")
 
 If no `<case_name>` is provided, then the default case name is `case0`.
 
-From command-line, run:
+From command-line (same default Julia environment):
 
 ```bash
 julia Model.jl case_name=<case_name>
@@ -87,7 +93,7 @@ function setup_model(
         PARAMS.dy_lowres.name  => avg_grid_spacing_low_res
     )
     eb = EarthBoxState(
-        restart_from_backup         = false,
+        restart_from_backup         = true,
         xsize                       = xsize,
         ysize                       = ysize,
         dx_marker                   = marker_spacing,

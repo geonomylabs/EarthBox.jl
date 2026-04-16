@@ -159,9 +159,14 @@ function viscoelastic_rhs_continuity!(model)
 
     strain_rate_and_spin = model.stokes_continuity.arrays.strain_rate_and_spin
     eii_plastic_pressure = strain_rate_and_spin.eii_plastic_pressure.array
+
     RC1 = model.stokes_continuity.arrays.rhs.RC1.array
 
     dilatation_grid = model.stokes_continuity.arrays.plastic_def.dilatation_grid.array
+
+    extractable_meltfrac_grid = model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array
+    iuse_melt_compaction = model.melting.parameters.extraction.iuse_melt_compaction.value
+    timestep = model.timestep.parameters.main_time_loop.timestep.value
 
     for j in 1:xnum-1
         for i in 1:ynum-1
@@ -169,7 +174,13 @@ function viscoelastic_rhs_continuity!(model)
             plastic_strain_rate = eii_plastic_pressure[i,j]
             plastic_volumetric_effect = calc_plastic_volumetric_effect(
                 dilatation_angle, plastic_strain_rate)
-            RC1[i,j] = plastic_volumetric_effect
+
+            if iuse_melt_compaction == 1
+                melt_compaction_rate = - extractable_meltfrac_grid[i,j] / timestep
+            else
+                melt_compaction_rate = 0.0
+            end
+            RC1[i,j] = plastic_volumetric_effect + melt_compaction_rate
         end
     end
 end

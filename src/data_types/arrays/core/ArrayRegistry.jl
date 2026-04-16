@@ -658,6 +658,14 @@ function get_stokes_continuity_arrays()::NamedTuple
             "dilatation_grid0", "None", ScalarArray2DState, "pressure",
             "`(ynum - 1, xnum - 1)` : Backup of dilatation angle on pressure grid interpolated from markers.",
         ),
+        extractable_meltfrac_grid = ArrayData(
+            "extractable_meltfrac_grid", "Fraction", ScalarArray2DState, "pressure",
+            "`(ynum - 1, xnum - 1)` : Extractable melt fraction on pressure grid in fraction used for melt compaction.",
+        ),
+        extractable_meltfrac_grid0 = ArrayData(
+            "extractable_meltfrac_grid0", "Fraction", ScalarArray2DState, "pressure",
+            "`(ynum - 1, xnum - 1)` : Backup of extractable melt fraction on pressure grid in fraction used for melt compaction.",
+        ),
 
         # RHS Stokes Arrays
         RX1 = ArrayData(
