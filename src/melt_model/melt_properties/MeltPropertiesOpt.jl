@@ -45,10 +45,21 @@ latent heating with temperature and pressure changes over time.
     itype_solidus::Int,
     itype_liquidus::Int,
     latent_heat::Float64,
-    iuse_depletion_density::Int64
+    iuse_depletion_density::Int64,
+    iuse_melt_damage::Int64,
+    melt_damage::Float64,
+    density_dike_fluid::Float64,
+    dike_fluid_marker_fraction::Float64
 )::Tuple{Float64, Float64, Float64, Float64, Float64}
     if iuse_depletion_density == 1
         density += calculated_delta_density_for_depletion(extracted_melt_fraction)
+    end
+
+    if iuse_melt_damage == 1 && melt_damage > 1 && dike_fluid_marker_fraction > 0.0
+        density = update_bulk_density_for_melt_damage_dike_fluid(
+            density, melt_damage, density_dike_fluid, 
+            dike_fluid_marker_fraction, pressure_pascals
+            )
     end
 
     delta_heat_capacity = 0.0
@@ -152,6 +163,22 @@ function update_bulk_properties_based_on_melt_solid_mixing(
     rhocp = calculate_property_for_rock_melt_mixture(
         delta_meltfrac, density_melt_eos, rhocp)
     return density, rhocp
+end
+
+function update_bulk_density_for_melt_damage_dike_fluid(
+    density::Float64,
+    melt_damage::Float64,
+    density_dike_fluid::Float64,
+    dike_fluid_marker_fraction::Float64,
+    pressure_pascals::Float64,
+)::Float64
+    if melt_damage > 1
+        density_dike_fluid_eos = calculate_melt_density_birch_murnagham(
+            density_dike_fluid, pressure_pascals)
+        density = density * (1.0 - dike_fluid_marker_fraction) + 
+            density_dike_fluid_eos * dike_fluid_marker_fraction
+    end
+    return density
 end
 
 """ Linearized Birch-Murnagham EOS for Anhydrous Basalt

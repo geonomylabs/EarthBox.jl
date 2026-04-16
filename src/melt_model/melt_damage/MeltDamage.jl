@@ -22,6 +22,8 @@ struct ValidInputNames
     magmatic_crust_height_maximum::Symbol
     magmatic_crust_height_intermediate::Symbol
     intermediate_damage_probability::Symbol
+    density_dike_fluid::Symbol
+    dike_fluid_marker_fraction::Symbol
 end
 
 """
@@ -56,6 +58,10 @@ Initialize melt damage model parameters.
     - $(PDATA.magmatic_crust_height_intermediate.description)
 - `$(PDATA.intermediate_damage_probability.name)::Float64`
     - $(PDATA.intermediate_damage_probability.description)
+- `$(PDATA.density_dike_fluid.name)::Float64`
+    - $(PDATA.density_dike_fluid.description)
+- `$(PDATA.dike_fluid_marker_fraction.name)::Float64`
+    - $(PDATA.dike_fluid_marker_fraction.description)
 """
 function initialize!(model::ModelData; kwargs...)::Nothing
     load_parameters!(model, fieldnames(ValidInputNames); kwargs...)

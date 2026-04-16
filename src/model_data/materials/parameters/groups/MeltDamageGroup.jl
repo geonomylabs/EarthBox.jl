@@ -27,6 +27,8 @@ Parameter group for melt damage properties.
 - `magmatic_crust_height_maximum::`[`ParameterFloat`](@ref): $(PDATA.magmatic_crust_height_maximum.description)
 - `magmatic_crust_height_intermediate::`[`ParameterFloat`](@ref): $(PDATA.magmatic_crust_height_intermediate.description)
 - `intermediate_damage_probability::`[`ParameterFloat`](@ref): $(PDATA.intermediate_damage_probability.description)
+- `density_dike_fluid::`[`ParameterFloat`](@ref): $(PDATA.density_dike_fluid.description)
+- `dike_fluid_marker_fraction::`[`ParameterFloat`](@ref): $(PDATA.dike_fluid_marker_fraction.description)
 - `obj_list::Vector{Union{ParameterFloat, ParameterInt}}`: List of 
 parameter objects
 
@@ -42,6 +44,8 @@ parameter objects
 - `magmatic_crust_height_maximum = $(ROOT_NAME).$(GRP_NAME).magmatic_crust_height_maximum.value`
 - `magmatic_crust_height_intermediate = $(ROOT_NAME).$(GRP_NAME).magmatic_crust_height_intermediate.value`
 - `intermediate_damage_probability = $(ROOT_NAME).$(GRP_NAME).intermediate_damage_probability.value`
+- `density_dike_fluid = $(ROOT_NAME).$(GRP_NAME).density_dike_fluid.value`
+- `dike_fluid_marker_fraction = $(ROOT_NAME).$(GRP_NAME).dike_fluid_marker_fraction.value`
 
 # Constructor
     MeltDamage()
@@ -62,6 +66,8 @@ mutable struct MeltDamage <: AbstractParameterGroup
     magmatic_crust_height_maximum::ParameterFloat
     magmatic_crust_height_intermediate::ParameterFloat
     intermediate_damage_probability::ParameterFloat
+    density_dike_fluid::ParameterFloat
+    dike_fluid_marker_fraction::ParameterFloat
     obj_list::Vector{Union{ParameterFloat, ParameterInt}}
 end
 
@@ -79,6 +85,8 @@ function MeltDamage()::MeltDamage
         pdata.magmatic_crust_height_maximum,
         pdata.magmatic_crust_height_intermediate,
         pdata.intermediate_damage_probability,
+        pdata.density_dike_fluid,
+        pdata.dike_fluid_marker_fraction,
         Union{ParameterFloat, ParameterInt}[] # obj_list
     )
     data.obj_list = get_numerical_parameter_object_list(data)

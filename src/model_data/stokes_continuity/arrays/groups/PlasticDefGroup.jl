@@ -27,6 +27,8 @@ Array group containing plastic deformation arrays.
 - `fric_degrees_grid0::`[`ScalarArray2DState`](@ref): $(ADATA.fric_degrees_grid0.description)
 - `dilatation_grid::`[`ScalarArray2DState`](@ref): $(ADATA.dilatation_grid.description)
 - `dilatation_grid0::`[`ScalarArray2DState`](@ref): $(ADATA.dilatation_grid0.description)
+- `extractable_meltfrac_grid::`[`ScalarArray2DState`](@ref): $(ADATA.extractable_meltfrac_grid.description)
+- `extractable_meltfrac_grid0::`[`ScalarArray2DState`](@ref): $(ADATA.extractable_meltfrac_grid0.description)
 
 # Nested Dot Access
 - `plastics = $(ROOT_NAME).$(GRP_NAME).plastics.array`
@@ -56,6 +58,8 @@ mutable struct PlasticDef <: AbstractArrayGroup
     fric_degrees_grid0::ScalarArray2DState
     dilatation_grid::ScalarArray2DState
     dilatation_grid0::ScalarArray2DState
+    extractable_meltfrac_grid::ScalarArray2DState
+    extractable_meltfrac_grid0::ScalarArray2DState
 end
 
 function PlasticDef(ynum::Int, xnum::Int)::PlasticDef
@@ -155,6 +159,22 @@ function PlasticDef(ynum::Int, xnum::Int)::PlasticDef
             ADATA.dilatation_grid0.units,       # units
             ADATA.dilatation_grid0.grid_type,   # grid_type
             ADATA.dilatation_grid0.description  # description
+        ),
+        ScalarArray2DState(
+            ynum,                               # ynum
+            xnum,                               # xnum
+            ADATA.extractable_meltfrac_grid.name,        # name
+            ADATA.extractable_meltfrac_grid.units,       # units
+            ADATA.extractable_meltfrac_grid.grid_type,   # grid_type
+            ADATA.extractable_meltfrac_grid.description  # description
+        ),
+        ScalarArray2DState(
+            ynum,                               # ynum
+            xnum,                               # xnum
+            ADATA.extractable_meltfrac_grid0.name,        # name
+            ADATA.extractable_meltfrac_grid0.units,       # units
+            ADATA.extractable_meltfrac_grid0.grid_type,   # grid_type
+            ADATA.extractable_meltfrac_grid0.description  # description
         )
     )
     update_output_format(data)
@@ -171,6 +191,7 @@ function update_output_format(data::PlasticDef)::Nothing
     data.cohesion_grid0.outform.fname = "cohesion_grid0_Pa"
     data.fric_degrees_grid0.outform.fname = "fric_degrees_grid0"
     data.dilatation_grid.outform.fname = "dilatation_grid_degrees"
+    data.extractable_meltfrac_grid.outform.fname = "extractable_meltfrac_grid_fraction"
     return nothing
 end
 

@@ -30,6 +30,9 @@ import ..MeltPropertiesOpt: marker_melt_props
 function update_for_melt!(model::ModelData, inside_flags::Vector{Int8})::Nothing
     iuse_melt_thermal_props = model.melting.parameters.options.iuse_melt_thermal_props.value
     iuse_depletion_density = model.melting.parameters.options.iuse_depletion_density.value
+    iuse_melt_damage = model.materials.parameters.melt_damage.iuse_melt_damage.value
+    density_dike_fluid = model.materials.parameters.melt_damage.density_dike_fluid.value
+    dike_fluid_marker_fraction = model.materials.parameters.melt_damage.dike_fluid_marker_fraction.value
     marknum = model.markers.parameters.distribution.marknum.value
     # Marker quantity arrays
     marker_TK = model.markers.arrays.thermal.marker_TK.array
@@ -37,6 +40,7 @@ function update_for_melt!(model::ModelData, inside_flags::Vector{Int8})::Nothing
     marker_meltfrac = model.markers.arrays.melt.marker_meltfrac.array
     marker_extracted_meltfrac = model.markers.arrays.melt.marker_extracted_meltfrac.array
     marker_extractable_meltfrac = model.markers.arrays.melt.marker_extractable_meltfrac.array
+    marker_melt_damage = model.markers.arrays.strain.marker_melt_damage.array
     marker_rho = model.markers.arrays.material.marker_rho.array
     marker_rhocp = model.markers.arrays.thermal.marker_rhocp.array
     marker_ha = model.markers.arrays.thermal.marker_ha.array
@@ -58,7 +62,7 @@ function update_for_melt!(model::ModelData, inside_flags::Vector{Int8})::Nothing
                 density = marker_rho[imarker]
                 rhocp = marker_rhocp[imarker]
                 adiabatic_term = marker_ha[imarker]
-
+                melt_damage = marker_melt_damage[imarker]
                 # Material parameters associated with marker
                 matid = marker_matid[imarker]
                 density_melt = mat_rho[matid, 4]
@@ -84,12 +88,73 @@ function update_for_melt!(model::ModelData, inside_flags::Vector{Int8})::Nothing
                     itype_solidus,
                     itype_liquidus,
                     latent_heat,
-                    iuse_depletion_density
+                    iuse_depletion_density,
+                    iuse_melt_damage,
+                    melt_damage,
+                    density_dike_fluid,
+                    dike_fluid_marker_fraction
                 )
             @inbounds begin
                 marker_rho[imarker] = density
                 marker_rhocp[imarker] = rhocp
                 marker_ha[imarker] = adiabatic_term
+            end
+        end
+    end
+    return nothing
+end
+
+
+""" Update marker rock properties for melt damage.
+
+# Arguments
+- `model::ModelData`: Model data container object
+- `reset_strain::Bool`: Whether to reset strain values
+
+# Updated Arrays
+- `model.markers.arrays.rheology.marker_eta`: Marker viscosity (Pa.s)
+- `model.markers.arrays.strain.marker_GI`: Accumulated strain in markers
+- `model.markers.arrays.strain.marker_strain_plastic`: Accumulated plastic strain
+- `model.markers.arrays.strain.marker_sr_ratio`: Ratio of strain rate calculated 
+  using grid stress changes and a Maxwell model over strain rate interpolated 
+  from the grid
+"""
+function update_marker_flow_viscosity_for_melt_damage(
+    model::ModelData,
+    inside_flags::Vector{Int8};
+    reset_strain::Bool=false
+)::Nothing
+    marknum = model.markers.parameters.distribution.marknum.value
+    viscosity_melt = model.melting.parameters.rheology.viscosity_melt.value
+
+    marker_matid = model.markers.arrays.material.marker_matid.array
+    marker_eta = model.markers.arrays.rheology.marker_eta.array
+    marker_sr_ratio = model.markers.arrays.strain.marker_sr_ratio.array
+    marker_GII = model.markers.arrays.strain.marker_GII.array
+    marker_strain_plastic = model.markers.arrays.strain.marker_strain_plastic.array
+    marker_melt_damage = model.markers.arrays.strain.marker_melt_damage.array
+    sticky_ids = get_sticky_material_ids(model)
+
+    Threads.@threads for imarker in 1:marknum
+        if inside_flags[imarker] == 1
+            @inbounds begin
+                matid = marker_matid[imarker]
+                marker_damage_factor = marker_melt_damage[imarker]
+            end
+            if matid ∉ sticky_ids && marker_damage_factor > 1
+                @inbounds begin
+                    eta_damaged = marker_eta[imarker] / marker_damage_factor
+                    marker_eta[imarker] = max(eta_damaged, viscosity_melt)
+                end
+                if reset_strain
+                    @inbounds begin
+                        # Reset strain rate ratio
+                        marker_sr_ratio[imarker] = 1
+                        # Reset strain
+                        marker_GII[imarker] = 0
+                        marker_strain_plastic[imarker] = 0
+                    end
+                end
             end
         end
     end

@@ -1,5 +1,6 @@
 module TimeStep
 
+import CodecZlib: ZlibCompressor
 import JLD2
 import EarthBox.EarthBoxDtypes: AbstractXDMFTimeStep
 import ...OutputDTypes: Markers2djld
@@ -54,8 +55,10 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
     marker_xy_km_array = markers_xdmf.markers2djld.marker_xy_km_array
 
     jld_marker_file_path = joinpath(output_dir, jld_marker_filename)
-    
-    JLD2.jldopen(jld_marker_file_path, "w") do file
+    # Python earthbox markers.py: h5py gzip compression_opts=1 — zlib deflate level 1.
+    # Import ZlibCompressor here so CodecZlib is loaded with EarthBox (JLD2's dynamic import
+    # can fail when Julia is not started with a project that installs CodecZlib).
+    JLD2.jldopen(jld_marker_file_path, "w"; compress=ZlibCompressor(level=1)) do file
         # Set time attributes
         file["time"] = markers_xdmf.model_time
         file["time_units"] = markers_xdmf.time_units

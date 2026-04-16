@@ -933,6 +933,15 @@ function get_materials_parameters()::NamedTuple
             2000.0, "magmatic_crust_height_intermediate", "meters", 
             "Intermediate height in meters for magmatic crust used in linear melt damage probability model."
             ),
+        density_dike_fluid = ParameterFloat(
+            2750.0, "density_dike_fluid", "kg/m^3",
+            "Reference density in kg/m^3 for dike fluid in the melt-damage bulk density correction "
+            *"(Birch-Murnaghan EOS at marker pressure)."
+            ),
+        dike_fluid_marker_fraction = ParameterFloat(
+            0.0, "dike_fluid_marker_fraction", "fraction",
+            "Volume fraction of dike fluid blended into bulk density when melt damage is active."
+            ),
 
         # Materials - Serpentinization parameters
         iuse_serpentinization = ParameterInt(
@@ -1279,6 +1288,10 @@ function get_melting_parameters()::NamedTuple
             ),
         ndrainage_basin_old = ParameterInt(
             0, "ndrainage_basin_old", "None", "Old number of drainage basins"),
+        iuse_melt_compaction = ParameterInt(
+            0, "iuse_melt_compaction", "None", 
+            "Integer flag that activates melt compaction model in the partially molten zone: 0 off; 1 on."
+            ),
 
         # Melting - Options parameters
         iuse_melting = ParameterInt(

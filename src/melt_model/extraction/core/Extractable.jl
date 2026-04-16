@@ -11,7 +11,7 @@ import EarthBox.ModelDataContainer: ModelData
 function update_extractable_meltfrac!(
     model::ModelData,
     mantle_melting_mat_ids::Vector{Int16}
-)
+)::Float64
     marker_matid = model.markers.arrays.material.marker_matid.array
     marker_meltfrac = model.markers.arrays.melt.marker_meltfrac.array
     marker_extracted_meltfrac = model.markers.arrays.melt.marker_extracted_meltfrac.array
@@ -29,6 +29,9 @@ function update_extractable_meltfrac!(
             )
         end
     end
+    # Calculate the maximum extractable melt fraction
+    max_extractable = maximum(marker_extractable_meltfrac)
+    return max_extractable
 end
 
 """ Calculate incremental extractable melt fraction.

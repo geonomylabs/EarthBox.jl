@@ -50,6 +50,7 @@ struct ValidInputNames
     fractionation_threshold_limit::Symbol
     maximum_shallow_injection_depth::Symbol
     extraction_fraction::Symbol
+    iuse_melt_compaction::Symbol
 end
 
 """
@@ -93,6 +94,8 @@ Initialize melt extraction model parameters.
     - $(PDATA.maximum_shallow_injection_depth.description)
 - `$(PDATA.extraction_fraction.name)::Float64`
     - $(PDATA.extraction_fraction.description)
+- `$(PDATA.iuse_melt_compaction.name)::Int64`
+    - $(PDATA.iuse_melt_compaction.description)
 """
 function initialize!(model::ModelData; kwargs...)::Nothing
     load_parameters!(model, fieldnames(ValidInputNames); kwargs...)
@@ -240,7 +243,11 @@ function extract_melt_in_drainage_basins!(
 
     mantle_melting_mat_ids = get_mantle_melting_ids(model)
     mantle_emplacement_mat_ids = get_mantle_emplacement_ids(model)
-    Extractable.update_extractable_meltfrac!(model, mantle_melting_mat_ids)
+    
+    max_extractable = Extractable.update_extractable_meltfrac!(model, mantle_melting_mat_ids)
+    timestep = model.timestep.parameters.main_time_loop.timestep.value
+    melt_compaction_rate_max = max_extractable / timestep # 1/s
+
     Extracted.update_extracted_meltfrac!(model, mantle_melting_mat_ids)
 
     ndrainage_basin = model.melting.parameters.extraction.ndrainage_basin.value
@@ -366,7 +373,8 @@ function extract_melt_in_drainage_basins!(
                 nmarkers_volcanics, extrusion_volume_m3,
                 xstart, xend, characteristic_injection_width, injection_width,
                 xshallow_partial_melt_avg,
-                magma_production_rate_m3_yr, avg_marker_volume_m3)
+                magma_production_rate_m3_yr, avg_marker_volume_m3,
+                melt_compaction_rate_max)
         end
     end
 
@@ -483,7 +491,8 @@ function print_extraction_info(
     injection_width::Float64,
     xshallow_partial_melt_avg::Float64,
     magma_production_rate_m3_yr::Float64,
-    avg_marker_volume_m3::Float64
+    avg_marker_volume_m3::Float64,
+    melt_compaction_rate_max::Float64
 )
     msg = @sprintf(
         "Melt extraction info for drainage basin: %d", i
@@ -537,6 +546,10 @@ function print_extraction_info(
     msg = @sprintf(
         "magma production rate (m^3/yr): %.2f timesum (Myr): %.2f",
             magma_production_rate_m3_yr, timesum_myr)
+    print_melt_extraction_info(msg, level=3)
+    msg = @sprintf(
+        "maximum melt compaction rate (1/s): %.2f timesum (Myr): %.2f",
+            melt_compaction_rate_max, timesum_myr)
     print_melt_extraction_info(msg, level=3)
 end
 
