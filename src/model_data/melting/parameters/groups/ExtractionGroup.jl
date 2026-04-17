@@ -34,6 +34,7 @@ Parameter group for melt extraction model parameters.
 - `smoothing_radius_fractionation::`[`ParameterFloat`](@ref): $(PDATA.smoothing_radius_fractionation.description)
 - `mantle_search_width::`[`ParameterFloat`](@ref): $(PDATA.mantle_search_width.description)
 - `ndrainage_basin_old::`[`ParameterInt`](@ref): $(PDATA.ndrainage_basin_old.description)
+- `iuse_melt_compaction::`[`ParameterInt`](@ref): $(PDATA.iuse_melt_compaction.description)
 - `obj_list::Vector{Union{ParameterFloat, ParameterInt}}`: List of parameter objects
 
 # Nested Dot Access
@@ -54,6 +55,7 @@ Parameter group for melt extraction model parameters.
 - `smoothing_radius_fractionation = $(ROOT_NAME).$(GRP_NAME).smoothing_radius_fractionation.value`
 - `mantle_search_width = $(ROOT_NAME).$(GRP_NAME).mantle_search_width.value`
 - `ndrainage_basin_old = $(ROOT_NAME).$(GRP_NAME).ndrainage_basin_old.value`
+- `iuse_melt_compaction = $(ROOT_NAME).$(GRP_NAME).iuse_melt_compaction.value`
 
 # Constructor
     Extraction()
@@ -80,6 +82,7 @@ mutable struct Extraction <: AbstractParameterGroup
     smoothing_radius_fractionation::ParameterFloat
     mantle_search_width::ParameterFloat
     ndrainage_basin_old::ParameterInt
+    iuse_melt_compaction::ParameterInt
     obj_list::Vector{Union{ParameterFloat, ParameterInt}}
 end
 
@@ -103,6 +106,7 @@ function Extraction()::Extraction
         pdata.smoothing_radius_fractionation,
         pdata.mantle_search_width,
         pdata.ndrainage_basin_old,
+        pdata.iuse_melt_compaction,
         Union{ParameterFloat, ParameterInt}[] # obj_list
     )
     data.obj_list = get_numerical_parameter_object_list(data)

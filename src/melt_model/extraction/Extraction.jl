@@ -548,8 +548,8 @@ function print_extraction_info(
             magma_production_rate_m3_yr, timesum_myr)
     print_melt_extraction_info(msg, level=3)
     msg = @sprintf(
-        "maximum melt compaction rate (1/s): %.2f timesum (Myr): %.2f",
-            melt_compaction_rate_max, timesum_myr)
+        "log10(maximum melt compaction rate (1/s)): %.2f timesum (Myr): %.2f",
+            log10(melt_compaction_rate_max), timesum_myr)
     print_melt_extraction_info(msg, level=3)
 end
 

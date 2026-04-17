@@ -167,6 +167,13 @@ function calc_marker_average_at_staggered_nodes_stokes!(model::ModelData)::Nothi
         sum_of_marker_weights_at_nodes_pressure_inclusive
     )
     
+    # Extractable melt fraction on pressure grid
+    calc_bilinear_average_arithmetic!(
+        model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array,
+        model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid0.array,
+        sum_of_marker_weights_at_nodes_pressure_inclusive
+    )
+    
     return nothing
 end
 
