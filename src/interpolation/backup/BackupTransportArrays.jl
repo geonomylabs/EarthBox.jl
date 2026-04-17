@@ -21,9 +21,11 @@ Copied grid arrays include:
 - friction angle `fric_degrees_grid`
 - cohesion `cohesion_grid`
 - dilatation `dilatation_grid`
+- extractable melt fraction `extractable_meltfrac_grid`
 
 The associated backup arrays have suffix 0: `rho0`, `etan0`, `etas0`, `eta_flow0`, `mus0`, `mun0`, 
-`sxx0`, `sxy0`, `plastics0`, `plasticn0`, `fric_degres_grid0`, `cohesion_grid0`, `dilatation_grid0`.
+`sxx0`, `sxy0`, `plastics0`, `plasticn0`, `fric_degres_grid0`, `cohesion_grid0`, `dilatation_grid0`,
+`extractable_meltfrac_grid0`.
 
 The backup transport arrays (suffix 0) are used during marker interpolation if marker weights are 
 equal to zero at a grid node (i.e. no markers are present in surrounding grid cells).
@@ -57,6 +59,9 @@ function backup_stokes_transport_arrays!(model::ModelData)
     model.stokes_continuity.arrays.plastic_def.cohesion_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.cohesion_grid.array)
     model.stokes_continuity.arrays.plastic_def.fric_degrees_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.fric_degrees_grid.array)
     model.stokes_continuity.arrays.plastic_def.dilatation_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.dilatation_grid.array)
+    model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid0.array = copy(
+        model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array
+    )
 end
 
 """
@@ -81,6 +86,7 @@ function clear_stokes_transport_arrays!(model::ModelData)
     fill!(model.stokes_continuity.arrays.plastic_def.plastics.array, 0.0)
     fill!(model.stokes_continuity.arrays.plastic_def.plasticn.array, 0.0)
     fill!(model.stokes_continuity.arrays.plastic_def.dilatation_grid.array, 0.0)
+    fill!(model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array, 0.0)
 end
 
 """

@@ -3,8 +3,14 @@ module CaseBuilder
 import EarthBox.ParameterRegistry: get_eb_parameters
 import ..CaseTypes: CaseCollectionType, CaseParameter
 
-const _FIXED_TRIPLE = Tuple{String, Float64, String}
-const _FIXED_VEC = Vector{_FIXED_TRIPLE}
+const _FixedScalar = Union{Float64, Integer}
+const _FIXED_TRIPLE = Tuple{String, _FixedScalar, String}
+
+function _scalar_for_case_parameter(v::_FixedScalar)
+    v isa Bool && return v
+    v isa Integer && return Int64(v)
+    return v::Float64
+end
 
 """ 
     define_case_group!(
@@ -13,30 +19,30 @@ const _FIXED_VEC = Vector{_FIXED_TRIPLE}
         parameter_name::String,
         values::Vector{Float64},
         units::String,
-        fixed::Union{Nothing, Vector{Tuple{String, Float64, String}}}=nothing,
+        fixed::Union{Nothing, AbstractVector{<:Tuple{String, Union{Float64, Integer}, String}}}=nothing,
         fixed_parameter_name::Union{String, Nothing}=nothing,
-        fixed_value::Union{Float64, Nothing}=nothing,
+        fixed_value::Union{Float64, Integer, Nothing}=nothing,
         fixed_units::Union{String, Nothing}=nothing,
         fixed_parameter_name2::Union{String, Nothing}=nothing,
-        fixed_value2::Union{Float64, Nothing}=nothing,
+        fixed_value2::Union{Float64, Integer, Nothing}=nothing,
         fixed_units2::Union{String, Nothing}=nothing,
         fixed_parameter_name3::Union{String, Nothing}=nothing,
-        fixed_value3::Union{Float64, Nothing}=nothing,
+        fixed_value3::Union{Float64, Integer, Nothing}=nothing,
         fixed_units3::Union{String, Nothing}=nothing,
         fixed_parameter_name4::Union{String, Nothing}=nothing,
-        fixed_value4::Union{Float64, Nothing}=nothing,
+        fixed_value4::Union{Float64, Integer, Nothing}=nothing,
         fixed_units4::Union{String, Nothing}=nothing,
         fixed_parameter_name5::Union{String, Nothing}=nothing,
-        fixed_value5::Union{Float64, Nothing}=nothing,
+        fixed_value5::Union{Float64, Integer, Nothing}=nothing,
         fixed_units5::Union{String, Nothing}=nothing,
         fixed_parameter_name6::Union{String, Nothing}=nothing,
-        fixed_value6::Union{Float64, Nothing}=nothing,
+        fixed_value6::Union{Float64, Integer, Nothing}=nothing,
         fixed_units6::Union{String, Nothing}=nothing,
         fixed_parameter_name7::Union{String, Nothing}=nothing,
-        fixed_value7::Union{Float64, Nothing}=nothing,
+        fixed_value7::Union{Float64, Integer, Nothing}=nothing,
         fixed_units7::Union{String, Nothing}=nothing,
         fixed_parameter_name8::Union{String, Nothing}=nothing,
-        fixed_value8::Union{Float64, Nothing}=nothing,
+        fixed_value8::Union{Float64, Integer, Nothing}=nothing,
         fixed_units8::Union{String, Nothing}=nothing,
     )::Int
 
@@ -60,14 +66,15 @@ both.
     - List of values to assign to the parameter name for each case.
 - `units::String`
     - Units to assign to the parameter name for each case.
-- `fixed::Union{Nothing, Vector{Tuple{String, Float64, String}}}`
+- `fixed::Union{Nothing, AbstractVector{<:Tuple{String, Union{Float64, Integer}, String}}}`
     - Optional list of at most eight `(parameter_name, value, units)` triples. When
       not `nothing`, none of the numbered `fixed_parameter_name` / `fixed_value` /
-      `fixed_units` keywords may be set.
+      `fixed_units` keywords may be set. Each `value` may be a `Float64` or any
+      `Integer` (for example `Int` or `Int64`).
 - `fixed_parameter_name`, `fixed_parameter_name2`, …, `fixed_parameter_name8`
     (`Union{String, Nothing}`)
     - Parameter name keys to set to fixed values for all cases (legacy API).
-- `fixed_value`, `fixed_value2`, …, `fixed_value8` (`Union{Float64, Nothing}`)
+- `fixed_value`, `fixed_value2`, …, `fixed_value8` (`Union{Float64, Integer, Nothing}`)
     - Fixed values for the corresponding fixed parameter names.
 - `fixed_units`, `fixed_units2`, …, `fixed_units8` (`Union{String, Nothing}`)
     - Units for the corresponding fixed parameter names.
@@ -82,30 +89,30 @@ function define_case_group!(
     parameter_name::String,
     values::Vector{Float64},
     units::String,
-    fixed::Union{Nothing, _FIXED_VEC}=nothing,
+    fixed::Union{Nothing, AbstractVector{<:_FIXED_TRIPLE}}=nothing,
     fixed_parameter_name::Union{String, Nothing}=nothing,
-    fixed_value::Union{Float64, Nothing}=nothing,
+    fixed_value::Union{_FixedScalar, Nothing}=nothing,
     fixed_units::Union{String, Nothing}=nothing,
     fixed_parameter_name2::Union{String, Nothing}=nothing,
-    fixed_value2::Union{Float64, Nothing}=nothing,
+    fixed_value2::Union{_FixedScalar, Nothing}=nothing,
     fixed_units2::Union{String, Nothing}=nothing,
     fixed_parameter_name3::Union{String, Nothing}=nothing,
-    fixed_value3::Union{Float64, Nothing}=nothing,
+    fixed_value3::Union{_FixedScalar, Nothing}=nothing,
     fixed_units3::Union{String, Nothing}=nothing,
     fixed_parameter_name4::Union{String, Nothing}=nothing,
-    fixed_value4::Union{Float64, Nothing}=nothing,
+    fixed_value4::Union{_FixedScalar, Nothing}=nothing,
     fixed_units4::Union{String, Nothing}=nothing,
     fixed_parameter_name5::Union{String, Nothing}=nothing,
-    fixed_value5::Union{Float64, Nothing}=nothing,
+    fixed_value5::Union{_FixedScalar, Nothing}=nothing,
     fixed_units5::Union{String, Nothing}=nothing,
     fixed_parameter_name6::Union{String, Nothing}=nothing,
-    fixed_value6::Union{Float64, Nothing}=nothing,
+    fixed_value6::Union{_FixedScalar, Nothing}=nothing,
     fixed_units6::Union{String, Nothing}=nothing,
     fixed_parameter_name7::Union{String, Nothing}=nothing,
-    fixed_value7::Union{Float64, Nothing}=nothing,
+    fixed_value7::Union{_FixedScalar, Nothing}=nothing,
     fixed_units7::Union{String, Nothing}=nothing,
     fixed_parameter_name8::Union{String, Nothing}=nothing,
-    fixed_value8::Union{Float64, Nothing}=nothing,
+    fixed_value8::Union{_FixedScalar, Nothing}=nothing,
     fixed_units8::Union{String, Nothing}=nothing,
 )::Int
     keys = get_eb_parameters()
@@ -196,7 +203,7 @@ function define_case_group!(
         case = "case$case_id"
         case_inputs[case][parameter_name] = CaseParameter(value, units)
         for (fpn, fv, fu) in fixed_triples
-            case_inputs[case][fpn] = CaseParameter(fv, fu)
+            case_inputs[case][fpn] = CaseParameter(_scalar_for_case_parameter(fv), fu)
         end
         icount += 1
     end

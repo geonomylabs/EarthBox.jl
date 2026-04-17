@@ -195,6 +195,8 @@ with the Stokes-continuity equations.
     - Friction angle (degrees) interpolated from markers to basic grid
 - `dilatation_grid.array::Matrix{Float64}` (ynum, xnum): 
     - Dilatation angle interpolated from markers to basic grid
+- `extractable_meltfrac_grid.array::Matrix{Float64}` (ynum-1, xnum-1): 
+    - Extractable melt fraction interpolated from markers to pressure grid
 
 # Notes
 - Harmonic mean is used for shear modulus calculations
@@ -224,6 +226,7 @@ function calc_marker_weight_sums_for_basic_and_pressure_grids_stokes!(
     
     # Get marker properties
     marker_dilatation_angle = model.markers.arrays.rheology.marker_dilatation_angle.array
+    marker_extractable_meltfrac = model.markers.arrays.melt.marker_extractable_meltfrac.array
     marker_rho = model.markers.arrays.material.marker_rho.array
     marker_cohesion = model.markers.arrays.rheology.marker_cohesion.array
     marker_fric = model.markers.arrays.rheology.marker_fric.array
@@ -251,6 +254,7 @@ function calc_marker_weight_sums_for_basic_and_pressure_grids_stokes!(
     cohesion_grid = model.stokes_continuity.arrays.plastic_def.cohesion_grid.array
     fric_degrees_grid = model.stokes_continuity.arrays.plastic_def.fric_degrees_grid.array
     dilatation_grid = model.stokes_continuity.arrays.plastic_def.dilatation_grid.array
+    extractable_meltfrac_grid = model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array
     
     for imarker in 1:marknum
         if inside_flags[imarker] == 1
@@ -282,6 +286,7 @@ function calc_marker_weight_sums_for_basic_and_pressure_grids_stokes!(
                 msxy = marker_sxy[imarker]
                 plastyn = Float64(marker_pfailure[imarker])
                 mdilatation = Float64(marker_dilatation_angle[imarker])
+                mextractable_meltfrac = marker_extractable_meltfrac[imarker]
                 msxx = marker_sxx[imarker]
             end
             
@@ -370,6 +375,11 @@ function calc_marker_weight_sums_for_basic_and_pressure_grids_stokes!(
             WeightFuncs.update_weight_central!(
                 iy_upr_left, ix_upr_left, marker_weight_central, 1.0,
                 dilatation_grid, mdilatation
+            )
+            # Update extractable melt fraction on pressure grid
+            WeightFuncs.update_weight_central!(
+                iy_upr_left, ix_upr_left, marker_weight_central, 1.0,
+                extractable_meltfrac_grid, mextractable_meltfrac
             )
             # Update normal stress
             WeightFuncs.update_weight_central!(

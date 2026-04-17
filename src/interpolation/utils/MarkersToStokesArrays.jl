@@ -22,11 +22,13 @@ interpolation of marker properties to transport arrays.
 viscoplastic viscosity (etan1, etas1), flow viscosity (eta_flow),
 shear modulus (mus1, mun1), viscoelastic stress including rotation
 (sxx1, sxy1), plastic deformation indicators (plastics, plasticn),
-friction angle (fric_degrees_grid), cohesion (cohesion_grid) and
-dilatation (dilatation_grid). If issues are encountered (no markers
+friction angle (fric_degrees_grid), cohesion (cohesion_grid),
+dilatation (dilatation_grid), and extractable melt fraction
+(extractable_meltfrac_grid). If issues are encountered (no markers
 found) then values in grids nodes are copied from backup arrays with
 suffix 0 (rho0, etan0, etas0, mus0, mun0, sxx0, sxy0,
-fric_degrees_grid0, cohesion_grid0, dilatation_grid0)
+fric_degrees_grid0, cohesion_grid0, dilatation_grid0,
+extractable_meltfrac_grid0)
 
 # Arguments
 - `pymodel::PyModelData`: Main model container object.
