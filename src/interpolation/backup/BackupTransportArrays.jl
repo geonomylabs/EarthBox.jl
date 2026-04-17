@@ -45,23 +45,22 @@ Copy the current transport arrays to backup arrays.
 The current transport arrays are denoted with suffix "1" whereas the backup arrays are denoted with suffix "0".
 """
 function backup_stokes_transport_arrays!(model::ModelData)
-    model.stokes_continuity.arrays.viscosity.etas0.array = copy(model.stokes_continuity.arrays.viscosity.etas1.array)
-    model.stokes_continuity.arrays.viscosity.etan0.array = copy(model.stokes_continuity.arrays.viscosity.etan1.array)
-    model.stokes_continuity.arrays.viscosity.eta_flow0.array = copy(model.stokes_continuity.arrays.viscosity.eta_flow.array)
-    model.stokes_continuity.arrays.shear_modulus.mus0.array = copy(model.stokes_continuity.arrays.shear_modulus.mus1.array)
-    model.stokes_continuity.arrays.shear_modulus.mun0.array = copy(model.stokes_continuity.arrays.shear_modulus.mun1.array)
-    model.stokes_continuity.arrays.stress.sxy0.array = copy(model.stokes_continuity.arrays.stress.sxy1.array)
-    model.stokes_continuity.arrays.stress.sxx0.array = copy(model.stokes_continuity.arrays.stress.sxx1.array)
-    model.stokes_continuity.arrays.density.rho0.array = copy(model.stokes_continuity.arrays.density.rho1.array)
-    model.stokes_continuity.arrays.density.rho0_vy.array = copy(model.stokes_continuity.arrays.density.rho1_vy.array)
-    model.stokes_continuity.arrays.plastic_def.plastics0.array = copy(model.stokes_continuity.arrays.plastic_def.plastics.array)
-    model.stokes_continuity.arrays.plastic_def.plasticn0.array = copy(model.stokes_continuity.arrays.plastic_def.plasticn.array)
-    model.stokes_continuity.arrays.plastic_def.cohesion_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.cohesion_grid.array)
-    model.stokes_continuity.arrays.plastic_def.fric_degrees_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.fric_degrees_grid.array)
-    model.stokes_continuity.arrays.plastic_def.dilatation_grid0.array = copy(model.stokes_continuity.arrays.plastic_def.dilatation_grid.array)
-    model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid0.array = copy(
-        model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array
-    )
+    copyto!(model.stokes_continuity.arrays.viscosity.etas0.array, model.stokes_continuity.arrays.viscosity.etas1.array)
+    copyto!(model.stokes_continuity.arrays.viscosity.etan0.array, model.stokes_continuity.arrays.viscosity.etan1.array)
+    copyto!(model.stokes_continuity.arrays.viscosity.eta_flow0.array, model.stokes_continuity.arrays.viscosity.eta_flow.array)
+    copyto!(model.stokes_continuity.arrays.shear_modulus.mus0.array, model.stokes_continuity.arrays.shear_modulus.mus1.array)
+    copyto!(model.stokes_continuity.arrays.shear_modulus.mun0.array, model.stokes_continuity.arrays.shear_modulus.mun1.array)
+    copyto!(model.stokes_continuity.arrays.stress.sxy0.array, model.stokes_continuity.arrays.stress.sxy1.array)
+    copyto!(model.stokes_continuity.arrays.stress.sxx0.array, model.stokes_continuity.arrays.stress.sxx1.array)
+    copyto!(model.stokes_continuity.arrays.density.rho0.array, model.stokes_continuity.arrays.density.rho1.array)
+    copyto!(model.stokes_continuity.arrays.density.rho0_vy.array, model.stokes_continuity.arrays.density.rho1_vy.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.plastics0.array, model.stokes_continuity.arrays.plastic_def.plastics.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.plasticn0.array, model.stokes_continuity.arrays.plastic_def.plasticn.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.cohesion_grid0.array, model.stokes_continuity.arrays.plastic_def.cohesion_grid.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.fric_degrees_grid0.array, model.stokes_continuity.arrays.plastic_def.fric_degrees_grid.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.dilatation_grid0.array, model.stokes_continuity.arrays.plastic_def.dilatation_grid.array)
+    copyto!(model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid0.array,
+        model.stokes_continuity.arrays.plastic_def.extractable_meltfrac_grid.array)
 end
 
 """
@@ -118,8 +117,8 @@ Copy the current transport arrays to backup arrays.
 The current transport arrays are denoted with suffix "1" whereas the backup arrays are denoted with suffix "0".
 """
 function backup_viscosity_transport_arrays!(model::ModelData)
-    model.stokes_continuity.arrays.viscosity.etas0.array = copy(model.stokes_continuity.arrays.viscosity.etas1.array)
-    model.stokes_continuity.arrays.viscosity.etan0.array = copy(model.stokes_continuity.arrays.viscosity.etan1.array)
+    copyto!(model.stokes_continuity.arrays.viscosity.etas0.array, model.stokes_continuity.arrays.viscosity.etas1.array)
+    copyto!(model.stokes_continuity.arrays.viscosity.etan0.array, model.stokes_continuity.arrays.viscosity.etan1.array)
 end
 
 """
@@ -156,11 +155,11 @@ function backup_heat_transport_arrays!(model::ModelData)
     # Note that tk0 is copied from tk2 since tk2 is the most up-to-date
     # grid thermal solution calculated using the previous transport array as
     # the initial temperature in the heat solver
-    model.heat_equation.arrays.temperature.tk0.array = copy(model.heat_equation.arrays.temperature.tk2.array)
-    model.heat_equation.arrays.rhocp.rhocp0.array = copy(model.heat_equation.arrays.rhocp.rhocp1.array)
-    model.heat_equation.arrays.thermal_conductivity.kt0.array = copy(model.heat_equation.arrays.thermal_conductivity.kt1.array)
-    model.heat_equation.arrays.radiogenic_production.hr0.array = copy(model.heat_equation.arrays.radiogenic_production.hr1.array)
-    model.heat_equation.arrays.adiabatic_production.ha0.array = copy(model.heat_equation.arrays.adiabatic_production.ha1.array)
+    copyto!(model.heat_equation.arrays.temperature.tk0.array, model.heat_equation.arrays.temperature.tk2.array)
+    copyto!(model.heat_equation.arrays.rhocp.rhocp0.array, model.heat_equation.arrays.rhocp.rhocp1.array)
+    copyto!(model.heat_equation.arrays.thermal_conductivity.kt0.array, model.heat_equation.arrays.thermal_conductivity.kt1.array)
+    copyto!(model.heat_equation.arrays.radiogenic_production.hr0.array, model.heat_equation.arrays.radiogenic_production.hr1.array)
+    copyto!(model.heat_equation.arrays.adiabatic_production.ha0.array, model.heat_equation.arrays.adiabatic_production.ha1.array)
 end
 
 """
