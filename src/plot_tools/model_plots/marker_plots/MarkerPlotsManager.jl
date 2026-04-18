@@ -420,7 +420,12 @@ end
     )
      
     finalize_plot!(
-        fig, axes_scatter, marker_plots.parameters, "marker_composition_heatflow")
+        fig,
+        axes_scatter,
+        marker_plots.parameters,
+        "marker_composition_heatflow";
+        extension=marker_plots.parameters.image.extension,
+    )
      return nothing
  end
  
@@ -456,7 +461,12 @@ function make_marker_scalars_plot_gravity!(
     )
     
     finalize_plot!(
-        fig, axes_scatter, marker_plots.parameters, "marker_composition_gravity")
+        fig,
+        axes_scatter,
+        marker_plots.parameters,
+        "marker_composition_gravity";
+        extension=marker_plots.parameters.image.extension,
+    )
     return nothing
 end
  
@@ -502,7 +512,12 @@ function make_marker_scalars_plot_heatflow_gravity!(
     )
     
     finalize_plot!(
-        fig, axes_scatter, marker_plots.parameters, "marker_composition_heatflow_gravity")
+        fig,
+        axes_scatter,
+        marker_plots.parameters,
+        "marker_composition_heatflow_gravity";
+        extension=marker_plots.parameters.image.extension,
+    )
     return nothing
 end
 
