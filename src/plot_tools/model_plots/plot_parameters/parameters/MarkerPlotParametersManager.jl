@@ -95,6 +95,7 @@ Base.@kwdef mutable struct MarkerPlotParameters <: AbstractPlotParameterGroup
     meltfrac_number_format::String = "%6.2f"
     meltfrac_label_rightside_up::Bool = true
     use_discontinuous_colormap_meltfrac::Bool = false
+    plot_meltfrac_for_gabbro::Bool = false
     # Marker serpentinization
     plot_serpentinization::Int = 0
     plot_serpentinization_contours::Int = 0
@@ -124,6 +125,10 @@ Base.@kwdef mutable struct MarkerPlotParameters <: AbstractPlotParameterGroup
     # Subplot parameters
     height_ratios::Vector{Float64} = [0.25, 0.25, 0.75]
     subplot_spacing_fraction::Float64 = 0.4
+    # Composition colorbar parameters
+    hidden_composition_matids::Union{Vector{Int64}, Nothing} = nothing
+    show_composition_matid_labels::Bool = true
+    colorbar_label_rotation::Float64 = -π/2
 end
 
 function MarkerPlotParameters(plot_dict::PlotDictType)::MarkerPlotParameters
@@ -199,6 +204,7 @@ function MarkerPlotParameters(plot_dict::PlotDictType)::MarkerPlotParameters
         meltfrac_number_format = get(plot_params, "meltfrac_number_format", "%6.2f"),
         meltfrac_label_rightside_up = get(plot_params, "meltfrac_label_rightside_up", true),
         use_discontinuous_colormap_meltfrac = get(plot_params, "use_discontinuous_colormap_meltfrac", false),
+        plot_meltfrac_for_gabbro = get(plot_params, "plot_meltfrac_for_gabbro", false),
         plot_serpentinization = get(plot_params, "plot_serpentinization", 0),
         plot_serpentinization_contours = get(plot_params, "plot_serpentinization_contours", 0),
         serpentinization_min = get(plot_params, "serpentinization_min", 0.0),
@@ -219,6 +225,8 @@ function MarkerPlotParameters(plot_dict::PlotDictType)::MarkerPlotParameters
         gravity_spacing = get(plot_params, "gravity_spacing", 50.0),
         height_ratios = get(plot_params, "height_ratios", [0.25, 0.25, 0.75]),
         subplot_spacing_fraction = get(plot_params, "subplot_spacing_fraction", 0.4),
+        show_composition_matid_labels = get(plot_params, "show_composition_matid_labels", true),
+        colorbar_label_rotation = get(plot_params, "colorbar_label_rotation", -π/2),
     )
 end
 

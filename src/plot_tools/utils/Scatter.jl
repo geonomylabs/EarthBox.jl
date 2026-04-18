@@ -70,6 +70,8 @@ function plot_scatter(
     label::Union{String, Nothing} = nothing,
     custom_cmap::Union{Any, Nothing} = nothing,
     custom_labels::Union{Vector{String}, Nothing} = nothing,
+    hidden_colorbar_bins::Union{Vector{Int}, Nothing} = nothing,
+    colorbar_label_rotation::Float64 = -π/2,
     order_number::Int = 2,
     colorbar_labels_fontsize::Int = 6,
     colorbar_ticks_fontsize::Int = 6,
@@ -115,12 +117,27 @@ function plot_scatter(
 
     fig = axes.parent
     n_rows = length(fig.layout.rowsizes)
-    color_bar = CairoMakie.Colorbar(fig[n_rows, order_number], scatter_plot)
+
+    if !isnothing(hidden_colorbar_bins)
+        n_bins = round(Int, max_value - min_value)
+        hidden_set = Set(hidden_colorbar_bins)
+        visible_indices = [i for i in 1:n_bins if i ∉ hidden_set]
+        n_visible = length(visible_indices)
+        visible_colors = [CairoMakie.get(cmap, (i - 0.5) / n_bins) for i in visible_indices]
+        compact_cmap = CairoMakie.cgrad(visible_colors; categorical=true)
+        color_bar = CairoMakie.Colorbar(fig[n_rows, order_number];
+            colormap=compact_cmap,
+            limits=(0.5, Float64(n_visible) + 0.5)
+        )
+    else
+        color_bar = CairoMakie.Colorbar(fig[n_rows, order_number], scatter_plot)
+    end
 
     if !isnothing(label) && isnothing(custom_labels)
         color_bar.ticks = ticks
         color_bar.label = label
         color_bar.labelsize = colorbar_labels_fontsize
+        color_bar.labelrotation = colorbar_label_rotation
     end
 
     if !isnothing(custom_labels)
