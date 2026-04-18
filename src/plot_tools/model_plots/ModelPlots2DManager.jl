@@ -50,14 +50,6 @@ function get_general_plotting_keyword_args_string()::String
     - Dots per square inch for figures
 - `figsize::Tuple{Float64, Float64}`:
     - Figure size in inches in x-y directions
-- `match_domain_fig_aspect::Bool`:
-    - If true (default), replace `figsize[2]` so the figure row height matches
-      `DataAspect()` for the **axis** panel (scalar/velocity plots share the row with a
-      colorbar). Width `figsize[1]` is preserved.
-- `match_domain_axis_width_fraction::Float64`:
-    - Used with `match_domain_fig_aspect`: approximate fraction of figure width used by the
-      main axis (rest is colorbar + gap). Default 0.85; decrease if a wide colorbar still
-      leaves white bands above/below the map.
 - `length_units::String`:
     - Length units for plots ("km", "m", "cm")
 - `time_units::String`:
@@ -91,11 +83,15 @@ function get_general_plotting_keyword_args_string()::String
 - `title_fontsize::Int`:
     - Font size for title
 - `axis_title_fontsize::Int`:
-    - Font size for axis titles
+    - Font size for the x and y axis label strings (e.g. "X (km)"); applied as CairoMakie
+      `xlabelsize` and `ylabelsize`
 - `axis_labels_fontsize::Int`:
-    - Font size for axis labels
+    - Stored in plot parameters but not currently applied to any rendered element (reserved for
+      future use); use `axis_title_fontsize` for x/y label text and `axis_ticks_fontsize` for
+      numeric tick labels
 - `axis_ticks_fontsize::Int`:
-    - Font size for axis ticks
+    - Font size for the numeric tick labels on the x and y axes (`xticklabelsize`,
+      `yticklabelsize`)
 - `contour_label_fontsize::Int`:
     - Font size for contour labels
 - `number_format::String`:
@@ -265,13 +261,6 @@ function get_model_plots_2d(;
     end
     nsteps = iend - istart + 1
     figsize = get(kwargs, :figsize, (10.0, 4.0))
-    match_aspect = get(kwargs, :match_domain_fig_aspect, true)
-    if match_aspect
-        ax_frac = get(kwargs, :match_domain_axis_width_fraction, 0.85)
-        figsize = PlotTools.PlotUtils.figsize_for_domain_extent(
-            figsize, dimensions; axis_width_fraction = ax_frac
-        )
-    end
     return ModelPlots2D(
         plot_output_path           = joinpath(model_output_path, "plots"),
         material_library_file_path = material_library_file_path,
@@ -285,7 +274,7 @@ function get_model_plots_2d(;
         color_map                  = get(kwargs, :color_map, "bwr"),
         figure_dpi                 = get(kwargs, :figure_dpi, 150.0),
         figsize                    = figsize,
-        use_data_aspect            = match_aspect,
+        use_data_aspect            = false,
         length_units               = get(kwargs, :length_units, "km"),
         time_units                 = get(kwargs, :time_units, "Myr"),
         velocity_units             = get(kwargs, :velocity_units, "cm/yr"),
