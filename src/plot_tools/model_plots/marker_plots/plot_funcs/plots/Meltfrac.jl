@@ -6,6 +6,7 @@ import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_mantle_and_gabbroic_
 import ...PlotMarkerArraysManager: PlotMarkerArrays
 import ....PlotParametersManager: PlotParameters
 import ....PlotDtypes: AxesType
+import .....ColorMaps: make_discontinuous_colormap_from_input_cmap
 import ...FilterPlot: FilterPlotData
 import ...FilterPlot: add_contour_description!
 import ...FilterPlot: plot_filtered_marker_scalars_based_on_minimum
@@ -50,6 +51,14 @@ function plot_filtered_meltfrac(
 
     cmap_name = parameters.marker_plot_params.meltfrac_cmap
 
+    if parameters.marker_plot_params.use_discontinuous_colormap_meltfrac
+        custom_cmap = make_discontinuous_colormap_from_input_cmap(
+            meltfrac_min, meltfrac_max, contour_interval, cmap_name)
+        cmap_name = "None"
+    else
+        custom_cmap = nothing
+    end
+
     if use_gabbro_melting
         matids_to_keep = get_mantle_and_gabbroic_melting_matids(materials)
     else
@@ -67,7 +76,7 @@ function plot_filtered_meltfrac(
         plot_contours=plot_contours,
         label=label,
         cmap_name=cmap_name,
-        custom_cmap=nothing,
+        custom_cmap=custom_cmap,
         contour_type="meltfrac",
         matids_to_keep=matids_to_keep,
         number_format=number_format,
