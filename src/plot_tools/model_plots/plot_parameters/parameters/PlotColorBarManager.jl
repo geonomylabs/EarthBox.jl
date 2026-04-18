@@ -22,6 +22,23 @@ function PlotColorBar(plot_dict::PlotDictType)
     )
 end
 
+"""One-shot height fraction: inner scene viewport / axis block bbox (DataAspect letterboxing)."""
+function _axis_scene_height_relative(
+    fig::CairoMakie.Figure,
+    ax::CairoMakie.Axis,
+)::CairoMakie.Makie.Relative
+    M = CairoMakie.Makie
+    M.update_state_before_display!(fig)
+    vp = ax.scene.viewport[]
+    abb = ax.layoutobservables.computedbbox[]
+    den = Float64(M.height(abb))
+    num = Float64(M.height(vp))
+    if den <= 0 || num <= 0
+        return M.Relative(1.0)
+    end
+    return M.Relative(num / den)
+end
+
 function plot_colorbar!(
     fig::CairoMakie.Figure,
     limits::Tuple{Float64, Float64},
@@ -29,18 +46,46 @@ function plot_colorbar!(
     irow::Int=1,
     icol::Int=2,
     label::String="",
-    vertical::Bool=true
+    vertical::Bool=true,
+    colorplot=nothing,
+    axis_for_height::Union{Nothing, CairoMakie.Axis}=nothing,
 )::Nothing
     @assert irow >= 1 && icol >= 1 "irow and icol must be greater than or equal to 1"
-    CairoMakie.Colorbar(
-        fig[irow, icol], 
-        colormap=color_map, 
-        limits=limits,
-        label=label_pretty_filter(label),
-#        vertical=false,
-        #labelsize=25,
-        #ticklabelsize=15
+    pretty_label = label_pretty_filter(label)
+    # With DataAspect(), match inner plot height. Use a fixed Relative — Observable lifts
+    # cause a layout ↔ colorbar feedback loop (StackOverflowError).
+    height_frac = nothing
+    if axis_for_height !== nothing
+        height_frac = _axis_scene_height_relative(fig, axis_for_height)
+    end
+    if height_frac !== nothing
+        if colorplot !== nothing
+            CairoMakie.Colorbar(
+                fig[irow, icol], colorplot;
+                label=pretty_label,
+                height=height_frac,
+                tellheight=false,
+            )
+        else
+            CairoMakie.Colorbar(
+                fig[irow, icol];
+                colormap=color_map,
+                limits=limits,
+                label=pretty_label,
+                height=height_frac,
+                tellheight=false,
+            )
+        end
+    elseif colorplot === nothing
+        CairoMakie.Colorbar(
+            fig[irow, icol],
+            colormap=color_map,
+            limits=limits,
+            label=pretty_label,
         )
+    else
+        CairoMakie.Colorbar(fig[irow, icol], colorplot; label=pretty_label)
+    end
     return nothing
 end
 

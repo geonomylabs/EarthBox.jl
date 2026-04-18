@@ -159,6 +159,28 @@ function convert_pressure_array_units(
         plot_conversions.unit_conversion_data, units_start, units_end, ebarray2d)
 end
 
+function convert_density_array_units(
+    plot_conversions::PlotConversions,
+    units_start::String,
+    ebarray2d::Matrix{Float64}
+)::Matrix{Float64}
+    units_end = plot_conversions.plot_units.density_units
+    plot_conversions.plot_units.active_units = units_end
+    return perform_matrix_conversion(
+        plot_conversions.unit_conversion_data, units_start, units_end, ebarray2d)
+end
+
+function convert_thermal_conductivity_array_units(
+    plot_conversions::PlotConversions,
+    units_start::String,
+    ebarray2d::Matrix{Float64}
+)::Matrix{Float64}
+    units_end = plot_conversions.plot_units.thermal_conductivity_units
+    plot_conversions.plot_units.active_units = units_end
+    return perform_matrix_conversion(
+        plot_conversions.unit_conversion_data, units_start, units_end, ebarray2d)
+end
+
 function perform_matrix_conversion(
     unit_conversion_data::UnitConversionData,
     units_start::String,

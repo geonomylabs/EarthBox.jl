@@ -204,6 +204,14 @@ function convert_scalar_array_to_plot_units(
         println("scalar_units (pressure): ", scalar_units)
         ebarray2d = PlotConversionManager.convert_pressure_array_units(
             scalar_plot.parameters.conversion, scalar_units, ebarray2d)
+    elseif scalar_plot.scalar_name == scalar_plot.scalar_names.density
+        println("scalar_units (density): ", scalar_units)
+        ebarray2d = PlotConversionManager.convert_density_array_units(
+            scalar_plot.parameters.conversion, scalar_units, ebarray2d)
+    elseif scalar_plot.scalar_name == scalar_plot.scalar_names.thermal_conductivity
+        println("scalar_units (thermal_conductivity): ", scalar_units)
+        ebarray2d = PlotConversionManager.convert_thermal_conductivity_array_units(
+            scalar_plot.parameters.conversion, scalar_units, ebarray2d)
     elseif scalar_plot.scalar_name in stress_names
         println("scalar_units (stress): ", scalar_units)
         ebarray2d = PlotConversionManager.convert_stress_array_units(
@@ -266,7 +274,9 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
     #    eb_heatmap(axes_xy, gridx, gridy, grid_scalar, color_map, scalar_plot, true)
     #catch
         #print_warning("CairoMakie heatmap failed with interpolate=true probably because of irregular grid, trying interpolate=false", level=1)
-    eb_heatmap(axes_xy, gridx, gridy, grid_scalar, color_map, scalar_plot, false)
+    hm_plot = eb_heatmap(
+        axes_xy, gridx, gridy, grid_scalar, color_map, scalar_plot, false
+    )
     #end
 
     grid_plot_type = scalar_plot.parameters.options.grid_plot_type
@@ -298,7 +308,15 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
     )
     active_units = scalar_plot.parameters.conversion.plot_units.active_units
     PlotColorBarManager.plot_colorbar!(
-        fig, get_clims(scalar_plot), color_map, irow=1, icol=2, label=active_units)
+        fig,
+        get_clims(scalar_plot),
+        color_map;
+        irow=1,
+        icol=2,
+        label=active_units,
+        colorplot=hm_plot,
+        axis_for_height=axes_xy,
+    )
 
     units = scalar_plot.parameters.conversion.plot_units.active_units
     extension = scalar_plot.parameters.image.extension
@@ -312,12 +330,12 @@ function eb_heatmap(
     axes_xy, gridx, gridy, grid_scalar, color_map, scalar_plot,
     interpolate::Bool = true
 )
-    CairoMakie.heatmap!(
+    return CairoMakie.heatmap!(
         axes_xy, gridx, gridy, grid_scalar',
         colormap=color_map,
         colorrange=get_clims(scalar_plot),
-        interpolate=interpolate # This does not work with irregular grids
-        )
+        interpolate=interpolate, # This does not work with irregular grids
+    )
 end
 
 function get_grid_scalar(scalar_plot::ScalarPlot)::Matrix{Float64}

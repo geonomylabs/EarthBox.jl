@@ -49,7 +49,8 @@ function setup_xy_plot(parameters::PlotParameters)::Tuple{CairoMakie.Figure, Cai
         figure_padding=5,
         backgroundcolor=:white
         )
-    axes_xy = CairoMakie.Axis(fig[1, 1], yreversed=true, aspect=CairoMakie.DataAspect())
+    ax_aspect = parameters.image.use_data_aspect ? CairoMakie.DataAspect() : nothing
+    axes_xy = CairoMakie.Axis(fig[1, 1], yreversed=true, aspect=ax_aspect)
     return fig, axes_xy
 end
 
