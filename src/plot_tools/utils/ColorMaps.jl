@@ -50,7 +50,7 @@ function make_discontinuous_colormap_from_input_cmap(
         cmap
     end
     # Calculate the number of discrete color steps
-    num_steps = floor(Int, (value_max - value_min) / delta_value) + 1
+    num_steps = floor(Int, (value_max - value_min) / delta_value)
     # Sample colors from the input colormap at regular intervals
     colors = Vector{CairoMakie.RGB{Float64}}()
     for i in 0:(num_steps-1)

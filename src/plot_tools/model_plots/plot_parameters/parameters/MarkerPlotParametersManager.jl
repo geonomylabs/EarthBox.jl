@@ -94,6 +94,7 @@ Base.@kwdef mutable struct MarkerPlotParameters <: AbstractPlotParameterGroup
     meltfrac_cmap::String = "None"
     meltfrac_number_format::String = "%6.2f"
     meltfrac_label_rightside_up::Bool = true
+    use_discontinuous_colormap_meltfrac::Bool = false
     # Marker serpentinization
     plot_serpentinization::Int = 0
     plot_serpentinization_contours::Int = 0
@@ -197,6 +198,7 @@ function MarkerPlotParameters(plot_dict::PlotDictType)::MarkerPlotParameters
         meltfrac_cmap = get(plot_params, "meltfrac_cmap", "None"),
         meltfrac_number_format = get(plot_params, "meltfrac_number_format", "%6.2f"),
         meltfrac_label_rightside_up = get(plot_params, "meltfrac_label_rightside_up", true),
+        use_discontinuous_colormap_meltfrac = get(plot_params, "use_discontinuous_colormap_meltfrac", false),
         plot_serpentinization = get(plot_params, "plot_serpentinization", 0),
         plot_serpentinization_contours = get(plot_params, "plot_serpentinization_contours", 0),
         serpentinization_min = get(plot_params, "serpentinization_min", 0.0),
