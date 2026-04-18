@@ -12,6 +12,8 @@ Base.@kwdef mutable struct PlotUnits <: AbstractPlotParameterGroup
     stress_units::String
     strainrate_units::String
     pressure_units::String
+    density_units::String
+    thermal_conductivity_units::String
 end
 
 function PlotUnits(plot_dict::PlotDictType)
@@ -26,6 +28,8 @@ function PlotUnits(plot_dict::PlotDictType)
         stress_units=get(params, "stress_units", "None"),
         strainrate_units=get(params, "strainrate_units", "None"),
         pressure_units=get(params, "pressure_units", "None"),
+        density_units=get(params, "density_units", "kg/m^3"),
+        thermal_conductivity_units=get(params, "thermal_conductivity_units", "W/m/K"),
     )
 end
 

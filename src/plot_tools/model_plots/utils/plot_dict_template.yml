@@ -7,6 +7,7 @@ general_parameters:
   figure_dpi: [150.0, ' dots per inch for figure']
   figsize: [[6.0 , 4.0], 'Figure size']
   aspect_ratio: [1.0, ' aspect ratio']
+  use_data_aspect: [true, ' if true use DataAspect() on the main axis; if false let the axis fill the figure']
   length_units: ['km', 'Length units used in plot']
   time_units: ['Myr', 'Time units used in plot']
   velocity_units: ['cm/yr', 'Velocity units used in plot']

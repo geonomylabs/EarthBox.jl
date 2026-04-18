@@ -221,7 +221,7 @@ function filter_markers_for_strain_plot(
             strain > plastic_strain_minimum
             && !(mitype in sticky_matids)
             && mitype != sed_matid
-            && mitype != basalt_matid
+            #&& mitype != basalt_matid # include strain in basalt material
             && plastic_failure_flag > 0
         )
             marker_strain_plastic_filtered_tmp[nfilter + 1] = strain
