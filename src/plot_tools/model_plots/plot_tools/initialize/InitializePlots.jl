@@ -7,12 +7,34 @@ import ...PlotParametersManager: PlotParameters
 
 const margin_mm = 5
 
+# Makie: (left, right, bottom, top). Extra top space for upper subplot y-tick labels.
+const FIGURE_PADDING = (12, 12, 12, 28)
+
 function initialize_xy_plot(
     parameters::PlotParameters
 )::Tuple{CairoMakie.Figure, CairoMakie.Axis}
     fig, axes_xy = setup_xy_plot(parameters)
     set_xy_axes!(axes_xy, parameters)
+    apply_layout_column_aspect_for_data_aspect!(fig, parameters)
     return fig, axes_xy
+end
+
+function apply_layout_column_aspect_for_data_aspect!(
+    fig::CairoMakie.Figure,
+    parameters::PlotParameters,
+)::Nothing
+    if !parameters.image.use_data_aspect
+        return nothing
+    end
+    v = parameters.view
+    dx = v.xmax_active - v.xmin_active
+    dy = v.ymax_active - v.ymin_active
+    if dx <= 0 || dy <= 0
+        return nothing
+    end
+    ratio = dx / dy
+    CairoMakie.colsize!(fig.layout, 1, CairoMakie.Aspect(1, Float32(ratio)))
+    return nothing
 end
 
 function initialize_heatflow_composition_plot(
@@ -46,7 +68,7 @@ end
 function setup_xy_plot(parameters::PlotParameters)::Tuple{CairoMakie.Figure, CairoMakie.Axis}
     fig = CairoMakie.Figure(
         size=get_figsize_pixels(parameters),
-        figure_padding=5,
+        figure_padding=FIGURE_PADDING,
         backgroundcolor=:white
         )
     ax_aspect = parameters.image.use_data_aspect ? CairoMakie.DataAspect() : nothing
@@ -71,7 +93,7 @@ function setup_double_stacked_plot(
         height_ratios = [0.25, 0.75]
     end
     height_ratios = normalize_height_ratios(height_ratios)
-    fig = CairoMakie.Figure(size=get_figsize_pixels(parameters), figure_padding=5)
+    fig = CairoMakie.Figure(size=get_figsize_pixels(parameters), figure_padding=FIGURE_PADDING)
     axes_scatter = CairoMakie.Axis(fig[2, 1], yreversed=true)
     axes_curve = CairoMakie.Axis(fig[1, 1], yreversed=false)
     fig.layout.rowsizes[1] = CairoMakie.Relative(height_ratios[1])
@@ -96,7 +118,7 @@ function setup_triple_stacked_plot(
         height_ratios = [0.25, 0.25, 0.5]
     end
     height_ratios = normalize_height_ratios(height_ratios)
-    fig = CairoMakie.Figure(size=get_figsize_pixels(parameters), figure_padding=5)
+    fig = CairoMakie.Figure(size=get_figsize_pixels(parameters), figure_padding=FIGURE_PADDING)
     axes_scatter = CairoMakie.Axis(fig[3, 1], yreversed=true)
     axes_curve1 = CairoMakie.Axis(fig[2, 1], yreversed=false)
     axes_curve2 = CairoMakie.Axis(fig[1, 1], yreversed=false)

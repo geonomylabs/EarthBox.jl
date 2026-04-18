@@ -329,7 +329,11 @@ function make_color_map_comp(materials::Materials)::Tuple{Any, Int64}
         push!(colors, CairoMakie.RGB(1.0, 1.0, 1.0))
         n_bin += 1
     end
-    
+
+    # Reverse so colorbar order matches make_custom_labels (high matid first); use
+    # composition plot color index remap n_bin + 1 - matid when sampling this map.
+    reverse!(colors)
+
     cm = CairoMakie.cgrad(colors; categorical = true)
     return cm, n_bin
 end
@@ -345,6 +349,7 @@ function make_custom_labels(materials::Materials)::Vector{String}
     else
         matids = sort([matid for matid in keys(materials_dict)])
     end
+    reverse!(matids)
     custom_labels = String[]
     for matid in matids
         # Convert matid back to a string since this is the expected type
@@ -358,8 +363,8 @@ function make_custom_labels(materials::Materials)::Vector{String}
         mat_type = add_spaces_in_front_of_capitals(mat_type)
         mat_domain = params["mat_domain"]
         mat_domain = add_spaces_in_front_of_capitals(mat_domain)
-        spacer = get_spacer(matid)
-        label = "$matid: $mat_name \n$spacer($mat_type : $mat_domain)"
+        #spacer = get_spacer(matid)
+        label = "$matid: $mat_name ($mat_type)"
         push!(custom_labels, label)
     end
     return custom_labels

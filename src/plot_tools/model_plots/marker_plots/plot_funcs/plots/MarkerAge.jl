@@ -3,8 +3,7 @@ module MarkerAge
 import EarthBox.Markers.MarkerMaterials.MaterialsContainer: Materials
 import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_sediment_material_id
 import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_solidified_basalt_material_id
-import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_solidified_layered_gabbro_material_id
-import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_solidified_gabbro_material_id
+import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_gabbro_ids_array
 import ...PlotMarkerArraysManager: PlotMarkerArrays
 import ...Ticks: get_colorbar_ticks_general
 import ....PlotParametersManager: PlotParameters
@@ -145,9 +144,7 @@ function plot_filtered_intrusive_age(
 
     contour_interval = parameters.marker_plot_params.age_contour_interval_intrusive
 
-    matids_to_keep = Vector{Int16}(undef, 2)
-    matids_to_keep[1] = get_solidified_layered_gabbro_material_id(materials)
-    matids_to_keep[2] = get_solidified_gabbro_material_id(materials)
+    matids_to_keep = get_gabbro_ids_array(materials)
 
     if use_alternating_colormap_intrusive
         custom_cmap = make_alternating_colormap(

@@ -51,7 +51,9 @@ function make_color_map_comp(materials::Materials)::Tuple{Any, Int64}
         push!(colors, CairoMakie.RGB(1.0, 1.0, 1.0))
         n_bin += 1
     end
-    
+
+    reverse!(colors)
+
     cm = CairoMakie.cgrad(colors; categorical = true)
     return cm, n_bin
 end

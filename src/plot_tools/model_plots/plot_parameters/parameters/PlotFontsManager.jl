@@ -2,6 +2,13 @@ module PlotFontsManager
 
 import ...PlotDtypes: PlotDictType, AbstractPlotParameterGroup
 
+"""
+    PlotFonts
+
+Font sizes for plot text. Axis-related fields: `axis_title_fontsize` sets x/y axis label text
+size (Makie `xlabelsize` / `ylabelsize`); `axis_ticks_fontsize` sets numeric tick label size;
+`axis_labels_fontsize` is stored for API compatibility but is not applied anywhere yet.
+"""
 Base.@kwdef mutable struct PlotFonts <: AbstractPlotParameterGroup
     title_fontsize::Int = 12
     axis_title_fontsize::Int = 10

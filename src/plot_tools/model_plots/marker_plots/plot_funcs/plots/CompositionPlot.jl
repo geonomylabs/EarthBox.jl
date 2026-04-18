@@ -2,11 +2,9 @@ module CompositionPlot
 
 import EarthBox.Markers.MarkerMaterials.MaterialsContainer: Materials
 import EarthBox.Markers.MarkerMaterials.MaterialsContainer: make_custom_labels
-import EarthBox.Markers.MarkerMaterials.MaterialsContainer: make_color_map_comp
 import EarthBox.MaterialColorsContainer: get_colorbar_ticks_for_material_colors
 import ...PlotMarkerArraysManager: PlotMarkerArrays
 import ...MarkerColormapManager: MarkerColorMap
-import ...Get: get_color_bar_axis_fractions
 import ...Get: get_marker_coordinates
 import ....PlotParametersManager: PlotParameters
 import ....PlotParametersManager: update_plot_counter!
@@ -24,13 +22,14 @@ function plot_composition(
 )::Nothing
     println(">> Plotting composition")
     x_array_km, y_array_km = get_marker_coordinates(marker_arrays)
-    color_array = copy(marker_arrays.marker_matid)
+    n_bin = colormap.n_bin
+    # Reversed categorical colormap: map matid so each material keeps its RGB after reverse!.
+    color_array = Float64(n_bin) .+ 1.0 .- copy(marker_arrays.marker_matid)
 
     marker_size = parameters.marker_plot_params.marker_size
     color_map = colormap.cm
     decimation_factor = parameters.marker_plot_params.decimation_factor
 
-    n_bin = colormap.n_bin
     ticks = get_colorbar_ticks_for_material_colors(n_bin)
 
     min_value = 1.0 - 0.5
