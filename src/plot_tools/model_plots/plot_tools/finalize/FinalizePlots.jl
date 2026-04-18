@@ -39,7 +39,7 @@ function make_title_string(
     if isnothing(units)
         units = ""
     end
-    return Printf.@sprintf("%s %s : %10.4f %s", base_name, units, plot_time, plot_time_units)
+    return Printf.@sprintf("%10.4f %s", plot_time, plot_time_units)
 end
 
 function save_figure(

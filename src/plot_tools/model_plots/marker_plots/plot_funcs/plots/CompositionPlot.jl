@@ -13,6 +13,32 @@ import ....PlotParametersManager.PlotViewManager: get_active_dimensions
 import ....PlotDtypes: AxesType
 import .....Scatter: plot_scatter
 
+const REDUNDANT_MAT_TYPE_PHRASES = [
+    "Sticky Air",
+    "Sticky Water",
+    "Sediment",
+    "Felsic Continental Crust",
+    "Mafic Continental Crust",
+    "Ultramafic Mantle",
+    "Layered Gabbro",
+]
+
+function filter_redundant_type_from_labels(labels::Vector{String})::Vector{String}
+    return map(labels) do label
+        m = match(r"^(.*) \((.+)\)$", label)
+        if isnothing(m)
+            return label
+        end
+        mat_part = String(m.captures[1])
+        type_part = String(m.captures[2])
+        for phrase in REDUNDANT_MAT_TYPE_PHRASES
+            type_part = replace(type_part, phrase => "")
+        end
+        type_part = strip(replace(type_part, r" +" => " "))
+        isempty(type_part) ? mat_part : "$mat_part ($type_part)"
+    end
+end
+
 function plot_composition(
     parameters::PlotParameters,
     marker_arrays::PlotMarkerArrays,
@@ -39,9 +65,33 @@ function plot_composition(
 
     custom_labels = make_custom_labels(materials)
 
+    custom_labels = filter_redundant_type_from_labels(custom_labels)
+
+    if !parameters.marker_plot_params.show_composition_matid_labels
+        custom_labels = [String(split(label, ": ", limit=2)[end]) for label in custom_labels]
+    end
+
+    hidden_matids = parameters.marker_plot_params.hidden_composition_matids
+    hidden_colorbar_bins = nothing
+    if !isnothing(hidden_matids)
+        indices_to_remove = Set{Int}()
+        for m in hidden_matids
+            tick_pos = Float64(n_bin + 1 - m)
+            idx = findfirst(t -> t == tick_pos, ticks)
+            if !isnothing(idx)
+                push!(indices_to_remove, idx)
+            end
+        end
+        keep = [i for i in 1:length(ticks) if i ∉ indices_to_remove]
+        custom_labels = custom_labels[keep]
+        hidden_colorbar_bins = [n_bin + 1 - m for m in hidden_matids if 1 <= m <= n_bin]
+        n_visible = length(keep)
+        ticks = collect(1.0:Float64(n_visible))
+    end
+
     colorbar_labels_fontsize = parameters.fonts.colorbar_labels_fontsize
     colorbar_ticks_fontsize = parameters.fonts.colorbar_ticks_fontsize
-    
+
     plot_scatter(
         axes,
         color_map,
@@ -55,6 +105,7 @@ function plot_composition(
         label="Material ID",
         order_number=order_number,
         custom_labels=custom_labels,
+        hidden_colorbar_bins=hidden_colorbar_bins,
         colorbar_labels_fontsize=colorbar_labels_fontsize,
         colorbar_ticks_fontsize=colorbar_ticks_fontsize,
         decimation_factor=decimation_factor,

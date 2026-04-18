@@ -202,6 +202,7 @@ marker_plot:
   meltfrac_number_format : ['%6.1f', ' Format of melt fraction contour labels.']
   meltfrac_label_rightside_up : [True, ' True = labels are right side up; False = labels can be upside down']
   use_discontinuous_colormap_meltfrac : [False, ' True = use discontinuous colormap for melt fraction plot']
+  plot_meltfrac_for_gabbro : [False, ' True = include partially molten gabbroic materials in melt fraction plot']
   # Marker serpentinization plot parameters
   plot_serpentinization : [False, ' Plot marker serpentinization ratio.']
   plot_serpentinization_contours : [False, ' Whether to plot serpentinization contours.']
@@ -239,3 +240,5 @@ marker_plot:
   # Subplot parameters
   height_ratios: [[0.25, 0.25, 0.75], ' Height ratios for subplots.']
   subplot_spacing_fraction: [0.4, ' Spacing between subplots as a fraction of the average height of subplots.']
+  show_composition_matid_labels: [True, ' Show material ID prefix in composition colorbar labels.']
+  colorbar_label_rotation: [-1.5708, ' Rotation of non-composition colorbar labels in radians (default: -pi/2).']

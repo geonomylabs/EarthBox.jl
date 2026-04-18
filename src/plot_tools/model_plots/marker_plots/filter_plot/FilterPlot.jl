@@ -236,6 +236,7 @@ function make_filter_plots(
             color_bar_ticks,
             label=filter_plot_data.label,
             custom_cmap=filter_plot_data.custom_cmap,
+            colorbar_label_rotation=parameters.marker_plot_params.colorbar_label_rotation,
             order_number=order_number,
             colorbar_labels_fontsize=colorbar_labels_fontsize,
             colorbar_ticks_fontsize=colorbar_ticks_fontsize,

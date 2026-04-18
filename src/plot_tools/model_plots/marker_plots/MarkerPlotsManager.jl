@@ -198,6 +198,9 @@ function get_keyword_arguments_string()::String
 - `age_max_intrusive::Float64`: Maximum intrusive age in Myr value (default: 10.0)
 - `age_contour_interval_intrusive::Float64`: Interval for intrusive age contours in Myr (default: 1.0)
 
+## Composition Colorbar Parameters
+- `hidden_composition_matids::Vector{Int}`: Material IDs to hide from the composition colorbar (default: nothing). Example: [13, 14, 16]
+
 ## Melt Fraction Plot Parameters (only for mantle melting)
 - `plot_meltfrac::Bool`: Plot marker melt fraction (default: false)
 - `plot_meltfrac_contours::Bool`: Plot melt fraction contours (default: false)
@@ -328,9 +331,15 @@ $(get_keyword_arguments_string())
 
 """
 function set_parameters!(marker_plots::MarkerPlots; kwargs...)::Nothing
-    update_plot_dict!("marker_plot", marker_plots.parameters.plot_dict; kwargs...)
+    kwargs_dict = Dict{Symbol, Any}(kwargs)
+    if haskey(kwargs_dict, :hidden_composition_matids)
+        marker_plots.parameters.marker_plot_params.hidden_composition_matids =
+            kwargs_dict[:hidden_composition_matids]
+        delete!(kwargs_dict, :hidden_composition_matids)
+    end
+    update_plot_dict!("marker_plot", marker_plots.parameters.plot_dict; kwargs_dict...)
     set_parameter_group_attributes!(
-        marker_plots.parameters.marker_plot_params, 
+        marker_plots.parameters.marker_plot_params,
         marker_plots.parameters.plot_dict["marker_plot"]
         )
 end
