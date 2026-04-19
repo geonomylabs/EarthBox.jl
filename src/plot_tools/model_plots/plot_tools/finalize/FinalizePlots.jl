@@ -44,15 +44,16 @@ end
 
 function save_figure(
     fig::CairoMakie.Figure,
-    parameters::PlotParameters, 
-    base_name::String; 
+    parameters::PlotParameters,
+    base_name::String;
     extension::String=".png"
 )::Nothing
     plot_name = get_plot_name(parameters, base_name; extension=extension)
-    
-    # This is where most of the time is being spent!
     CairoMakie.save(plot_name, fig)
-
+    if parameters.image.make_pdf
+        pdf_name = get_plot_name(parameters, base_name; extension=".pdf")
+        CairoMakie.save(pdf_name, fig)
+    end
     return nothing
 end
 

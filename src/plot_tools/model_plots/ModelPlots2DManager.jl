@@ -106,6 +106,8 @@ function get_general_plotting_keyword_args_string()::String
     - Font size for text box
 - `extension::String`:
     - Extension for plots (e.g. ".png", ".pdf")
+- `make_pdf::Bool`:
+    - If true, also save a .pdf version of each plot alongside the primary format
 """
 end
 
@@ -302,6 +304,7 @@ function get_model_plots_2d(;
         colorbar_labels_fontsize   = get(kwargs, :colorbar_labels_fontsize, 8),
         text_box_font_size         = get(kwargs, :text_box_font_size, 8),
         extension                  = get(kwargs, :extension, ".png"),
+        make_pdf                   = get(kwargs, :make_pdf, false),
     )
 end
 

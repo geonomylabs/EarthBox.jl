@@ -38,6 +38,7 @@ general_parameters:
   colorbar_labels_fontsize: [6, ' font size for colorbar labels']
   text_box_font_size: [6, ' font size for text box']
   extension: ['.png', ' file extension controlling the format of the output file']
+  make_pdf: [False, ' if True, also save a .pdf version of each plot']
 thermal_conductivity_plot:
   iplot: [0, ' 0 = off; 1 = plot temperature (C)']
   contour_interval: [1.0, ' contour internal']
