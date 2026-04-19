@@ -8,6 +8,7 @@ Base.@kwdef mutable struct ImageProps <: AbstractPlotParameterGroup
     figure_dpi::Float64 = 150.0
     figsize::Tuple{Float64, Float64} = (5.0, 5.0)
     extension::String = ".png"
+    make_pdf::Bool = false
     use_data_aspect::Bool = false
 end
 
@@ -18,6 +19,7 @@ function ImageProps(plot_dict::PlotDictType)::ImageProps
         figure_dpi = get(plot_params, "figure_dpi", 150.0),
         figsize = get(plot_params, "figsize", (5.0, 5.0)),
         extension = get(plot_params, "extension", ".png"),
+        make_pdf = get(plot_params, "make_pdf", false),
         use_data_aspect = get(plot_params, "use_data_aspect", false),
     )
 end
