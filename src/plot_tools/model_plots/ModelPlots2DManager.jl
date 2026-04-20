@@ -108,6 +108,10 @@ function get_general_plotting_keyword_args_string()::String
     - Extension for plots (e.g. ".png", ".pdf")
 - `make_pdf::Bool`:
     - If true, also save a .pdf version of each plot alongside the primary format
+- `stflag::String`:
+    - String flag inserted in the plot file name before the time step number.
+      E.g. `stflag="zoomin"` turns `marker_composition_17.png` into
+      `marker_composition_zoomin_17.png`. Omit or pass `""` for no flag.
 """
 end
 
@@ -305,6 +309,7 @@ function get_model_plots_2d(;
         text_box_font_size         = get(kwargs, :text_box_font_size, 8),
         extension                  = get(kwargs, :extension, ".png"),
         make_pdf                   = get(kwargs, :make_pdf, false),
+        stflag                     = get(kwargs, :stflag, ""),
     )
 end
 

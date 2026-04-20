@@ -10,6 +10,7 @@ Base.@kwdef mutable struct ImageProps <: AbstractPlotParameterGroup
     extension::String = ".png"
     make_pdf::Bool = false
     use_data_aspect::Bool = false
+    stflag::String = ""
 end
 
 function ImageProps(plot_dict::PlotDictType)::ImageProps
@@ -21,6 +22,7 @@ function ImageProps(plot_dict::PlotDictType)::ImageProps
         extension = get(plot_params, "extension", ".png"),
         make_pdf = get(plot_params, "make_pdf", false),
         use_data_aspect = get(plot_params, "use_data_aspect", false),
+        stflag = get(plot_params, "stflag", ""),
     )
 end
 

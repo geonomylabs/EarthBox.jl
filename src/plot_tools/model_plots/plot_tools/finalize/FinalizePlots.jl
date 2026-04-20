@@ -64,7 +64,9 @@ function get_plot_name(
 )::String
     ioutput = parameters.time.ioutput
     outpath = check_output_direc(parameters)
-    plotname = joinpath(outpath, base_name * "_" * string(ioutput) * extension)
+    stflag = parameters.image.stflag
+    suffix = isempty(stflag) ? string(ioutput) : stflag * "_" * string(ioutput)
+    plotname = joinpath(outpath, base_name * "_" * suffix * extension)
     return plotname
 end
 

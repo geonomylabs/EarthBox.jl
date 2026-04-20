@@ -34,6 +34,10 @@ scripts in sequence.
     - Path to the root output directory from the script executing the action. 
        This will be overridden by the root output directory specified via command 
        line arguments.
+- `root_path_storage_from_script::Union{String, Nothing} = nothing`
+    - Path to the root storage directory from the script executing the action.
+       If provided this will be used for searching for output files for plotting 
+       instead of the model output path.
 
 # Command Line Arguments
 - `case_name=<case_name>`
@@ -99,15 +103,28 @@ If a case name is not specified, the default case name is "case0".
 function run_earthbox(;
     model_dir::String,
     eb_project_path_from_script::Union{String, Nothing} = nothing,
-    root_path_output_from_script::Union{String, Nothing} = nothing
+    root_path_output_from_script::Union{String, Nothing} = nothing,
+    root_path_storage_from_script::Union{String, Nothing} = nothing
 )::Nothing
     model_case_name = get_case_name_from_cl_args()
+
     root_path_output = manage_root_path_output(root_path_output_from_script)
     model_output_path = GetPaths.get_model_output_path(model_case_name, root_path_output)
+    
+    if isnothing(root_path_storage_from_script)
+        model_storage_path = nothing
+    else
+        model_storage_path = GetPaths.get_storage_path(
+            model_case_name, root_path_storage_from_script)
+    end
+
     eb_path = manage_earthbox_project_path(eb_project_path_from_script)
+
     run_model, plot_markers, plot_scalars = get_runit_actions_from_cl_args()
     check_paths(eb_path, model_dir)
+    
     istart, iend = define_istart_and_iend()
+    
     print_info(
         model_case_name, eb_path, run_model, plot_markers, 
         plot_scalars, istart, iend
@@ -123,6 +140,7 @@ function run_earthbox(;
             model_output_path  = model_output_path
         )
     end
+    model_output_path_for_plotting = model_storage_path !== nothing ? model_storage_path : model_output_path
     if plot_scalars
         println(">> Plotting scalars...")
         command_type = "scalar_plots"
@@ -134,7 +152,7 @@ function run_earthbox(;
             model_case_name   = model_case_name,
             istart            = istart,
             iend              = iend,
-            model_output_path = model_output_path
+            model_output_path = model_output_path_for_plotting
         )
     end
     if plot_markers
@@ -148,7 +166,7 @@ function run_earthbox(;
             model_case_name   = model_case_name,
             istart            = istart,
             iend              = iend,
-            model_output_path = model_output_path
+            model_output_path = model_output_path_for_plotting
         )
     end
     return nothing
