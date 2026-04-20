@@ -135,7 +135,7 @@ function copy_solution_array_to_model_data_structure!(
     model::ModelData,
     S::Vector{Float64}
 )::Nothing
-    model.stokes_continuity.arrays.stokes_solution.soluv1.array = copy(S)
+    copy!(model.stokes_continuity.arrays.stokes_solution.soluv1.array, S)
     return nothing
 end
 
@@ -282,11 +282,11 @@ function backup_stokes_arrays!(model::ModelData)::Nothing
     pr_arrays = model.stokes_continuity.arrays.pressure
     velsolu_arrays = model.stokes_continuity.arrays.velocity_solution
 
-    solu_arrays.soluv1_old.array = copy(solu_arrays.soluv1.array)
-    sgvel_arrays.vx1_old.array = copy(sgvel_arrays.vx1.array)
-    sgvel_arrays.vy1_old.array = copy(sgvel_arrays.vy1.array)
-    pr_arrays.pr1_old.array = copy(pr_arrays.pr1.array)
-    velsolu_arrays.vxy_old.array = copy(velsolu_arrays.vxy.array)
+    copy!(solu_arrays.soluv1_old.array, solu_arrays.soluv1.array)
+    copy!(sgvel_arrays.vx1_old.array,   sgvel_arrays.vx1.array)
+    copy!(sgvel_arrays.vy1_old.array,   sgvel_arrays.vy1.array)
+    copy!(pr_arrays.pr1_old.array,      pr_arrays.pr1.array)
+    copy!(velsolu_arrays.vxy_old.array, velsolu_arrays.vxy.array)
     return nothing
 end
 
