@@ -39,6 +39,7 @@ general_parameters:
   text_box_font_size: [6, ' font size for text box']
   extension: ['.png', ' file extension controlling the format of the output file']
   make_pdf: [False, ' if True, also save a .pdf version of each plot']
+  stflag: ['', ' string flag appended to plot file name before the time step number']
 thermal_conductivity_plot:
   iplot: [0, ' 0 = off; 1 = plot temperature (C)']
   contour_interval: [1.0, ' contour internal']
