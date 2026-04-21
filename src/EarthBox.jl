@@ -827,8 +827,9 @@ function run_time_steps(
                 displ_limit=get(kwargs, :displ_limit, nothing),
                 strain_limit=get(kwargs, :strain_limit, nothing),
                 number_of_transport_timesteps_per_model_timestep=get(
-                    kwargs, :number_of_transport_timesteps_per_model_timestep, 5)
-                )
+                    kwargs, :number_of_transport_timesteps_per_model_timestep, 5),
+                iuse_fixed_output_counter=get(kwargs, :iuse_fixed_output_counter, nothing)
+            )
         end
         ModelManager.print_model_info(earthbox.model_manager)
         ModelManager.export_array_and_parameter_info(earthbox.model_manager)
