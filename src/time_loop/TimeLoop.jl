@@ -44,6 +44,7 @@ struct ValidInputNames
     displ_limit::Symbol
     strain_limit::Symbol
     number_of_transport_timesteps_per_model_timestep::Symbol
+    iuse_fixed_output_counter::Symbol
 end
 
 """ Initialize time loop
@@ -73,6 +74,8 @@ end
     - $(PDATA.strain_limit.description)
 - `$(PDATA.number_of_transport_timesteps_per_model_timestep.name)::Union{Int, Nothing}`
     - $(PDATA.number_of_transport_timesteps_per_model_timestep.description)
+- `$(PDATA.iuse_fixed_output_counter.name)::Union{Int, Nothing}`
+    - $(PDATA.iuse_fixed_output_counter.description)
 """
 function initialize!(
     model::ModelData;
@@ -84,6 +87,7 @@ function initialize!(
         model, get(kwargs, :number_of_transport_timesteps_per_model_timestep, 5))
     update_model_time_step!(model)
     update_nskip!(model)
+    make_sure_output_timestep_is_larger_than_ve_timestep!(model)
     return nothing
 end
 
@@ -93,6 +97,15 @@ function update_nskip!(model::ModelData)::Nothing
     timestep_viscoelastic = timestep_params.main_time_loop.timestep_viscoelastic.value
     nskip = floor(Int, timestep_out/timestep_viscoelastic)
     set_parameter!(model, "nskip", nskip)
+    return nothing
+end
+
+function make_sure_output_timestep_is_larger_than_ve_timestep!(model::ModelData)::Nothing
+    timestep_out = model.timestep.parameters.output_steps.timestep_out.value
+    timestep_viscoelastic = model.timestep.parameters.main_time_loop.timestep_viscoelastic.value
+    if timestep_out < timestep_viscoelastic
+        error("Output timestep is smaller than viscoelastic timestep. This is not allowed.")
+    end
     return nothing
 end
 
@@ -255,8 +268,13 @@ end
 function manage_model_output!(
     model_manager::ModelManagerState
 )::Nothing
+    iuse_fixed_output_counter = model_manager.model.timestep.parameters.output_steps.iuse_fixed_output_counter.value
     @timeit_memit "Finished managing model output" begin
-        ModelManager.manage_model_output(model_manager)
+        if iuse_fixed_output_counter == 1
+            ModelManager.manage_model_output(model_manager)
+        else
+            ModelManager.manage_model_output_using_total_model_time(model_manager)
+        end
     end
     # ModelManager.ModelPlots2dManager.manage_loop_plots!(model_manager.model) # TODO: Add this
     return nothing

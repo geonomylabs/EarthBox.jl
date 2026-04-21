@@ -26,6 +26,8 @@ Parameter group for output step configuration.
 - `nskip::`[`ParameterInt`](@ref): $(PDATA.nskip.description)
 - `icount_output::`[`ParameterInt`](@ref): $(PDATA.icount_output.description)
 - `noutput::`[`ParameterInt`](@ref): $(PDATA.noutput.description)
+- `time_of_next_output_myr::`[`ParameterFloat`](@ref): $(PDATA.time_of_next_output_myr.description)
+- `iuse_fixed_output_counter::`[`ParameterInt`](@ref): $(PDATA.iuse_fixed_output_counter.description)
 - `obj_list::Vector{Union{ParameterFloat, ParameterInt}}`: List of numerical parameter objects
 
 # Nested Dot Access
@@ -33,6 +35,8 @@ Parameter group for output step configuration.
 - `nskip = $(ROOT_NAME).$(GRP_NAME).nskip.value`
 - `icount_output = $(ROOT_NAME).$(GRP_NAME).icount_output.value`
 - `noutput = $(ROOT_NAME).$(GRP_NAME).noutput.value`
+- `time_of_next_output_myr = $(ROOT_NAME).$(GRP_NAME).time_of_next_output_myr.value`
+- `iuse_fixed_output_counter = $(ROOT_NAME).$(GRP_NAME).iuse_fixed_output_counter.value`
 
 # Constructor
     OutputSteps()
@@ -45,6 +49,8 @@ mutable struct OutputSteps <: AbstractParameterGroup
     nskip::ParameterInt
     icount_output::ParameterInt
     noutput::ParameterInt
+    time_of_next_output_myr::ParameterFloat
+    iuse_fixed_output_counter::ParameterInt
     obj_list::Vector{Union{ParameterFloat, ParameterInt}}
 end
 
@@ -55,6 +61,8 @@ function OutputSteps()::OutputSteps
         pdata.nskip,
         pdata.icount_output,
         pdata.noutput,
+        pdata.time_of_next_output_myr,
+        pdata.iuse_fixed_output_counter,
         Union{ParameterFloat, ParameterInt}[] # obj_list
     )
     data.obj_list = get_numerical_parameter_object_list(data)

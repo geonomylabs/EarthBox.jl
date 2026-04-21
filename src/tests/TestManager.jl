@@ -5,6 +5,8 @@ Exported Test Modules:
 - SedimentTransportTest
 - LavaFlowTestSingle
 - LavaFlowTestMultiple
+- LavaFlowTestSteep
+- LavaFlowTestMultipleSteep
 - MarkerCompactionTest
 - MagmaBodyTest
 - MeltDrainageDividesTest
@@ -39,6 +41,8 @@ module TestManager
 include("tests/surface_processes/sediment_transport/SedimentTransportTest.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestSingle.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestMultiple.jl")
+include("tests/surface_processes/lava_flow/LavaFlowTestSteep.jl")
+include("tests/surface_processes/lava_flow/LavaFlowTestMultipleSteep.jl")
 include("tests/compaction/marker_compaction/MarkerCompactionTest.jl")
 include("tests/melt_model/extraction/MagmaBodyTest.jl")
 include("tests/melt_model/divides/MeltDrainageDividesTest.jl")
@@ -57,14 +61,14 @@ include("tests/plot_tools/ScatterTest.jl")
 include("tests/gravity/TestCellGravity.jl")
 include("tests/gravity/TestGridGravity.jl")
 
-import .SedimentTransportTest, .LavaFlowTestSingle, .LavaFlowTestMultiple
+import .SedimentTransportTest, .LavaFlowTestSingle, .LavaFlowTestMultiple, .LavaFlowTestSteep, .LavaFlowTestMultipleSteep
 import .MarkerCompactionTest, .MagmaBodyTest, .MeltDrainageDividesTest
 import .MeltDamageTest, .GabbroSolidusLiquidusTest, .PeridotiteSolidusLiquidusTest
 import .ConductivityTest, .HeatCapacityTest, .SerpentinizationTest
 import .BaseLevelTest, .LatentHeatTest, .HalfSpaceCoolingTest
 import .BisectionInterpTest, .CompactionTest, .TestGridGravity, .TestCellGravity
 
-export SedimentTransportTest, LavaFlowTestSingle, LavaFlowTestMultiple
+export SedimentTransportTest, LavaFlowTestSingle, LavaFlowTestMultiple, LavaFlowTestSteep, LavaFlowTestMultipleSteep
 export MarkerCompactionTest, MagmaBodyTest, MeltDrainageDividesTest
 export MeltDamageTest, GabbroSolidusLiquidusTest, PeridotiteSolidusLiquidusTest
 export ConductivityTest, HeatCapacityTest, SerpentinizationTest

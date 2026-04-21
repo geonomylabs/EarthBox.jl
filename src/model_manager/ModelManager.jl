@@ -343,6 +343,42 @@ function manage_model_output(manager::ModelManagerState)
     end
 end
 
+function manage_model_output_using_total_model_time(manager::ModelManagerState)::Nothing
+    make_files = manager.config.output.general["make_files"]
+    timesum = manager.model.timestep.parameters.main_time_loop.timesum.value
+    sec_per_myr = manager.model.conversion.parameters.sec_per_Myr.value
+    timesum_myr = timesum / sec_per_myr
+    time_of_next_output_myr = manager.model.timestep.parameters.output_steps.time_of_next_output_myr.value
+    if make_files && (iszero(timesum) || timesum_myr >= time_of_next_output_myr)
+        update_output_controls!(manager)
+        XdmfTimeStepsManager.export_xdmf(
+            manager.xdmf_time_steps, manager.model, 
+            manager.output_lists, manager.config.output
+        )
+        if manager.make_backup
+            BackupManager.MakeBackup.make_backup_jld2(
+                manager.model.obj_dict, manager.paths["output_dir"])
+        end
+    end
+    return nothing
+end
+
+function update_output_controls!(manager::ModelManagerState)::Nothing
+    output_step_params = manager.model.timestep.parameters.output_steps
+    sec_per_myr = manager.model.conversion.parameters.sec_per_Myr.value
+    timestep_out_myr = output_step_params.timestep_out.value/sec_per_myr
+    
+    output_step_params.noutput.value += 1
+    noutput_current = output_step_params.noutput.value
+
+    output_step_params.time_of_next_output_myr.value = noutput_current * timestep_out_myr
+
+    time_of_next_output_myr = round(output_step_params.time_of_next_output_myr.value; digits=5)
+    print_info("Output file counter: $(noutput_current)", level=2)
+    print_info("Time of next output: $(time_of_next_output_myr) Myr", level=2)
+    return nothing
+end
+
 function get_loop_input_struct(
     model_manager::ModelManagerState
 )::LoopInput

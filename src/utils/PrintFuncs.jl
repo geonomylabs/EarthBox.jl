@@ -12,7 +12,7 @@ Base.@kwdef mutable struct Settings
     print_earthbox_error::Bool = false
     print_case_info::Bool = false
     print_flow_info::Bool = false
-    print_melt_extraction_info::Bool = true
+    print_melt_extraction_info::Bool = false
 end
 
 const PRINT_SETTINGS = Settings()

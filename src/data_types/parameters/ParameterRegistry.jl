@@ -1552,8 +1552,8 @@ function get_timestep_parameters()::NamedTuple
             "Time step number at which to increase the timestep. This is only used if "
             *"`iuse_single_timestep_increase` is 1"
             ),
-
-        # Timestep - Main time loop parameters
+        ntime_output = ParameterInt(
+            100, "ntime_output", "None", "Time step number at which to output the model"),
         model_duration_myr = ParameterFloat(
             0.0, "model_duration_myr", "Myr", 
             "Model duration in Myr used to estimate the maximum number of time steps for extensional "
@@ -1640,16 +1640,26 @@ function get_timestep_parameters()::NamedTuple
         nskip = ParameterInt(
             0, "nskip", "None", 
             "Number of time steps to skip before output is generated. This is calculated as "
-            *"`floor(Int, timestep_out/timestep_viscoelastic)`"
+            *"`floor(Int, timestep_out/timestep_viscoelastic)` and is only used if `iuse_fixed_output_counter` is 1."
             ),
         icount_output = ParameterInt(
             0, "icount_output", "None", 
-            "Output loop counter used to track time steps between outputs. An output event is triggered "
-            *"when this counter is equal to nskip, which involves setting the output counter to zero. "
-            *"This counter is incremented by one at the end of each time step"
+            "Output loop counter used to track time steps between outputs if `iuse_fixed_output_counter` is 1, "
+            *"An output event is triggered when this counter is equal to nskip, which involves setting the output counter to zero. "
+            *"This counter is incremented by one at the end of each time step."
             ),
         noutput = ParameterInt(
             0, "noutput", "None", "Number of outputs generated during a model run"),
+        time_of_next_output_myr = ParameterFloat(
+            0.0, "time_of_next_output_myr", "Myr", "Time of next output in Myr"),
+        # Timestep - Main time loop parameters
+        iuse_fixed_output_counter = ParameterInt(
+            1, "iuse_fixed_output_counter", "None", 
+            "Flag to use fixed output counter: 0 = off; 1 = on. When active, the model will output "
+            *"at a fixed number of time steps based on an initial estimate at the start of the simulation."
+            *"If set to 0, then the model will output once total model time (timesum) reaches the next output time based"
+            *"on the output time step."
+            ),
 
         )
 end

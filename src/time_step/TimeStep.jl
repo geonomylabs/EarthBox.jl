@@ -15,7 +15,15 @@ import .PrintTimeStep
 function initialize!(model::ModelData, ntimestep::Int)
     reset_model_time_step_to_viscoelastic_time_step!(model)
     update_time_loop_counter!(model, ntimestep)
-    check_and_reset_output_counters!(model)
+    
+    # We only need to check and reset output counters if using fixed output counter.
+    # If not using fixed output counter, then we will update noutput using the
+    # manage_model_output_using_total_model_time() function in ModelManager.jl
+    iuse_fixed_output_counter = model.timestep.parameters.output_steps.iuse_fixed_output_counter.value
+    if iuse_fixed_output_counter == 1
+        check_and_reset_output_counters!(model)
+    end
+
     print_info(model)
 end
 
@@ -64,7 +72,13 @@ function check_and_reset_output_counters!(model::ModelData)
 end
 
 function update_output_counter!(model::ModelData)
-    model.timestep.parameters.output_steps.icount_output.value += 1
+    # Only update output counter if using fixed output counter.
+    # If not using fixed output counter, then we will update noutput and icount_output using the
+    # manage_model_output_using_total_model_time() function in ModelManager.jl
+    iuse_fixed_output_counter = model.timestep.parameters.output_steps.iuse_fixed_output_counter.value
+    if iuse_fixed_output_counter == 1
+        model.timestep.parameters.output_steps.icount_output.value += 1
+    end
 end
 
 function get_maximum_number_of_time_steps(model::ModelData)::Int
@@ -83,37 +97,31 @@ function print_info(model::ModelData)
     timesum = model.timestep.parameters.main_time_loop.timesum.value
     timestep = model.timestep.parameters.main_time_loop.timestep.value
     sec_per_myr = model.conversion.parameters.sec_per_Myr.value
-    timesum_myr = timesum/sec_per_myr
-    timestep_myr = timestep/sec_per_myr
+    timesum_myr = round(timesum/sec_per_myr; digits=5)
+    timestep_myr = round(timestep/sec_per_myr; digits=5)
 
     ntimestep = model.timestep.parameters.main_time_loop.ntimestep.value
     icount_output = model.timestep.parameters.output_steps.icount_output.value
 
-    print_info("", level=1)
-    print_info(
-        "Working on time step: $ntimestep at time (Myr) $(round(timesum_myr; digits=5)) : icount_output: $icount_output : Viscoelastic timestep (Myr): $(round(timestep_myr; digits=5))",
-        level=1
-    )
-    print_info("", level=1)
-end
+    time_of_next_output_myr = model.timestep.parameters.output_steps.time_of_next_output_myr.value
+    time_of_next_output_myr = round(time_of_next_output_myr; digits=5)
 
-""" Update total model time in seconds (timesum).
-
-Total model time referred to as timesum is advanced using time step updated
-based on maximum marker displacement.
-
-Updated Model Parameter
-=======================
-model.timestep.parameters.main_time_loop
-----------------------------------------
-timesum.value: float
-    - Total model time in seconds.
-"""
-function advance_model_time!(model::ModelData)::Nothing
-    timestep = model.timestep.parameters.main_time_loop.timestep
-    timesum = model.timestep.parameters.main_time_loop.timesum
-    timesum.value = timesum.value + timestep.value
-    return nothing
+    iuse_fixed_output_counter = model.timestep.parameters.output_steps.iuse_fixed_output_counter.value
+    if iuse_fixed_output_counter == 1
+        print_info("", level=1)
+        print_info(
+            "Working on time step: $ntimestep at time (Myr) $timesum_myr : icount_output: $icount_output : Viscoelastic timestep (Myr): $timestep_myr",
+            level=1
+        )
+        print_info("", level=1)
+    else
+        print_info("", level=1)
+        print_info(
+            "Working on time step: $ntimestep at time (Myr) $timesum_myr : Time of next output (Myr): $time_of_next_output_myr : Viscoelastic timestep (Myr): $timestep_myr",
+            level=1
+        )
+        print_info("", level=1)
+    end
 end
 
 """ Print initial and current sea level coordinates.
