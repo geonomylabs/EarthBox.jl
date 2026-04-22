@@ -351,13 +351,17 @@ function manage_model_output_using_total_model_time(manager::ModelManagerState):
     time_of_next_output_myr = manager.model.timestep.parameters.output_steps.time_of_next_output_myr.value
     if make_files && (iszero(timesum) || timesum_myr >= time_of_next_output_myr)
         update_output_controls!(manager)
-        XdmfTimeStepsManager.export_xdmf(
-            manager.xdmf_time_steps, manager.model, 
-            manager.output_lists, manager.config.output
-        )
+        @timeit_memit "Finished export_xdmf" begin
+            XdmfTimeStepsManager.export_xdmf(
+                manager.xdmf_time_steps, manager.model,
+                manager.output_lists, manager.config.output
+            )
+        end
         if manager.make_backup
-            BackupManager.MakeBackup.make_backup_jld2(
-                manager.model.obj_dict, manager.paths["output_dir"])
+            @timeit_memit "Finished make_backup_jld2" begin
+                BackupManager.MakeBackup.make_backup_jld2(
+                    manager.model.obj_dict, manager.paths["output_dir"])
+            end
         end
     end
     return nothing

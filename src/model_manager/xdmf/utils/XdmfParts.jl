@@ -37,6 +37,25 @@ function get_xdmf_geometry_2d_xy_markers(
     return string
 end
 
+function get_xdmf_geometry_2d_vxvy_markers(
+    nmarkers::Int,
+    jld_markerfile::String,
+    jld_dataname_x::String,
+    jld_dataname_y::String
+)::String
+    tab_str1 = "\t"
+    tab_str2 = "\t\t"
+    string = "$(tab_str1)<Geometry GeometryType=\"VXVY\">\n"
+    string *= "$(tab_str2)<DataItem Dimensions=\"$(nmarkers)\" NumberType=\"Float\" Precision=\"8\" Format=\"HDF\">\n"
+    string *= "$(tab_str2)$(jld_markerfile):/$(jld_dataname_x)\n"
+    string *= "$(tab_str2)</DataItem>\n"
+    string *= "$(tab_str2)<DataItem Dimensions=\"$(nmarkers)\" NumberType=\"Float\" Precision=\"8\" Format=\"HDF\">\n"
+    string *= "$(tab_str2)$(jld_markerfile):/$(jld_dataname_y)\n"
+    string *= "$(tab_str2)</DataItem>\n"
+    string *= "$(tab_str1)</Geometry>\n"
+    return string
+end
+
 function get_xdmf_topology_2drectmesh(ynum::Int, xnum::Int)::String
     string = "\t<Topology TopologyType=\"2DRectMesh\" NumberOfElements=\"$(ynum) $(xnum)\"/>\n"
     return string

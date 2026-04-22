@@ -79,19 +79,19 @@ function export_xdmf(
 )
     XdmfMarkers.export_xdmf_markers(
         xdmf_steps.markers_xdmf_steps, model, output_lists, output_config)
-    
+
     (
         gridx_b_km, gridy_b_km, gridx_vy_km, gridy_vx_km, gridx_pr_km, gridy_pr_km
     ) = convert_grid_arrays_to_km_for_output(model)
-    
+
     XdmfFields.export_xdmf_fields(
-        xdmf_steps.fields_xdmf_steps, model, output_lists, 
+        xdmf_steps.fields_xdmf_steps, model, output_lists,
         gridx_b_km, gridy_b_km, gridx_pr_km, gridy_pr_km)
-    
+
     XdmfVelocity.export_xdmf_velocity(
-        xdmf_steps.velocity_xdmf_steps, model, 
+        xdmf_steps.velocity_xdmf_steps, model,
         gridx_b_km, gridy_b_km, gridx_pr_km, gridy_pr_km)
-    
+
     XdmfTopography.export_topography(
         xdmf_steps.topography_xdmf_steps, model)
 end
