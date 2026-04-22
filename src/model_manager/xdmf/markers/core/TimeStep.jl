@@ -8,7 +8,7 @@ import ...OutputDTypes: ScalarFieldMeta
 import ...XdmfParts: get_xdmf_start_of_timestep_grid
 import ...XdmfParts: get_xdmf_end_of_timestep_grid
 import ...XdmfParts: get_xdmf_topology_polyvertex
-import ...XdmfParts: get_xdmf_geometry_2d_xy_markers
+import ...XdmfParts: get_xdmf_geometry_2d_vxvy_markers
 import ...XdmfParts: get_xdmf_scalar_attribute_on_nodes_for_markers
 import ...XdmfUtils: getoutform
 
@@ -34,10 +34,11 @@ function get_xdmf_string_for_timestep(markers_xdmf::MarkersXdmfTimeStep)::String
         markers_xdmf.markers2djld.jld_markerfile,
         markers_xdmf.markers2djld.jld_dataname_ids
     )
-    string *= get_xdmf_geometry_2d_xy_markers(
+    string *= get_xdmf_geometry_2d_vxvy_markers(
         markers_xdmf.markers2djld.nmarkers,
         markers_xdmf.markers2djld.jld_markerfile,
-        markers_xdmf.markers2djld.jld_dataname_xy
+        markers_xdmf.markers2djld.jld_dataname_x,
+        markers_xdmf.markers2djld.jld_dataname_y
     )
     
     for scalar_meta in markers_xdmf.scalar_metas
@@ -53,7 +54,8 @@ end
 
 function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
     jld_marker_filename = markers_xdmf.markers2djld.jld_markerfile
-    jld_dataname_xy = markers_xdmf.markers2djld.jld_dataname_xy
+    jld_dataname_x = markers_xdmf.markers2djld.jld_dataname_x
+    jld_dataname_y = markers_xdmf.markers2djld.jld_dataname_y
     jld_dataname_ids = markers_xdmf.markers2djld.jld_dataname_ids
     nmarkers = markers_xdmf.markers2djld.nmarkers
 
@@ -62,14 +64,11 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
     # Import ZlibCompressor here so CodecZlib is loaded with EarthBox (JLD2's dynamic import
     # can fail when Julia is not started with a project that installs CodecZlib).
     JLD2.jldopen(jld_marker_file_path, "w"; compress=ZlibCompressor(level=1)) do file
-        # Set time attributes
         file["time"] = markers_xdmf.model_time
         file["time_units"] = markers_xdmf.time_units
         file["y_sealevel"] = markers_xdmf.y_sealevel
         file["base_level_shift"] = markers_xdmf.base_level_shift
 
-        # Marker IDs: compute and write in a let block so the array is GC-eligible
-        # before the XY allocation below.
         let
             group = JLD2.Group(file, jld_dataname_ids)
             group["array"] = collect(Float64, 0:nmarkers-1)
@@ -77,24 +76,24 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
             group["units"] = "None"
         end
 
-        # XY coordinates: compute from raw objects, write, then let all three
-        # intermediate arrays (marker_x_m, marker_y_m, marker_xy_km) go out of
-        # scope before the scalar loop begins.
         let
-            marker_x_m = getoutform(markers_xdmf.marker_x_obj)
-            marker_y_m = getoutform(markers_xdmf.marker_y_obj)
-            marker_xy_km = zeros(Float64, nmarkers, 2)
-            for i in 1:nmarkers
-                marker_xy_km[i, 1] =  marker_x_m[i] / 1000.0
-                marker_xy_km[i, 2] = -marker_y_m[i] / 1000.0
-            end
-            group = JLD2.Group(file, jld_dataname_xy)
-            group["array"] = marker_xy_km
-            group["name"] = "marker_xy"
+            marker_x_km = getoutform(markers_xdmf.marker_x_obj)
+            marker_x_km ./= 1000.0
+            group = JLD2.Group(file, jld_dataname_x)
+            group["array"] = marker_x_km
+            group["name"] = "marker_x"
             group["units"] = "km"
         end
 
-        # Stream scalar fields one at a time: compute getoutform, write, discard.
+        let
+            marker_y_km = getoutform(markers_xdmf.marker_y_obj)
+            marker_y_km .*= -1.0 / 1000.0
+            group = JLD2.Group(file, jld_dataname_y)
+            group["array"] = marker_y_km
+            group["name"] = "marker_y"
+            group["units"] = "km"
+        end
+
         for (obj, meta) in zip(markers_xdmf.enabled_marker_objs, markers_xdmf.scalar_metas)
             group = JLD2.Group(file, meta.jld_dataname)
             group["array"] = getoutform(obj)

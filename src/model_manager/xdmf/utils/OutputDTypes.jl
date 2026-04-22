@@ -145,7 +145,8 @@ Struct used to store jld2 information associated with markers.
 """
 struct Markers2djld
     jld_markerfile::String
-    jld_dataname_xy::String
+    jld_dataname_x::String
+    jld_dataname_y::String
     jld_dataname_ids::String
     nmarkers::Int
 end
@@ -153,7 +154,8 @@ end
 function Markers2djld(marker_data::Dict{String, Any})
     return Markers2djld(
         marker_data["jld_markerfile"],
-        marker_data["jld_dataname_xy"],
+        marker_data["jld_dataname_x"],
+        marker_data["jld_dataname_y"],
         marker_data["jld_dataname_ids"],
         marker_data["nmarkers"]
     )
