@@ -59,7 +59,6 @@ function extract_partial_melt_and_make_magma_body(
     mantle_emplacement_mat_ids::Vector{Int16},
     nmarkers_magma_mantle::Int,
     nmarkers_partial_melt::Int,
-    partial_melt_marker_indices::Vector{Int64},
     injection_width::Float64
 )::Tuple{Float64, Float64}
     mantle_search_width = model.melting.parameters.extraction.mantle_search_width.value
@@ -72,13 +71,16 @@ function extract_partial_melt_and_make_magma_body(
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
 
+    partial_melt_marker_indices =
+        model.melting.arrays.buffers.partial_melt_marker_indices.array
+
     matid_types = model.materials.dicts.matid_types
     matid_magma = matid_types["ExtractedGabbroicMagma"][1]
 
     age_ma = calculate_age_ma(model)
 
     # Divide partially molten markers into layers for more efficient search
-    layer_counts, layered_partially_molten_marker_indices = 
+    layer_counts, layered_partially_molten_marker_indices =
         PartiallyMoltenZone.construct_layered_partially_molten_arrays(
             marker_x, marker_y, marker_matid,
             nmarkers_partial_melt,
@@ -266,10 +268,9 @@ function calculate_marker_indices_mantle_search_domain(
     y_buffer = 20_000.0
     ymax = yshallow_partial_melt_domain + y_buffer
 
-    marker_indices_tmp = Vector{Int64}(undef, marknum) #fill(-1, marknum)
-    Threads.@threads for imarker in 1:marknum
-        marker_indices_tmp[imarker] = -1
-    end
+    # Pre-allocated scratch buffer. Only `[1:nmarkers_injection_domain]` is
+    # valid after packing; tail carries stale values from prior calls.
+    marker_indices_tmp = model.melting.arrays.buffers.marker_indices_tmp.array
 
     icount = 0
     for imarker in 1:marknum

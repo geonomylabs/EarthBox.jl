@@ -542,6 +542,21 @@ function get_melting_arrays()::NamedTuple
             * "The drainage area is the region where the melt migrates to the "
             * "shallowest position in meters.",
         ),
+
+        # Extraction scratch buffers (marker-sized, reused across timesteps)
+        partial_melt_marker_indices = ArrayData(
+            "partial_melt_marker_indices", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch buffer for packed indices of "
+            * "partially molten markers. Only positions [1:nmarkers_partial_melt] "
+            * "are valid after each call; the tail is stale. Initialized to 0.",
+        ),
+        marker_indices_tmp = ArrayData(
+            "marker_indices_tmp", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch buffer for packed indices of "
+            * "markers in the mantle injection search domain. Only positions "
+            * "[1:nmarkers_injection_domain] are valid after each call; the tail "
+            * "is stale. Initialized to -1.",
+        ),
     )
 end
 

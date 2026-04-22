@@ -4,7 +4,7 @@ import DataStructures: OrderedDict
 function run_benchmarks()
     option_names = BenchmarksManager.option_names
     test_dict = OrderedDict(
-        option_names.couette_flow_viscous_heating                          => true,
+        option_names.couette_flow_viscous_heating                          => false,
         option_names.channel_flow_non_newtonian                            => false,
         option_names.channel_flow_variable_conductivity                    => false,
         option_names.channel_flow_non_steady_temperature                   => false,
@@ -12,7 +12,7 @@ function run_benchmarks()
         option_names.rayleigh_taylor_instability                           => false,
         option_names.elastic_slab                                          => false,
         option_names.viscoelastic_stress_buildup                           => false,
-        option_names.plasticity_benchmark_kaus10                           => false,
+        option_names.plasticity_benchmark_kaus10                           => true,
         option_names.box_convection_isoviscous_1a                          => false,
         option_names.viscoelastic_extension                                => false,
         option_names.viscoelastic_extension_asymmetric                     => false,
