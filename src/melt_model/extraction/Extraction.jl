@@ -279,12 +279,10 @@ function extract_melt_in_drainage_basins!(
         xstart = xstart_drainage[i]
         xend = xend_drainage[i]
 
-        # Define marker indices that are in the partially molten zone associated
-        # with the current drainage basin.
-        (
-            partial_melt_marker_indices, nmarkers_partial_melt
-        ) = PartialMeltIndices.get_partial_melt_marker_indices(
-                model, xstart=xstart, xend=xend)
+        # Update the packed list of partially molten marker indices in the
+        # pre-allocated buffer for the current drainage basin.
+        nmarkers_partial_melt = PartialMeltIndices.update_partial_melt_marker_indices!(
+            model, xstart=xstart, xend=xend)
 
         melt_volume_mantle_marker_units = MeltVolumetrics.calculate_melt_volume(
             model, mantle_melting_mat_ids, xstart=xstart, xend=xend)
@@ -337,7 +335,6 @@ function extract_melt_in_drainage_basins!(
                 mantle_emplacement_mat_ids,
                 nmarkers_magma_mantle,
                 nmarkers_partial_melt,
-                partial_melt_marker_indices,
                 injection_width
             )
 

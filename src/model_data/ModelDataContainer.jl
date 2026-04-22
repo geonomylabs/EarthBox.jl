@@ -194,7 +194,7 @@ mutable struct ModelData
             Materials(),                                               # materials
             Markers(marker_parameters),                                # markers
             Interpolation(ynum, xnum, marker_parameters.marknum),      # interpolation
-            Melting(),                                                 # melting
+            Melting(marker_parameters.marknum),                        # melting
             _topography,                                               # topography
             HeatEquation(ynum, xnum),                                  # heat_equation
             StokesContinuity(ynum, xnum),                              # stokes_continuity
