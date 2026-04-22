@@ -9,7 +9,7 @@ import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelDataContainer.OutputStandard: OutputLists
 import EarthBox.ConfigurationManager.OutputConfig: OutputConfigState
 import ..OutputDTypes: Markers2djld
-import ..OutputDTypes: ScalarField
+import ..OutputDTypes: ScalarFieldMeta
 import .GetMarkerData: get_marker_data
 import .TimeSteps: MarkersXdmfTimeSteps
 
@@ -21,7 +21,8 @@ function export_xdmf_markers(
 )
     marker_data = get_marker_data(model, output_lists, output_config)
     markers2djld = Markers2djld(marker_data)
-    scalars_on_markers = marker_data["scalars_on_markers"]
+    scalar_metas = marker_data["scalar_metas"]
+    enabled_marker_objs = marker_data["enabled_marker_objs"]
 
     model_time = marker_data["time"]
     time_units = marker_data["time_units"]
@@ -31,7 +32,7 @@ function export_xdmf_markers(
 
     markers_xdmf_time_step = TimeStep.MarkersXdmfTimeStep(
         markers2djld, model_time, time_units, noutput,
-        y_sealevel, base_level_shift, scalars_on_markers
+        y_sealevel, base_level_shift, scalar_metas, enabled_marker_objs
     )
 
     TimeStep.make_jld2_file(markers_xdmf_time_step, markers_xdmf.output_dir)

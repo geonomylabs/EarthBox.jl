@@ -5,7 +5,7 @@ import EarthBox.ModelDataContainer.OutputStandard: OutputLists
 import EarthBox.Arrays.ArrayTypes.MarkerArrayFloat1D: MarkerArrayFloat1DState
 import EarthBox.ConfigurationManager.OutputConfig: OutputConfigState
 import EarthBox.SurfaceProcesses.Sealevel.UpdateSealevel: get_time_dependent_base_level_shift
-import ...OutputDTypes: ScalarField
+import ...OutputDTypes: ScalarFieldMeta
 import ...XdmfUtils: get_xdmf_number_type_for_array
 import ...XdmfUtils: getoutform
 
@@ -25,21 +25,21 @@ function get_marker_data(
     base_level_shift = get_time_dependent_base_level_shift(model)
     array_object_list = output_lists.marker_array_obj_list
 
-    scalars_on_markers = []
+    scalar_metas = ScalarFieldMeta[]
+    enabled_marker_objs = []
 
     for obj in array_object_list
         create_output_for_object = output_config.marker_output[obj.name]
         if create_output_for_object
-            scalar_field = ScalarField(
+            push!(scalar_metas, ScalarFieldMeta(
                 obj.outform.header,
                 obj.name,
                 get_xdmf_number_type_for_array(obj.array),
                 obj.outform.units,
                 obj.outform.header,
-                "markers",
-                getoutform(obj)
-            )
-            push!(scalars_on_markers, scalar_field)
+                "markers"
+            ))
+            push!(enabled_marker_objs, obj)
         end
     end
 
@@ -57,7 +57,8 @@ function get_marker_data(
         "jld_dataname_ids" => "marker_ids",
         "marker_id_array" => marker_ids,
         "marker_xy_km_array" => marker_xy_km,
-        "scalars_on_markers" => scalars_on_markers,
+        "scalar_metas" => scalar_metas,
+        "enabled_marker_objs" => enabled_marker_objs,
         "time" => model_time,
         "time_units" => time_units,
         "noutput" => noutput,
@@ -73,12 +74,11 @@ function make_marker_arrays_for_xdmf_format(
     marker_y::MarkerArrayFloat1DState{Float64}
 )::Tuple{Int, Array{Float64, 2}, Array{Float64, 1}}
     marker_x_m = getoutform(marker_x)
-    marker_y_m = -getoutform(marker_y)
+    marker_y_m = getoutform(marker_y)
     nmarkers = size(marker_x_m, 1)
     marker_xy_km = zeros(Float64, nmarkers, 2)
-    marker_ids = zeros(Float64, nmarkers)
     update_marker_xy_km_array(nmarkers, marker_x_m, marker_y_m, marker_xy_km)
-    marker_ids = collect(0:nmarkers-1)
+    marker_ids = collect(Float64, 0:nmarkers-1)
     return nmarkers, marker_xy_km, marker_ids
 end
 
@@ -89,8 +89,8 @@ function update_marker_xy_km_array(
     marker_xy_km::Array{Float64, 2}
 )::Nothing
     for i in 1:nmarkers
-        marker_xy_km[i, 1] = marker_x_m[i]/1000.0
-        marker_xy_km[i, 2] = marker_y_m[i]/1000.0
+        marker_xy_km[i, 1] = marker_x_m[i] / 1000.0
+        marker_xy_km[i, 2] = -marker_y_m[i] / 1000.0
     end
     return nothing
 end

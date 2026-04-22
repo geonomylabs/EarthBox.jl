@@ -4,12 +4,13 @@ import CodecZlib: ZlibCompressor
 import JLD2
 import EarthBox.EarthBoxDtypes: AbstractXDMFTimeStep
 import ...OutputDTypes: Markers2djld
-import ...OutputDTypes: ScalarField
+import ...OutputDTypes: ScalarFieldMeta
 import ...XdmfParts: get_xdmf_start_of_timestep_grid
 import ...XdmfParts: get_xdmf_end_of_timestep_grid
 import ...XdmfParts: get_xdmf_topology_polyvertex
 import ...XdmfParts: get_xdmf_geometry_2d_xy_markers
 import ...XdmfParts: get_xdmf_scalar_attribute_on_nodes_for_markers
+import ...XdmfUtils: getoutform
 
 struct MarkersXdmfTimeStep <: AbstractXDMFTimeStep
     markers2djld::Markers2djld
@@ -18,7 +19,8 @@ struct MarkersXdmfTimeStep <: AbstractXDMFTimeStep
     noutput::Int
     y_sealevel::Float64
     base_level_shift::Float64
-    scalars_on_markers::Vector{ScalarField}
+    scalar_metas::Vector{ScalarFieldMeta}
+    enabled_marker_objs::Vector
 end
 
 function get_xdmf_string_for_timestep(markers_xdmf::MarkersXdmfTimeStep)::String
@@ -36,11 +38,11 @@ function get_xdmf_string_for_timestep(markers_xdmf::MarkersXdmfTimeStep)::String
         markers_xdmf.markers2djld.jld_dataname_xy
     )
     
-    for scalar_field in markers_xdmf.scalars_on_markers
+    for scalar_meta in markers_xdmf.scalar_metas
         string *= get_xdmf_scalar_attribute_on_nodes_for_markers(
             markers_xdmf.markers2djld.nmarkers,
             markers_xdmf.markers2djld.jld_markerfile,
-            scalar_field
+            scalar_meta
         )
     end
     string *= get_xdmf_end_of_timestep_grid()
@@ -77,14 +79,14 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         group["name"] = "marker_xy"
         group["units"] = "km"
 
-        # Save scalar fields
-        for scalar_field in markers_xdmf.scalars_on_markers
-            jld_dataname = scalar_field.jld_dataname
-            scalar_array = scalar_field.scalar_array
-            group = JLD2.Group(file, jld_dataname)
-            group["array"] = scalar_array
-            group["name"] = scalar_field.name
-            group["units"] = scalar_field.units
+        # Stream scalar fields one at a time: compute getoutform, write, discard.
+        # This keeps at most one nmarkers-sized array in memory at a time instead
+        # of accumulating all fields simultaneously before any write occurs.
+        for (obj, meta) in zip(markers_xdmf.enabled_marker_objs, markers_xdmf.scalar_metas)
+            group = JLD2.Group(file, meta.jld_dataname)
+            group["array"] = getoutform(obj)
+            group["name"] = meta.name
+            group["units"] = meta.units
         end
     end
 end
