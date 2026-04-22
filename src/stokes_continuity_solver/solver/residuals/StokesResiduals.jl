@@ -6,6 +6,7 @@ include("utils/XStokes.jl")
 include("utils/YStokes.jl")
 
 import LinearAlgebra
+import LinearAlgebra: mul!, norm
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.Arrays: ArrayUtils
 import SparseArrays: SparseMatrixCSC
@@ -15,11 +16,10 @@ import .Continuity
 import .ResidualStructs: StokesResidualsInput
 
 function stokes_calc_residual_L2norm(model::ModelData, Ls::Any)::Float64
-    rhs_arrays = model.stokes_continuity.arrays.rhs
-    solu_arrays = model.stokes_continuity.arrays.stokes_solution
-
-    res = abs.(Ls * solu_arrays.soluv1.array - rhs_arrays.RHS.array)
-    return norm(res)
+    work = model.stokes_continuity.arrays.residuals.resnl_work
+    mul!(work, Ls, model.stokes_continuity.arrays.stokes_solution.soluv1.array)
+    work .-= model.stokes_continuity.arrays.rhs.RHS.array
+    return norm(work)
 end
 
 """ Calculate non-linear residual.
@@ -32,25 +32,11 @@ function stokes_calc_nonlinear_system_residual!(
     model::ModelData,
     Ls::SparseMatrixCSC{Float64,Int64}
 )::Nothing
-    rhs_arrays = model.stokes_continuity.arrays.rhs
-    solu_arrays = model.stokes_continuity.arrays.stokes_solution
-    set_nonlinear_residual_to_zero!(model)
-
-    resnl = abs.(Ls * solu_arrays.soluv1_old.array - rhs_arrays.RHS.array)
-    copy_nonlinear_residual!(model, resnl)
-    return nothing
-end
-
-function set_nonlinear_residual_to_zero!(model::ModelData)::Nothing
-    ArrayUtils.setzeros!(model.stokes_continuity.arrays.residuals.resnl)
-    return nothing
-end
-
-function copy_nonlinear_residual!(
-    model::ModelData,
-    resnl::Vector{Float64}
-)::Nothing
-    model.stokes_continuity.arrays.residuals.resnl.array = copy(resnl)
+    work = model.stokes_continuity.arrays.residuals.resnl_work
+    resnl = model.stokes_continuity.arrays.residuals.resnl.array
+    mul!(work, Ls, model.stokes_continuity.arrays.stokes_solution.soluv1_old.array)
+    work .-= model.stokes_continuity.arrays.rhs.RHS.array
+    map!(abs, resnl, work)
     return nothing
 end
 

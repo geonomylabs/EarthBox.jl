@@ -51,6 +51,7 @@ mutable struct ResidualStokes <: AbstractArrayGroup
     resc1::ScalarArray2DState
     resnlc::ScalarArray2DState
     resnl::SolutionArray1DState
+    resnl_work::Vector{Float64}
 end
 
 function ResidualStokes(ynum::Int, xnum::Int)::ResidualStokes
@@ -110,7 +111,8 @@ function ResidualStokes(ynum::Int, xnum::Int)::ResidualStokes
             ADATA.resnl.units,           # units
             ADATA.resnl.description,     # description
             "normal"                     # array_type
-        )
+        ),
+        zeros(Float64, (xnum-1)*(ynum-1)*3)
     )
 end
 
