@@ -38,15 +38,15 @@ end
 
 """ Calculate velocity and spin for all markers using Runge-Kutta interpolation.
 
-# Returns
-- `Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}`: 
-    (markers_vx, markers_vy, markers_spin)
+Writes into the pre-allocated `model.markers.arrays.advection.marker_{vx,vy,spin}`
+buffers in place. Every position is written: RK-interpolated values for markers
+with `inside_flags[imarker] == 1`, zeros otherwise.
 """
-function interpolate_using_runge_kutta(
+function update_marker_velocity_and_spin_using_runge_kutta!(
     model::ModelData,
     runge_kutta_order_max::Int,
     inside_flags::Vector{Int8}
-)::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+)::Nothing
 
     rk_data = RKData(
         marknum = model.markers.parameters.distribution.marknum.value,
@@ -70,9 +70,9 @@ function interpolate_using_runge_kutta(
         esp = model.stokes_continuity.arrays.strain_rate_and_spin.esp.array
     )
 
-    markers_vx = Vector{Float64}(undef, rk_data.marknum)
-    markers_vy = Vector{Float64}(undef, rk_data.marknum)
-    markers_spin = Vector{Float64}(undef, rk_data.marknum)
+    markers_vx = model.markers.arrays.advection.marker_vx.array
+    markers_vy = model.markers.arrays.advection.marker_vy.array
+    markers_spin = model.markers.arrays.advection.marker_spin.array
 
     Threads.@threads for imarker in 1:rk_data.marknum
         if inside_flags[imarker] == Int8(1)
@@ -125,7 +125,7 @@ function interpolate_using_runge_kutta(
             end
         end
     end
-    return markers_vx, markers_vy, markers_spin
+    return nothing
 end
 
 @inline function rk_update(

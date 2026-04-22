@@ -10,14 +10,14 @@ import EarthBox: GridFuncs
 """
 function update!(
     model::ModelData,
-    inside_flags::Vector{Int8},
-    markers_vx::Vector{Float64},
-    markers_vy::Vector{Float64}
+    inside_flags::Vector{Int8}
 )::Nothing
     marknum = model.markers.parameters.distribution.marknum.value
     timestep = model.timestep.parameters.main_time_loop.timestep.value
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
+    markers_vx = model.markers.arrays.advection.marker_vx.array
+    markers_vy = model.markers.arrays.advection.marker_vy.array
     Threads.@threads for imarker in 1:marknum
         if inside_flags[imarker] == 1
             @inbounds begin

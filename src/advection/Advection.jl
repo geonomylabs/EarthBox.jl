@@ -102,65 +102,62 @@ end
 
 """ Advect markers and rotate stress tensor.
 
-This function uses a 4-th order Runge Kutta scheme to interpolate velocity and spin to the 
-marker locations. The marker locations and stress rotation are then updated using the 
+This function uses a 4-th order Runge Kutta scheme to interpolate velocity and spin to the
+marker locations. The marker locations and stress rotation are then updated using the
 interpolated values.
 """
 function advect_markers_and_rotate_stress_tensor!(model::ModelData, inside_flags::Vector{Int8})::Nothing
-    markers_spin, markers_vx, markers_vy = interpolate_grid_velocity_and_spin_to_markers(model, inside_flags)
-    update_marker_location!(model, inside_flags, markers_vx, markers_vy)
-    update_marker_stress_rotation!(model, inside_flags, markers_spin)
+    interpolate_grid_velocity_and_spin_to_markers!(model, inside_flags)
+    update_marker_location!(model, inside_flags)
+    update_marker_stress_rotation!(model, inside_flags)
     return nothing
 end
 
 """ Interpolate velocity and spin using a 4-th order Runge Kutta scheme.
+
+Writes into the pre-allocated `model.markers.arrays.advection.marker_{vx,vy,spin}`
+buffers. A no-op when Runge-Kutta is disabled.
 """
-function interpolate_grid_velocity_and_spin_to_markers(model::ModelData, inside_flags::Vector{Int8})
-    markers_spin = nothing
-    markers_vx = nothing
-    markers_vy = nothing
+function interpolate_grid_velocity_and_spin_to_markers!(
+    model::ModelData, inside_flags::Vector{Int8}
+)::Nothing
     max_runge_kutta_order = get_max_runge_kutta_order(model)
     if max_runge_kutta_order > 0
         @timeit_memit "Finished interpolating velocity and spin using Runge Kutta" begin
-            (
-                markers_vx, markers_vy, markers_spin
-            ) = VelocityAndSpin.interpolate_using_runge_kutta(
+            VelocityAndSpin.update_marker_velocity_and_spin_using_runge_kutta!(
                 model, max_runge_kutta_order, inside_flags)
         end
     end
-    return markers_spin, markers_vx, markers_vy
+    return nothing
 end
 
-""" Update marker location using interpolated velocity.
+""" Update marker location using interpolated velocity (fetched from model).
 """
 function update_marker_location!(
     model::ModelData,
-    inside_flags::Vector{Int8},
-    markers_vx::Union{Vector{Float64}, Nothing}=nothing,
-    markers_vy::Union{Vector{Float64}, Nothing}=nothing
+    inside_flags::Vector{Int8}
 )::Nothing
     max_runge_kutta_order = get_max_runge_kutta_order(model)
-    if max_runge_kutta_order > 0 && !isnothing(markers_vx) && !isnothing(markers_vy)
+    if max_runge_kutta_order > 0
         @timeit_memit "Finished calculating new marker location" begin
-            MarkersLocation.update!(model, inside_flags, markers_vx, markers_vy)
+            MarkersLocation.update!(model, inside_flags)
         end
     end
 
     return nothing
 end
 
-""" Update marker stress rotation using interpolated spin.
+""" Update marker stress rotation using interpolated spin (fetched from model).
 """
 function update_marker_stress_rotation!(
     model::ModelData,
-    inside_flags::Vector{Int8},
-    markers_spin::Union{Vector{Float64}, Nothing}=nothing
+    inside_flags::Vector{Int8}
 )::Nothing
 
     max_runge_kutta_order = get_max_runge_kutta_order(model)
-    if max_runge_kutta_order > 0 && !isnothing(markers_spin)
+    if max_runge_kutta_order > 0
         @timeit_memit "Finished updating marker stress rotation" begin
-            MarkersStressRotation.update!(model, inside_flags, markers_spin)
+            MarkersStressRotation.update!(model, inside_flags)
         end
     end
 

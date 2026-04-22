@@ -14,13 +14,13 @@ Rotate marker stress using spin.
 """
 function update!(
     model::ModelData,
-    inside_flags::Vector{Int8},
-    markers_spin::Vector{Float64}
+    inside_flags::Vector{Int8}
 )::Nothing
     marknum = model.markers.parameters.distribution.marknum.value
     timestep = model.timestep.parameters.main_time_loop.timestep.value
     marker_sxx = model.markers.arrays.stress.marker_sxx.array
     marker_sxy = model.markers.arrays.stress.marker_sxy.array
+    markers_spin = model.markers.arrays.advection.marker_spin.array
     Threads.@threads for imarker in 1:marknum
         if inside_flags[imarker] == 1
             @inbounds begin
