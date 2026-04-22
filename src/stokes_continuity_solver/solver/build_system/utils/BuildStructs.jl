@@ -169,7 +169,7 @@ struct StokesBuildData
             GridData(model),
             BCData(model),
             RhsData(model),
-            SystemVectors(model.stokes_continuity.parameters.build.nonzero_max.value),
+            model.stokes_continuity.parameters.build.system_vectors,
             model.stokes_continuity.arrays.viscosity.etan0.array,
             model.stokes_continuity.arrays.viscosity.etas0.array,
             model.stokes_continuity.arrays.density.rho1_vy.array

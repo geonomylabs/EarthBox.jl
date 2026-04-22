@@ -37,6 +37,12 @@ struct SystemVectors
             zeros(Float64, number_of_non_zero_elements)
         )
     end
+    function SystemVectors(
+        Lii::Vector{Int64}, Ljj::Vector{Int64},
+        Li::Vector{Int64}, Lj::Vector{Int64}, Lv::Vector{Float64}
+    )
+        return new(Lii, Ljj, Li, Lj, Lv)
+    end
 end
 
 """ Clean non-zero matrix arrays.
@@ -102,17 +108,12 @@ end
 """
 function clean_non_zero_arrays!(
     nnz::Int64,
-    system_vectors_tmp::SystemVectors
+    sv::SystemVectors
 )::SystemVectors
-    system_vectors = SystemVectors(nnz)
-    for i in 1:nnz
-        system_vectors.Lii[i] = system_vectors_tmp.Lii[i]
-        system_vectors.Ljj[i] = system_vectors_tmp.Ljj[i]
-        system_vectors.Li[i] = system_vectors_tmp.Li[i]
-        system_vectors.Lj[i] = system_vectors_tmp.Lj[i]
-        system_vectors.Lv[i] = system_vectors_tmp.Lv[i]
-    end
-    return system_vectors
+    return SystemVectors(
+        sv.Lii[1:nnz], sv.Ljj[1:nnz],
+        sv.Li[1:nnz], sv.Lj[1:nnz], sv.Lv[1:nnz]
+    )
 end
 
 end # module 

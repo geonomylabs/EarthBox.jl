@@ -72,7 +72,7 @@ struct HeatBuildData
             GridData(model),
             BCData(model),
             RhsData(model),
-            SystemVectors(model.heat_equation.parameters.build.nonzero_max_heat.value),
+            model.heat_equation.parameters.build.system_vectors,
             model.heat_equation.arrays.temperature.tk0.array,
             model.heat_equation.arrays.rhocp.rhocp1.array,
             model.heat_equation.arrays.thermal_conductivity.kt1.array
