@@ -173,8 +173,11 @@ function collect_info!(
     group_obj_path::String,
     info_dict::OrderedDict{String, Any}
 )::Nothing
+    if !hasproperty(target_obj, :array) && !hasproperty(target_obj, :value)
+        return nothing
+    end
     name = target_name
-    
+
     units = hasproperty(target_obj, :units) ? target_obj.units : "NA"
     description = hasproperty(target_obj, :description) ? target_obj.description : "None"
     
