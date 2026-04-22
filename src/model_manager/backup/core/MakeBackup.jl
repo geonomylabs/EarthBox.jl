@@ -21,7 +21,7 @@ Make jld2 file for model backup.
 """
 function make_backup_jld2(obj_dict::ObjDictType, output_dir::String)::Nothing
     jld_filename = joinpath(output_dir, "model_backup.jld")
-    
+
     JLD2.jldopen(jld_filename, "w") do file
         for (eb_obj_name, eb_obj) in obj_dict
             if check_for_backup(eb_obj)
@@ -30,7 +30,7 @@ function make_backup_jld2(obj_dict::ObjDictType, output_dir::String)::Nothing
             end
         end
     end
-    
+
     return nothing
 end
 
