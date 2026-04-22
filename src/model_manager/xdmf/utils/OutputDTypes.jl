@@ -148,8 +148,6 @@ struct Markers2djld
     jld_dataname_xy::String
     jld_dataname_ids::String
     nmarkers::Int
-    marker_xy_km_array::Matrix{Float64}
-    marker_id_array::Vector{Float64}
 end
 
 function Markers2djld(marker_data::Dict{String, Any})
@@ -157,9 +155,7 @@ function Markers2djld(marker_data::Dict{String, Any})
         marker_data["jld_markerfile"],
         marker_data["jld_dataname_xy"],
         marker_data["jld_dataname_ids"],
-        marker_data["nmarkers"],
-        marker_data["marker_xy_km_array"],
-        marker_data["marker_id_array"]
+        marker_data["nmarkers"]
     )
 end
 
