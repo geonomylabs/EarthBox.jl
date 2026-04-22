@@ -13,6 +13,7 @@ import .PressureGroup: Pressure
 import .LocationGroup: Location
 import .GridMarkerRelationshipGroup: GridMarkerRelationship
 import .MeltGroup: Melt
+import .AdvectionGroup: Advection
 
 """
     Arrays <: AbstractArrayCollection
@@ -30,6 +31,7 @@ Collection of marker arrays.
 - `location::`[`Location`](@ref): Location marker arrays
 - `grid_marker_relationship::`[`GridMarkerRelationship`](@ref): Grid-marker relationship arrays
 - `melt::`[`Melt`](@ref): Melt marker arrays
+- `advection::`[`Advection`](@ref): Marker advection velocity/spin arrays
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -42,6 +44,7 @@ mutable struct Arrays <: AbstractArrayCollection
     location::Location
     grid_marker_relationship::GridMarkerRelationship
     melt::Melt
+    advection::Advection
 end
 
 function Arrays(marknum::Int)::Arrays
@@ -55,7 +58,8 @@ function Arrays(marknum::Int)::Arrays
         Pressure(marknum),
         Location(marknum),
         GridMarkerRelationship(marknum),
-        Melt(marknum)
+        Melt(marknum),
+        Advection(marknum)
     )
 end
 

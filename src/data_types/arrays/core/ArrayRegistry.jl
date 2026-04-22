@@ -477,6 +477,24 @@ function get_markers_arrays()::NamedTuple
             "marker_ha", "None", MarkerArrayFloat1DState, "NA",
             "`(marknum)` : Marker adiabatic heating term (expansivity x temperature).",
         ),
+
+        # Advection velocity/spin interpolated to markers (pre-allocated,
+        # re-written every timestep by the Runge-Kutta interpolator).
+        marker_vx = ArrayData(
+            "marker_vx", "m/s", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Runge-Kutta-interpolated x-velocity at marker (m/s). "
+            * "Re-computed every advection step; zero for markers outside the domain.",
+        ),
+        marker_vy = ArrayData(
+            "marker_vy", "m/s", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Runge-Kutta-interpolated y-velocity at marker (m/s). "
+            * "Re-computed every advection step; zero for markers outside the domain.",
+        ),
+        marker_spin = ArrayData(
+            "marker_spin", "1/s", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Runge-Kutta-interpolated spin rate at marker (1/s). "
+            * "Re-computed every advection step; zero for markers outside the domain.",
+        ),
     )
 end
 
