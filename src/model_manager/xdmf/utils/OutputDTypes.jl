@@ -48,6 +48,21 @@ struct ScalarField
     scalar_array::Union{Vector{Float64}, Vector{Int64}, Matrix{Float64}, Matrix{Int64}}
 end
 
+""" Lightweight metadata-only scalar field descriptor (no array copy).
+
+Used by the marker output pipeline so that XDMF string generation can proceed
+with only field names/units/types while the actual array data is streamed to
+JLD2 one field at a time.
+"""
+struct ScalarFieldMeta
+    name::String
+    jld_dataname::String
+    number_type::String
+    units::String
+    header::String
+    grid_type::String
+end
+
 """ Struct used to define a 2D vector for Paraview.
 
 The y-component of velocity is flipped for compatibility with Paraview.

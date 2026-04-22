@@ -1,6 +1,6 @@
 module XdmfParts
 
-import ..OutputDTypes: ScalarField, Vector2D
+import ..OutputDTypes: ScalarField, ScalarFieldMeta, Vector2D
 
 function get_xdmf_geometry_2d_vxvy(
     ynum::Int,
@@ -109,7 +109,7 @@ end
 function get_xdmf_scalar_attribute_on_nodes_for_markers(
     nmarkers::Int,
     jld_markerfile::String,
-    scalar_field::ScalarField
+    scalar_field::Union{ScalarField, ScalarFieldMeta}
 )::String
     field_name = scalar_field.name
     jld_dataname_scalar = scalar_field.jld_dataname
