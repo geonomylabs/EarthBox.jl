@@ -4,6 +4,7 @@ import EarthBox.ParameterRegistry: get_eb_parameters
 import EarthBox.Parameters: ParameterFloat, ParameterInt
 import EarthBox.ParameterGroupTools: get_numerical_parameter_object_list
 import EarthBox.EarthBoxDtypes: AbstractParameterGroup
+import EarthBox.BuildSysTools: SystemVectors
 
 const ROOT_NAME = "model.stokes_continuity.parameters"
 const GRP_NAME = "build"
@@ -51,18 +52,21 @@ mutable struct BuildSysStokes <: AbstractParameterGroup
     pscale::ParameterFloat
     iuse_interface_stabilization::ParameterInt
     obj_list::Vector{Union{ParameterFloat, ParameterInt}}
+    system_vectors::SystemVectors
 end
 
 function BuildSysStokes(ynum::Int, xnum::Int)::BuildSysStokes
     pdata = get_eb_parameters()
+    nnz_max = xnum * ynum * 31
     data = BuildSysStokes(
         ParameterInt(1, pdata.ibuild_stokes.name, pdata.ibuild_stokes.units, pdata.ibuild_stokes.description),
         ParameterInt((ynum-1)*3, pdata.hshift_to_vxR.name, pdata.hshift_to_vxR.units, pdata.hshift_to_vxR.description),
         ParameterInt((xnum-1)*(ynum-1)*3, pdata.Nstokes.name, pdata.Nstokes.units, pdata.Nstokes.description),
-        ParameterInt(xnum*ynum*31, pdata.nonzero_max_stokes.name, pdata.nonzero_max_stokes.units, pdata.nonzero_max_stokes.description),
+        ParameterInt(nnz_max, pdata.nonzero_max_stokes.name, pdata.nonzero_max_stokes.units, pdata.nonzero_max_stokes.description),
         ParameterFloat(1.0, pdata.pscale.name, pdata.pscale.units, pdata.pscale.description),
         ParameterInt(0, pdata.iuse_interface_stabilization.name, pdata.iuse_interface_stabilization.units, pdata.iuse_interface_stabilization.description),
-        Union{ParameterFloat, ParameterInt}[] # obj_list
+        Union{ParameterFloat, ParameterInt}[], # obj_list
+        SystemVectors(nnz_max)
     )
     data.obj_list = get_numerical_parameter_object_list(data)
     return data
