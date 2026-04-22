@@ -23,6 +23,8 @@ function export_xdmf_markers(
     markers2djld = Markers2djld(marker_data)
     scalar_metas = marker_data["scalar_metas"]
     enabled_marker_objs = marker_data["enabled_marker_objs"]
+    marker_x_obj = marker_data["marker_x_obj"]
+    marker_y_obj = marker_data["marker_y_obj"]
 
     model_time = marker_data["time"]
     time_units = marker_data["time_units"]
@@ -32,7 +34,8 @@ function export_xdmf_markers(
 
     markers_xdmf_time_step = TimeStep.MarkersXdmfTimeStep(
         markers2djld, model_time, time_units, noutput,
-        y_sealevel, base_level_shift, scalar_metas, enabled_marker_objs
+        y_sealevel, base_level_shift, scalar_metas, enabled_marker_objs,
+        marker_x_obj, marker_y_obj
     )
 
     TimeStep.make_jld2_file(markers_xdmf_time_step, markers_xdmf.output_dir)

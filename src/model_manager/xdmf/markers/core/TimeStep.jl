@@ -21,6 +21,8 @@ struct MarkersXdmfTimeStep <: AbstractXDMFTimeStep
     base_level_shift::Float64
     scalar_metas::Vector{ScalarFieldMeta}
     enabled_marker_objs::Vector
+    marker_x_obj
+    marker_y_obj
 end
 
 function get_xdmf_string_for_timestep(markers_xdmf::MarkersXdmfTimeStep)::String
@@ -53,8 +55,7 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
     jld_marker_filename = markers_xdmf.markers2djld.jld_markerfile
     jld_dataname_xy = markers_xdmf.markers2djld.jld_dataname_xy
     jld_dataname_ids = markers_xdmf.markers2djld.jld_dataname_ids
-    marker_id_array = markers_xdmf.markers2djld.marker_id_array
-    marker_xy_km_array = markers_xdmf.markers2djld.marker_xy_km_array
+    nmarkers = markers_xdmf.markers2djld.nmarkers
 
     jld_marker_file_path = joinpath(output_dir, jld_marker_filename)
     # Python earthbox markers.py: h5py gzip compression_opts=1 — zlib deflate level 1.
@@ -67,21 +68,33 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         file["y_sealevel"] = markers_xdmf.y_sealevel
         file["base_level_shift"] = markers_xdmf.base_level_shift
 
-        # Save marker IDs
-        group = JLD2.Group(file, jld_dataname_ids)
-        group["array"] = marker_id_array
-        group["name"] = "marker_ids"
-        group["units"] = "None"
+        # Marker IDs: compute and write in a let block so the array is GC-eligible
+        # before the XY allocation below.
+        let
+            group = JLD2.Group(file, jld_dataname_ids)
+            group["array"] = collect(Float64, 0:nmarkers-1)
+            group["name"] = "marker_ids"
+            group["units"] = "None"
+        end
 
-        # Save marker XY coordinates
-        group = JLD2.Group(file, jld_dataname_xy)
-        group["array"] = marker_xy_km_array
-        group["name"] = "marker_xy"
-        group["units"] = "km"
+        # XY coordinates: compute from raw objects, write, then let all three
+        # intermediate arrays (marker_x_m, marker_y_m, marker_xy_km) go out of
+        # scope before the scalar loop begins.
+        let
+            marker_x_m = getoutform(markers_xdmf.marker_x_obj)
+            marker_y_m = getoutform(markers_xdmf.marker_y_obj)
+            marker_xy_km = zeros(Float64, nmarkers, 2)
+            for i in 1:nmarkers
+                marker_xy_km[i, 1] =  marker_x_m[i] / 1000.0
+                marker_xy_km[i, 2] = -marker_y_m[i] / 1000.0
+            end
+            group = JLD2.Group(file, jld_dataname_xy)
+            group["array"] = marker_xy_km
+            group["name"] = "marker_xy"
+            group["units"] = "km"
+        end
 
         # Stream scalar fields one at a time: compute getoutform, write, discard.
-        # This keeps at most one nmarkers-sized array in memory at a time instead
-        # of accumulating all fields simultaneously before any write occurs.
         for (obj, meta) in zip(markers_xdmf.enabled_marker_objs, markers_xdmf.scalar_metas)
             group = JLD2.Group(file, meta.jld_dataname)
             group["array"] = getoutform(obj)

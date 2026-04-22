@@ -2,12 +2,10 @@ module GetMarkerData
 
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelDataContainer.OutputStandard: OutputLists
-import EarthBox.Arrays.ArrayTypes.MarkerArrayFloat1D: MarkerArrayFloat1DState
 import EarthBox.ConfigurationManager.OutputConfig: OutputConfigState
 import EarthBox.SurfaceProcesses.Sealevel.UpdateSealevel: get_time_dependent_base_level_shift
 import ...OutputDTypes: ScalarFieldMeta
 import ...XdmfUtils: get_xdmf_number_type_for_array
-import ...XdmfUtils: getoutform
 
 function get_marker_data(
     model::ModelData,
@@ -45,18 +43,15 @@ function get_marker_data(
 
     jld_markerfile = "markers_$(lpad(noutput, 5, "0")).jld"
 
-    nmarkers, marker_xy_km, marker_ids = make_marker_arrays_for_xdmf_format(
-        array_object_list[1],
-        array_object_list[2]
-    )
+    nmarkers = length(array_object_list[1].array)
 
     marker_data = Dict{String, Any}(
         "nmarkers" => nmarkers,
+        "marker_x_obj" => array_object_list[1],
+        "marker_y_obj" => array_object_list[2],
         "jld_markerfile" => jld_markerfile,
         "jld_dataname_xy" => "marker_xy_km",
         "jld_dataname_ids" => "marker_ids",
-        "marker_id_array" => marker_ids,
-        "marker_xy_km_array" => marker_xy_km,
         "scalar_metas" => scalar_metas,
         "enabled_marker_objs" => enabled_marker_objs,
         "time" => model_time,
@@ -69,30 +64,4 @@ function get_marker_data(
     return marker_data
 end
 
-function make_marker_arrays_for_xdmf_format(
-    marker_x::MarkerArrayFloat1DState{Float64},
-    marker_y::MarkerArrayFloat1DState{Float64}
-)::Tuple{Int, Array{Float64, 2}, Array{Float64, 1}}
-    marker_x_m = getoutform(marker_x)
-    marker_y_m = getoutform(marker_y)
-    nmarkers = size(marker_x_m, 1)
-    marker_xy_km = zeros(Float64, nmarkers, 2)
-    update_marker_xy_km_array(nmarkers, marker_x_m, marker_y_m, marker_xy_km)
-    marker_ids = collect(Float64, 0:nmarkers-1)
-    return nmarkers, marker_xy_km, marker_ids
-end
-
-function update_marker_xy_km_array(
-    nmarkers::Int,
-    marker_x_m::Array{Float64, 1},
-    marker_y_m::Array{Float64, 1},
-    marker_xy_km::Array{Float64, 2}
-)::Nothing
-    for i in 1:nmarkers
-        marker_xy_km[i, 1] = marker_x_m[i] / 1000.0
-        marker_xy_km[i, 2] = -marker_y_m[i] / 1000.0
-    end
-    return nothing
-end
-
-end # module 
+end # module
