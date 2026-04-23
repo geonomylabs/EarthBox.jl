@@ -5,7 +5,7 @@ import Printf: @sprintf
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ConversionFuncs: seconds_to_years
 import EarthBox.SurfaceProcesses: calculate_age_ma
-import EarthBox.MathTools: linear_interp_at_x_location
+import EarthBox.MathTools: linear_interp_at_x_location, linear_interp_bisection
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
 import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
@@ -81,6 +81,7 @@ function make_fractionated_gabbroic_magma_loop(
     fractionation_threshold_distance::Float64
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}, Vector{Float64}}
     gridt = model.topography.arrays.gridt.array
+
     topo_gridx = copy(gridt[1, :])
     topo_gridy = copy(gridt[2, :])
 
@@ -91,8 +92,11 @@ function make_fractionated_gabbroic_magma_loop(
     age_ma = calculate_age_ma(model)
 
     nsmooth = calculate_nsmooth(model)
+
+    # This section takes the second most computation time in the function.
     moho_gridy = calculate_oceanic_moho(model, nsmooth=nsmooth)
 
+    # This section takes the most computation time in the function.
     use_partial_melt_limit = true
     if use_partial_melt_limit
         _, _, partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(model)
@@ -110,14 +114,15 @@ function make_fractionated_gabbroic_magma_loop(
                 x_marker = marker_x[imarker]
                 y_marker = marker_y[imarker]
             end
-            y_moho = linear_interp_at_x_location(x_marker, topo_gridx, moho_gridy)
+            #y_moho = linear_interp_at_x_location(x_marker, topo_gridx, moho_gridy)
+            y_moho = linear_interp_bisection(topo_gridx, moho_gridy, x_marker)
             dist_to_moho = abs(y_marker - y_moho)
             if dist_to_moho < fractionation_threshold_distance
-                transform_marker_to_magma(model, imarker, age_ma, matid_layered_gabbroic_magma)
+                transform_marker_to_magma(
+                    model, imarker, age_ma, matid_layered_gabbroic_magma)
             end
         end
     end
-
     return topo_gridx, topo_gridy, moho_gridy, partial_melt_gridy
 end
 

@@ -256,21 +256,21 @@ function get_nmarkers(input_parameters::ParametersDictType)::Tuple{Float64, Floa
             input_parameters["xnum"][1],
             input_parameters["dx_marker"][1]
         )
-        print_info("Number of calculated markers per cell in x direction: $(nmarkers_cell_x)", level=1)
-        @assert nmarkers_cell_x > 0.0 "Number of markers per cell in x direction must be greater than 0."
+        print_info("Number of calculated markers per average cell in x direction: $(nmarkers_cell_x)", level=1)
+        @assert nmarkers_cell_x > 0.0 "Number of markers per average cell in x direction must be greater than 0."
     end
     if !marker_yspacing_provided_by_user(input_parameters)
-        print_info("Number of markers per cell in y direction are provided as input parameters", level=1)
+        print_info("Number of markers per average cell in y direction are provided as input parameters", level=1)
         nmarkers_cell_y = input_parameters["nmarkers_cell_y"][1]
-        @assert nmarkers_cell_y > 0.0 "Number of markers per cell in y direction must be greater than 0."
+        @assert nmarkers_cell_y > 0.0 "Number of markers per average cell in y direction must be greater than 0."
     else
         nmarkers_cell_y = calculate_number_of_markers_per_cell(
             input_parameters["ysize"][1],
             input_parameters["ynum"][1],
             input_parameters["dy_marker"][1]
         )
-        print_info("Number of calculated markers per cell in y-direction : $(nmarkers_cell_y)", level=1)
-        @assert nmarkers_cell_y > 0.0 "Number of markers per cell in y direction must be greater than 0."
+        print_info("Number of calculated markers per average cell in y-direction : $(nmarkers_cell_y)", level=1)
+        @assert nmarkers_cell_y > 0.0 "Number of markers per average cell in y direction must be greater than 0."
     end
     nmarkers_cell_z = get(input_parameters, "nmarkers_cell_z", [1.0])[1]
     return (nmarkers_cell_y, nmarkers_cell_x, nmarkers_cell_z)
