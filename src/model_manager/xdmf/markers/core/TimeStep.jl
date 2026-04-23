@@ -53,6 +53,10 @@ function get_xdmf_string_for_timestep(markers_xdmf::MarkersXdmfTimeStep)::String
 end
 
 function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
+    # If true, print the RAM usage before and after each step. Note this adds
+    # a lot of output to benchmark output.
+    print_ram = false
+
     jld_marker_filename = markers_xdmf.markers2djld.jld_markerfile
     jld_dataname_x = markers_xdmf.markers2djld.jld_dataname_x
     jld_dataname_y = markers_xdmf.markers2djld.jld_dataname_y
@@ -70,7 +74,9 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         file["y_sealevel"] = markers_xdmf.y_sealevel
         file["base_level_shift"] = markers_xdmf.base_level_shift
 
-        #println(">> RAM before IDs: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        if print_ram
+            println(">> RAM before IDs: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        end
         let
             group = JLD2.Group(file, jld_dataname_ids)
             group["array"] = collect(Float64, 0:nmarkers-1)
@@ -80,7 +86,9 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         # Reclaim the IDs buffer before the X write burst so the two don't stack.
         GC.gc(false)
 
-        #println(">> RAM before X: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        if print_ram
+            println(">> RAM before X: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        end
         let
             marker_x_km = getoutform(markers_xdmf.marker_x_obj)
             marker_x_km ./= 1000.0
@@ -92,7 +100,9 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         # Reclaim the X buffer before the Y write.
         GC.gc(false)
 
-        #println(">> RAM before Y: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        if print_ram
+            println(">> RAM before Y: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        end
         let
             marker_y_km = getoutform(markers_xdmf.marker_y_obj)
             marker_y_km .*= -1.0 / 1000.0
@@ -104,21 +114,35 @@ function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
         # Reclaim the Y buffer before the scalar loop.
         GC.gc(false)
 
-        #println(">> RAM before scalar loop: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        # TODO: This loop is where there is a big spike in RAM usage.
+        if print_ram
+            println(">> RAM before scalar loop: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        end
         iscalar = 0
         for (obj, meta) in zip(markers_xdmf.enabled_marker_objs, markers_xdmf.scalar_metas)
-            group = JLD2.Group(file, meta.jld_dataname)
-            group["array"] = getoutform(obj)
-            group["name"] = meta.name
-            group["units"] = meta.units
+            let
+                group = JLD2.Group(file, meta.jld_dataname)
+                group["array"] = getoutform(obj)
+                group["name"] = meta.name
+                group["units"] = meta.units
+            end
+            # Reclaim the scalar buffer + compression temporaries before the next
+            # iteration so successive scalar writes do not stack in memory.
+            GC.gc(false)
             iscalar += 1
-            #if iscalar % 5 == 0 || iscalar == length(markers_xdmf.scalar_metas)
-            #    println(">> RAM scalar $(iscalar)/$(length(markers_xdmf.scalar_metas)) [$(meta.name)]: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
-            #end
+            if print_ram
+                if iscalar % 5 == 0 || iscalar == length(markers_xdmf.scalar_metas)
+                    println(">> RAM scalar $(iscalar)/$(length(markers_xdmf.scalar_metas)) [$(meta.name)]: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+                end
+            end
         end
-        #println(">> RAM after scalar loop (pre-close): $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        if print_ram
+            println(">> RAM after scalar loop (pre-close): $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+        end
     end
-    #println(">> RAM after jldopen close: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+    if print_ram
+        println(">> RAM after jldopen close: $(round(Sys.maxrss()/1024/1024, digits=2)) MB")
+    end
 end
 
 end
