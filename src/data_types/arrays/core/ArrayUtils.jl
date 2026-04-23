@@ -58,29 +58,31 @@ function print_min_max(eb_array::AbstractEarthBoxArray2D)
     println("$(eb_array.name) : min : $min_val : max : $max_val : mean : $mean_val")
 end
 
+""" getoutform
+Returns the output format of the given EarthBox array.
+
+Supported input types include: 
+- `AbstractEarthBoxArray1D`
+- `AbstractEarthBoxArray2D`
+
+"""
 function getoutform(eb_array::AbstractEarthBoxArray1D)::Union{Vector{Float64}, Vector{Int64}, Vector{Int16}}
     fac1 = eb_array.outform.fac1
     fac2 = eb_array.outform.fac2
-    use_log10 = eb_array.outform.log10
-
-    data = eb_array.array .* fac1 .+ fac2
-    if use_log10
-        return log10.(abs.(data))
+    if eb_array.outform.log10
+        return @. log10(abs(eb_array.array * fac1 + fac2))
     else
-        return data
+        return @. eb_array.array * fac1 + fac2
     end
 end
 
 function getoutform(eb_array::AbstractEarthBoxArray2D)::Union{Matrix{Float64}, Matrix{Int64}, Matrix{Int16}}
     fac1 = eb_array.outform.fac1
     fac2 = eb_array.outform.fac2
-    use_log10 = eb_array.outform.log10
-
-    data = eb_array.array .* fac1 .+ fac2
-    if use_log10
-        return log10.(abs.(data))
+    if eb_array.outform.log10
+        return @. log10(abs(eb_array.array * fac1 + fac2))
     else
-        return data
+        return @. eb_array.array * fac1 + fac2
     end
 end
 
