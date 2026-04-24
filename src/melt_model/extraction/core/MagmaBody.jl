@@ -288,10 +288,8 @@ function calculate_marker_indices_mantle_search_domain(
     end
     nmarkers_injection_domain = icount
 
-    marker_indices_mantle_injection_search_domain = Vector{Int64}(undef, nmarkers_injection_domain) 
-    Threads.@threads for i in 1:nmarkers_injection_domain
-        marker_indices_mantle_injection_search_domain[i] = marker_indices_tmp[i]
-    end
+    marker_indices_mantle_injection_search_domain = Vector{Int64}(undef, nmarkers_injection_domain)
+    copyto!(marker_indices_mantle_injection_search_domain, 1, marker_indices_tmp, 1, nmarkers_injection_domain)
 
     return (
         marker_indices_mantle_injection_search_domain,
