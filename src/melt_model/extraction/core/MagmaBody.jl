@@ -79,14 +79,22 @@ function extract_partial_melt_and_make_magma_body(
 
     age_ma = calculate_age_ma(model)
 
-    # Divide partially molten markers into layers for more efficient search
-    layer_counts, layered_partially_molten_marker_indices =
-        PartiallyMoltenZone.construct_layered_partially_molten_arrays(
-            marker_x, marker_y, marker_matid,
-            nmarkers_partial_melt,
-            mantle_emplacement_mat_ids,
-            partial_melt_marker_indices
-        )
+    layer_counts = model.melting.arrays.buffers.pm_layer_counts.array
+    layer_offsets = model.melting.arrays.buffers.pm_layer_offsets.array
+    layered_partial_melt_indices =
+        model.melting.arrays.buffers.layered_partial_melt_indices.array
+
+    # Bin partially molten markers into layers (writes into the three buffers
+    # above) for an efficient layered shallowest-marker search.
+    PartiallyMoltenZone.construct_layered_partially_molten_arrays!(
+        marker_x, marker_y, marker_matid,
+        nmarkers_partial_melt,
+        mantle_emplacement_mat_ids,
+        partial_melt_marker_indices,
+        layer_counts,
+        layer_offsets,
+        layered_partial_melt_indices
+    )
 
     # Calculate a subset of the total marker domain that will be searched for
     # the shallowest emplacement marker for extracted magma. The populated
@@ -99,8 +107,6 @@ function extract_partial_melt_and_make_magma_body(
         calculate_marker_indices_mantle_search_domain!(
             model,
             mantle_emplacement_mat_ids,
-            layer_counts,
-            layered_partially_molten_marker_indices,
             search_width=mantle_search_width
         )
 
@@ -127,13 +133,14 @@ function extract_partial_melt_and_make_magma_body(
         # for the current drainage basin. Since the shallowest partially molten
         # markers are converted to magma they will be skipped in the next
         # iteration (if iuse_shallow_mantle_injection = 0).
-        imarker_shallow, yshallow = 
+        imarker_shallow, yshallow =
             FindShallowest.find_shallowest_partially_molten_mantle_marker_opt(
                 marker_matid,
                 marker_y,
                 mantle_emplacement_mat_ids,
                 layer_counts,
-                layered_partially_molten_marker_indices
+                layer_offsets,
+                layered_partial_melt_indices
             )
 
         xshallow_partial_melt = marker_x[imarker_shallow]
@@ -240,15 +247,18 @@ and improve computational efficiency.
 """
 function calculate_marker_indices_mantle_search_domain!(
     model::ModelData,
-    mantle_emplacement_mat_ids::Vector{Int16},
-    layer_counts::Vector{Int64},
-    layered_partially_molten_marker_indices::Vector{Vector{Int64}};
+    mantle_emplacement_mat_ids::Vector{Int16};
     search_width::Float64=25_000.0
 )::Tuple{Int, Float64, Float64, Float64, Float64}
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
     marknum = model.markers.parameters.distribution.marknum.value
+
+    layer_counts = model.melting.arrays.buffers.pm_layer_counts.array
+    layer_offsets = model.melting.arrays.buffers.pm_layer_offsets.array
+    layered_partial_melt_indices =
+        model.melting.arrays.buffers.layered_partial_melt_indices.array
 
     (
         imarker_shallow_partial_melt_domain, yshallow_partial_melt_domain
@@ -257,7 +267,8 @@ function calculate_marker_indices_mantle_search_domain!(
             marker_y,
             mantle_emplacement_mat_ids,
             layer_counts,
-            layered_partially_molten_marker_indices
+            layer_offsets,
+            layered_partial_melt_indices
         )
     if imarker_shallow_partial_melt_domain < 0
         print_warning(

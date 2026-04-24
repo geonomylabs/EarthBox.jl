@@ -11,12 +11,15 @@ function run_test()
         nmarkers_partial_melt, nmarkers_magma, matid_magma
     ) = make_inputs()
 
-    (
-        layer_counts, marker_indices
-    ) = PartiallyMoltenZone.construct_layered_partially_molten_arrays(
+    nlayers = 10
+    layer_counts = zeros(Int, nlayers)
+    layer_offsets = zeros(Int, nlayers + 1)
+    layered_partial_melt_indices = fill(Int64(-1), length(marker_x))
+
+    PartiallyMoltenZone.construct_layered_partially_molten_arrays!(
         marker_x, marker_y, marker_matid, nmarkers_partial_melt,
-        mantle_melting_mat_ids, partial_melt_flags;
-        nlayers = 10
+        mantle_melting_mat_ids, partial_melt_flags,
+        layer_counts, layer_offsets, layered_partial_melt_indices
     )
 
     for _ in 1:nmarkers_magma
@@ -28,7 +31,8 @@ function run_test()
             marker_y,
             mantle_melting_mat_ids,
             layer_counts,
-            marker_indices
+            layer_offsets,
+            layered_partial_melt_indices
         )
 
         if imarker_shallow != -999

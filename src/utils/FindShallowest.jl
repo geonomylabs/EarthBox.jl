@@ -4,6 +4,12 @@ import EarthBox.MathTools: generate_normal_random_number
 
 """ Calculate index and depth of the shallowest partially molten marker.
 
+Reads packed per-layer marker indices produced by
+`PartiallyMoltenZone.construct_layered_partially_molten_arrays!`. Layer `i`'s
+valid indices occupy
+`layered_partial_melt_indices[layer_offsets[i]+1 : layer_offsets[i+1]]`, with
+count `layer_counts[i]`.
+
 # Returns
 - imarker_shallow::Int
     - Index of shallowest partially molten marker.
@@ -14,24 +20,23 @@ function find_shallowest_partially_molten_mantle_marker_opt(
     marker_matid::Vector{Int16},
     marker_y::Vector{Float64},
     mantle_melting_mat_ids::Vector{Int16},
-    layer_counts::Vector{Int64},
-    marker_indices::Vector{Vector{Int64}}
+    layer_counts::Vector{Int},
+    layer_offsets::Vector{Int},
+    layered_partial_melt_indices::Vector{Int64}
 )::Tuple{Int, Float64}
     imarker_shallow = -999
     yshallow = 1e32
     found_marker = false
     nlayers = length(layer_counts)
-    # Consider optimizing this for column-major 2D arrays
     for ilayer in 1:nlayers
         nmarkers_layer = layer_counts[ilayer]
+        base = layer_offsets[ilayer]
         for j in 1:nmarkers_layer
-            # get index of partially molten mantle marker
-            imarker = marker_indices[ilayer][j]
+            imarker = layered_partial_melt_indices[base + j]
             matid = marker_matid[imarker]
             # Only consider ID's associated with the mantle melting model
             if matid in mantle_melting_mat_ids
                 found_marker = true
-                # Get coordinates and material ID of marker
                 y_marker = marker_y[imarker]
                 if y_marker < yshallow
                     yshallow = y_marker

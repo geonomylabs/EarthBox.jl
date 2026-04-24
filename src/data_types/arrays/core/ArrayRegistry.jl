@@ -5,6 +5,7 @@ import EarthBox.Arrays.ArrayTypes.ScalarArray2D: ScalarArray2DState
 import EarthBox.Arrays.ArrayTypes.RhsHeatArray1D: RhsHeatArray1DState
 import EarthBox.Arrays.ArrayTypes.MarkerArrayFloat1D: MarkerArrayFloat1DState
 import EarthBox.Arrays.ArrayTypes.MarkerArrayInt1D: MarkerArrayInt1DState
+import EarthBox.Arrays.ArrayTypes.Array1DInt: Array1DIntState
 import EarthBox.Arrays.ArrayTypes.SolutionArray1D: SolutionArray1DState
 import EarthBox.Arrays.ArrayTypes.RhsStokesArray1D: RhsStokesArray1DState
 import EarthBox.Arrays.ArrayTypes.BcArrayFloat: BcArrayFloatState
@@ -574,6 +575,26 @@ function get_melting_arrays()::NamedTuple
             * "markers in the mantle injection search domain. Only positions "
             * "[1:nmarkers_injection_domain] are valid after each call; the tail "
             * "is stale. Initialized to -1.",
+        ),
+        pm_layer_counts = ArrayData(
+            "pm_layer_counts", "None", Array1DIntState, "NA",
+            "`(nlayers)` : Pre-allocated scratch buffer for per-layer counts of "
+            * "partially molten mantle markers used by the layered "
+            * "shallowest-marker search. Populated by "
+            * "construct_layered_partially_molten_arrays!.",
+        ),
+        pm_layer_offsets = ArrayData(
+            "pm_layer_offsets", "None", Array1DIntState, "NA",
+            "`(nlayers + 1)` : Pre-allocated scratch buffer holding exclusive "
+            * "prefix-sum offsets into layered_partial_melt_indices. Layer i's "
+            * "valid indices occupy positions [offsets[i]+1 : offsets[i+1]].",
+        ),
+        layered_partial_melt_indices = ArrayData(
+            "layered_partial_melt_indices", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch buffer holding partially "
+            * "molten mantle marker indices packed by layer (counting-sort "
+            * "style). Use pm_layer_counts and pm_layer_offsets to bound per-"
+            * "layer reads.",
         ),
     )
 end
