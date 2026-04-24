@@ -42,7 +42,8 @@ Algorithm
 9. Apply compaction displacement to sediment markers.
 10. Apply compaction displacement to sticky markers
 """
-function compact_sediment_and_advect_markers(
+function compact_sediment_and_advect_markers!(
+    compaction_array::Array{Float64, 3},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     sediment_thickness_initial_gridx::Vector{Float64},
@@ -61,7 +62,13 @@ function compact_sediment_and_advect_markers(
     default_porosity_initial::Float64 = 0.4,
     default_decay_depth::Float64 = 2000.0
 )::Vector{Float64}
-    compaction_array = make_compaction_array(topo_gridx)
+    @assert size(compaction_array, 1) == length(topo_gridx)
+    @assert size(compaction_array, 2) == 20
+    @assert size(compaction_array, 3) == 9
+    # Zero-init load-bearing: downstream accumulates via += in slots 2, 3, 4,
+    # 7, 9 and slot 8 is divided by slot 4's count; stale values corrupt the
+    # result.
+    fill!(compaction_array, 0.0)
     calculate_compaction_meshes(
         topo_gridx, topo_gridy,
         sediment_thickness_initial_gridx, compaction_array
