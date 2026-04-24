@@ -259,9 +259,9 @@ function advect_topography_vertically_for_salt_deposition!(model::ModelData)::No
 
     if salt_start_time <= timesum <= salt_end_time
         gridt = get_topography_array(model)
-        topo_gridx = copy(gridt[1, :])
-        topo_gridy = copy(gridt[2, :])
-        topo_gridy_initial = copy(gridt[2, :])
+        topo_gridx = gridt[1, :]
+        topo_gridy = gridt[2, :]
+        topo_gridy_initial = gridt[2, :]
 
         timestep = get_model_time_step(model)
         toponum = size(gridt, 2)

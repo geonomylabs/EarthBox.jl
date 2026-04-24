@@ -63,8 +63,8 @@ function convert_grid_arrays_to_km_for_output(
     garrays = model.grids.arrays
     gridx_b_km = copy(garrays.basic.gridx_b.array) ./ 1000.0
     gridy_b_km = copy(garrays.basic.gridy_b.array) ./ 1000.0
-    gridx_vy_km = copy(garrays.staggered_vy.gridx_vy.array[2:xnum]) ./ 1000.0
-    gridy_vx_km = copy(garrays.staggered_vx.gridy_vx.array[2:ynum]) ./ 1000.0
+    gridx_vy_km = garrays.staggered_vy.gridx_vy.array[2:xnum] ./ 1000.0
+    gridy_vx_km = garrays.staggered_vx.gridy_vx.array[2:ynum] ./ 1000.0
     gridx_pr_km = copy(garrays.pressure.gridx_pr.array) ./ 1000.0
     gridy_pr_km = copy(garrays.pressure.gridy_pr.array) ./ 1000.0
     

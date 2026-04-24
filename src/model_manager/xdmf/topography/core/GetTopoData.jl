@@ -11,8 +11,8 @@ function get_topo_data(model::ModelData)::Dict{String, Any}
     model_time = timesum/sec_per_Myr
     time_units = "Myr"
 
-    topo_x_m = copy(model.topography.arrays.gridt.array[1,:])
-    topo_y_m = -copy(model.topography.arrays.gridt.array[2,:])
+    topo_x_m = model.topography.arrays.gridt.array[1,:]
+    topo_y_m = -model.topography.arrays.gridt.array[2,:]
 
     jld_markerfile = "topo_" * intstr(noutput) * ".jld"
 

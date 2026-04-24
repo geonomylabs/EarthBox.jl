@@ -27,8 +27,8 @@ function calc_topo_from_runge_kutta!(
     timestep = model.timestep.parameters.main_time_loop.timestep.value
 
     gridt = model.topography.arrays.gridt.array
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
     toponum = length(topo_gridx)
 
     (

@@ -82,8 +82,8 @@ function make_fractionated_gabbroic_magma_loop(
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}, Vector{Float64}}
     gridt = model.topography.arrays.gridt.array
 
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
 
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
@@ -138,8 +138,8 @@ end
 
 function calculate_oceanic_moho(model::ModelData; nsmooth::Int=20)
     gridt = model.topography.arrays.gridt.array
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
@@ -166,8 +166,8 @@ end
 """
 function calculate_moho(model::ModelData, nsmooth::Int=20)
     gridt = model.topography.arrays.gridt.array
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
