@@ -74,6 +74,7 @@ function find_shallowest_mantle_marker_random_opt(
     marker_y::Vector{Float64},
     marker_matid::Vector{Int16},
     marker_indices_mantle_injection_search_domain::Vector{Int64},
+    nmarkers_injection_domain::Int,
     mantle_mat_ids::Vector{Int16},
     x_shallow_partial_melt::Float64,
     injection_width::Float64;
@@ -98,6 +99,7 @@ function find_shallowest_mantle_marker_random_opt(
         marker_y,
         marker_matid,
         marker_indices_mantle_injection_search_domain,
+        nmarkers_injection_domain,
         mantle_mat_ids,
         xmin,
         xmax
@@ -164,11 +166,11 @@ function find_shallowest_marker_in_mantle_injection_domain(
     marker_y::Vector{Float64},
     marker_matid::Vector{Int16},
     marker_indices_mantle_injection_domain::Vector{Int64},
+    nmarkers_injection_domain::Int,
     mat_ids::Vector{Int16},
     xmin::Float64,
     xmax::Float64
 )::Tuple{Int, Float64}
-    nmarkers_injection_domain = length(marker_indices_mantle_injection_domain)
     imarker_shallow = -999
     yshallow = 1e32
     for i in 1:nmarkers_injection_domain
