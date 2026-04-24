@@ -47,8 +47,8 @@ function copy_new_topography_to_topography_array(
 end
 
 function copy_topography_coordinate_arrays(gridt::Matrix{Float64})
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
     return topo_gridx, topo_gridy
 end
 

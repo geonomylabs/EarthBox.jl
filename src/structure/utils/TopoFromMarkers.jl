@@ -18,7 +18,7 @@ function calc_topo_from_markers!(model::ModelData)
 
     gridt = model.topography.arrays.gridt.array
     toponum = model.topography.parameters.topo_grid.toponum.value
-    topo_gridx = copy(gridt[1,:])
+    topo_gridx = gridt[1,:]
 
     marker_search_factor = model.topography.parameters.topo_grid.marker_search_factor.value
     mxstep = model.markers.parameters.distribution.mxstep.value

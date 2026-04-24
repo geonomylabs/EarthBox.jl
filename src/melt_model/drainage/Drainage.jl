@@ -107,8 +107,8 @@ function calculate_top_of_mantle_partial_melt_domain(
     ysize = model.grids.parameters.geometry.ysize.value
 
     gridt = model.topography.arrays.gridt.array
-    topo_gridx = copy(gridt[1, :])
-    topo_gridy = copy(gridt[2, :])
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
 
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
