@@ -89,16 +89,23 @@ function extract_partial_melt_and_make_magma_body(
         )
 
     # Calculate a subset of the total marker domain that will be searched for
-    # the shallowest emplacement marker for extracted magma.
-    marker_indices_mantle_injection_search_domain, xshallow_partial_melt_domain_initial,
-    yshallow_partial_melt_domain_initial, mantle_search_xmin, mantle_search_xmax = 
-        calculate_marker_indices_mantle_search_domain(
+    # the shallowest emplacement marker for extracted magma. The populated
+    # indices are written into the scratch buffer
+    # model.melting.arrays.buffers.marker_indices_tmp.array; only the first
+    # nmarkers_injection_domain entries are valid.
+    nmarkers_injection_domain,
+    xshallow_partial_melt_domain_initial, yshallow_partial_melt_domain_initial,
+    mantle_search_xmin, mantle_search_xmax =
+        calculate_marker_indices_mantle_search_domain!(
             model,
             mantle_emplacement_mat_ids,
             layer_counts,
             layered_partially_molten_marker_indices,
             search_width=mantle_search_width
         )
+
+    marker_indices_mantle_injection_search_domain =
+        model.melting.arrays.buffers.marker_indices_tmp.array
 
     use_threshold_depth = false
     if use_threshold_depth
@@ -158,6 +165,7 @@ function extract_partial_melt_and_make_magma_body(
                         marker_y,
                         marker_matid,
                         marker_indices_mantle_injection_search_domain,
+                        nmarkers_injection_domain,
                         mantle_emplacement_mat_ids,
                         xshallow_partial_melt,
                         injection_width,
@@ -211,9 +219,16 @@ width relative to the shallowest partially molten mantle marker.
 This domain is used to limit the search domain for magma emplacement
 and improve computational efficiency.
 
+# Side effects
+- Populates the scratch buffer
+  `model.melting.arrays.buffers.marker_indices_tmp.array` with indices of
+  markers in the mantle injection search domain. Only the first
+  `nmarkers_injection_domain` entries are valid; the tail may carry stale
+  values from prior calls.
+
 # Returns
-- marker_indices_mantle_injection_search_domain::Vector{Int64}
-    - Indices of markers in the mantle injection domain.
+- nmarkers_injection_domain::Int
+    - Number of valid entries at the start of the scratch buffer.
 - xshallow_partial_melt_domain::Float64
     - X-coordinate of the shallowest partially molten mantle marker.
 - yshallow_partial_melt_domain::Float64
@@ -223,13 +238,13 @@ and improve computational efficiency.
 - xend::Float64
     - Maximum x-coordinate of the search domain.
 """
-function calculate_marker_indices_mantle_search_domain(
+function calculate_marker_indices_mantle_search_domain!(
     model::ModelData,
     mantle_emplacement_mat_ids::Vector{Int16},
     layer_counts::Vector{Int64},
     layered_partially_molten_marker_indices::Vector{Vector{Int64}};
     search_width::Float64=25_000.0
-)::Tuple{Vector{Int64}, Float64, Float64, Float64, Float64}
+)::Tuple{Int, Float64, Float64, Float64, Float64}
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
@@ -288,11 +303,8 @@ function calculate_marker_indices_mantle_search_domain(
     end
     nmarkers_injection_domain = icount
 
-    marker_indices_mantle_injection_search_domain = Vector{Int64}(undef, nmarkers_injection_domain)
-    copyto!(marker_indices_mantle_injection_search_domain, 1, marker_indices_tmp, 1, nmarkers_injection_domain)
-
     return (
-        marker_indices_mantle_injection_search_domain,
+        nmarkers_injection_domain,
         xshallow_partial_melt_domain,
         yshallow_partial_melt_domain,
         xstart,
