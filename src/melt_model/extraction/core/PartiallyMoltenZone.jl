@@ -1,38 +1,117 @@
 module PartiallyMoltenZone
 
-""" Calculate partially molten marker indices and counts for each layer.
+""" Populate pre-allocated layer buffers with partially molten marker indices.
 
-# Returns
-- layer_counts::Vector{Int64}
-    - Number of partially molten markers in each layer.
-- layered_partially_molten_marker_indices::Vector{Vector{Int64}}
-    - Indices of partially molten markers in each layer.
+Bins partially molten mantle markers (whose material id is in
+`mantle_emplacement_mat_ids`) into `nlayers` equal y-range slabs by counting
+sort, writing:
+- `layer_counts[i]`: number of valid markers in layer `i`
+- `layer_offsets[i]`: exclusive prefix-sum so layer `i`'s indices occupy
+  `layered_partial_melt_indices[layer_offsets[i]+1 : layer_offsets[i+1]]`
+- `layered_partial_melt_indices[layer_offsets[i]+1 : layer_offsets[i+1]]`:
+  packed marker indices belonging to layer `i`
+
+The number of layers is taken from `length(layer_counts)`. The function
+performs three O(nmarkers_partial_melt) passes (y-range scan, count, pack)
+and zero heap allocations.
+
+`layer_offsets` is the exclusive prefix sum of `layer_counts`: `layer_offsets[1]
+= 0` and `layer_offsets[i+1] = layer_offsets[i] + layer_counts[i]`. It locates
+each layer's block inside the flat buffer, so layer `i`'s valid marker indices
+are `layered_partial_melt_indices[layer_offsets[i]+1 : layer_offsets[i+1]]`
+(count `layer_counts[i]`). This replaces a `Vector{Vector{Int64}}` with one
+contiguous vector plus bookkeeping.
+
+# Arguments
+- `marker_x::Vector{Float64}`: Marker x-coordinates.
+- `marker_y::Vector{Float64}`: Marker y-coordinates.
+- `marker_matid::Vector{Int16}`: Marker material ids.
+- `nmarkers_partial_melt::Int`: Number of valid entries in
+  `partial_melt_marker_indices`.
+- `mantle_emplacement_mat_ids::Vector{Int16}`: Material ids considered
+  partially molten mantle for this call.
+- `partial_melt_marker_indices::Vector{Int64}`: Candidate marker indices
+  (only the first `nmarkers_partial_melt` entries are read).
+- `layer_counts::Vector{Int}`: Scratch buffer of length `nlayers`; populated
+  with per-layer counts.
+- `layer_offsets::Vector{Int}`: Scratch buffer of length `nlayers + 1`;
+  populated with exclusive prefix-sum offsets.
+- `layered_partial_melt_indices::Vector{Int64}`: Scratch buffer packed with
+  marker indices grouped by layer. Must be large enough to hold every marker
+  that passes the matid filter (typically sized to `marknum`).
 """
-function construct_layered_partially_molten_arrays(
+function construct_layered_partially_molten_arrays!(
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     marker_matid::Vector{Int16},
     nmarkers_partial_melt::Int,
     mantle_emplacement_mat_ids::Vector{Int16},
-    partial_melt_marker_indices::Vector{Int64};
-    nlayers::Int=50
-)::Tuple{Vector{Int64}, Vector{Vector{Int64}}}
-    pm_xmin, pm_xmax, pm_ymin, pm_ymax = get_limits_of_partially_molten_zone(
+    partial_melt_marker_indices::Vector{Int64},
+    layer_counts::Vector{Int},
+    layer_offsets::Vector{Int},
+    layered_partial_melt_indices::Vector{Int64}
+)::Nothing
+    nlayers = length(layer_counts)
+
+    _, _, pm_ymin, pm_ymax = get_limits_of_partially_molten_zone(
         marker_x, marker_y, marker_matid, nmarkers_partial_melt,
         mantle_emplacement_mat_ids, partial_melt_marker_indices
     )
 
-    layer_dims = create_dimension_array_for_layers(
-        nlayers, pm_xmin, pm_xmax, pm_ymin, pm_ymax
-    )
+    # dy_inv = nlayers / (pm_ymax - pm_ymin); zero when the zone is degenerate
+    # so every valid marker falls into layer 1 (matches old behavior where
+    # ymin == ymax made all layers coincide).
+    has_range = pm_ymax > pm_ymin
+    dy_inv = has_range ? nlayers / (pm_ymax - pm_ymin) : 0.0
 
-    layer_counts, layered_partially_molten_marker_indices = 
-        calculate_partially_molten_marker_indices_for_layers(
-            marker_x, marker_y, marker_matid, nmarkers_partial_melt,
-            mantle_emplacement_mat_ids, partial_melt_marker_indices, layer_dims
-        )
+    fill!(layer_counts, 0)
+    for j in 1:nmarkers_partial_melt
+        imarker = partial_melt_marker_indices[j]
+        matid = marker_matid[imarker]
+        if matid in mantle_emplacement_mat_ids
+            if has_range
+                y = marker_y[imarker]
+                ilayer = floor(Int, (y - pm_ymin) * dy_inv) + 1
+                if ilayer < 1
+                    ilayer = 1
+                elseif ilayer > nlayers
+                    ilayer = nlayers
+                end
+            else
+                ilayer = 1
+            end
+            layer_counts[ilayer] += 1
+        end
+    end
 
-    return layer_counts, layered_partially_molten_marker_indices
+    layer_offsets[1] = 0
+    for i in 1:nlayers
+        layer_offsets[i + 1] = layer_offsets[i] + layer_counts[i]
+    end
+
+    fill!(layer_counts, 0)
+    for j in 1:nmarkers_partial_melt
+        imarker = partial_melt_marker_indices[j]
+        matid = marker_matid[imarker]
+        if matid in mantle_emplacement_mat_ids
+            if has_range
+                y = marker_y[imarker]
+                ilayer = floor(Int, (y - pm_ymin) * dy_inv) + 1
+                if ilayer < 1
+                    ilayer = 1
+                elseif ilayer > nlayers
+                    ilayer = nlayers
+                end
+            else
+                ilayer = 1
+            end
+            pos = layer_offsets[ilayer] + layer_counts[ilayer] + 1
+            layered_partial_melt_indices[pos] = imarker
+            layer_counts[ilayer] += 1
+        end
+    end
+
+    return nothing
 end
 
 """ Get limits of partially molten zone.
@@ -89,105 +168,4 @@ function get_limits_of_partially_molten_zone(
     return xmin, xmax, ymin, ymax
 end
 
-""" Create array to store dimensions of each layers.
-
-For each layer store: xmin, xmax, ymin, ymax.
-
-# Returns
-- layer_dims::Matrix{Float64}
-    - Array to store dimensions of each layer:
-    - layer_dims[i, 1] = xmin
-    - layer_dims[i, 2] = xmax
-    - layer_dims[i, 3] = ymin
-    - layer_dims[i, 4] = ymax
-"""
-function create_dimension_array_for_layers(
-    nlayers::Int,
-    pm_xmin::Float64,
-    pm_xmax::Float64,
-    pm_ymin::Float64,
-    pm_ymax::Float64
-)::Matrix{Float64}
-    dy = (pm_ymax - pm_ymin) / nlayers
-    layer_dims = Matrix{Float64}(undef, nlayers, 4) #zeros(Float64, nlayers, 4)
-    for i in 1:nlayers
-        layer_dims[i, 1] = pm_xmin
-        layer_dims[i, 2] = pm_xmax
-
-        ytop = pm_ymin + (i-1)*dy
-        layer_dims[i, 3] = ytop
-        layer_dims[i, 4] = ytop + dy
-    end
-    return layer_dims
-end
-
-""" Calculate indices of partially molten markers in layers.
-
-A multi-dimensional array is calculated to store the indices of partially
-molten markers in layers created by dividing up the partially molten mantle 
-domain into nlayers with dimensions stored in layer_dims. The number of 
-markers in each layer is also calculated and stored in a separate array 
-called layer_counts.
-
-Only markers with that are partially molten and have material IDs that are
-in mantle_emplacement_mat_ids are considered.
-
-# Returns
-- layer_counts::Vector{Int64}
-    - Number of partially molten markers in each layer. This number is equal 
-    to or less than nmarkers_partial_melt.
-- layered_partially_molten_marker_indices::Vector{Vector{Int64}}
-    - Array to store IDs of partially molten markers in each layer.
-"""
-function calculate_partially_molten_marker_indices_for_layers(
-    marker_x::Vector{Float64},
-    marker_y::Vector{Float64},
-    marker_matid::Vector{Int16},
-    nmarkers_partial_melt::Int,
-    mantle_emplacement_mat_ids::Vector{Int16},
-    partial_melt_flags::Vector{Int64},
-    layer_dims::Matrix{Float64}
-)::Tuple{Vector{Int64}, Vector{Vector{Int64}}}
-    nlayers = size(layer_dims, 1)
-    layer_counts = Vector{Int64}(undef, nlayers)
-
-    layered_partially_molten_marker_indices = 
-        create_layer_array_for_partially_molten_ids(nlayers, nmarkers_partial_melt)
-
-    for i in 1:nlayers
-        xmin = layer_dims[i, 1]
-        xmax = layer_dims[i, 2]
-        ymin = layer_dims[i, 3]
-        ymax = layer_dims[i, 4]
-        icount = 0
-        for j in 1:nmarkers_partial_melt
-            imarker = partial_melt_flags[j]
-            y_marker = marker_y[imarker]
-            x_marker = marker_x[imarker]
-            matid = marker_matid[imarker]
-            if matid in mantle_emplacement_mat_ids
-                if xmin <= x_marker <= xmax && ymin <= y_marker <= ymax
-                    layered_partially_molten_marker_indices[i][icount + 1] = imarker
-                    icount += 1
-                end
-            end
-        end
-        layer_counts[i] = icount
-    end
-    return layer_counts, layered_partially_molten_marker_indices
-end
-
-""" Create array to store indices of partially molten markers in each layer.
-
-# Returns
-- layered_partially_molten_marker_indices::Vector{Vector{Int64}}
-    - Indices of partially molten markers in each layer.
-"""
-function create_layer_array_for_partially_molten_ids(
-    nlayers::Int,
-    nmarkers_partial_melt::Int
-)::Vector{Vector{Int64}}
-    return [fill(-1, nmarkers_partial_melt) for _ in 1:nlayers]
-end
-
-end # module 
+end # module
