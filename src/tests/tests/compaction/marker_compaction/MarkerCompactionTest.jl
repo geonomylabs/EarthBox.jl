@@ -4,7 +4,8 @@ import Plots
 import EarthBox.Compaction: CompactionCorrection
 import EarthBox.Compaction.MarkerCompaction: calculate_marker_swarm_indices
 import EarthBox.Compaction.MarkerCompaction: calculate_x_sorted_swarm_indices_from_marker_x
-import EarthBox.Compaction.MarkerCompaction: compact_sediment_and_advect_markers
+import EarthBox.Compaction.MarkerCompaction: compact_sediment_and_advect_markers!
+import EarthBox.Compaction.MarkerCompaction: make_compaction_array
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_swarm
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_swarm_opt
@@ -69,9 +70,11 @@ function run_test()
     end
 
     test_type = "correction" # "compaction" or "correction"
+    compaction_array = make_compaction_array(topo_gridx)
     if test_type == "compaction"
         t1 = time()
-        compact_sediment_and_advect_markers(
+        compact_sediment_and_advect_markers!(
+            compaction_array,
             topo_gridx,
             topo_gridy,
             sediment_thickness_gridx,
@@ -123,6 +126,7 @@ function run_test()
                 total_sediment_thickness_corrected,
                 new_thickness_decompacted
             ) = CompactionCorrection.decompact_new_sediment_and_compact_markers(
+                compaction_array,
                 porosity_initial_transport, decay_depth_transport,
                 topo_gridx, topo_gridy_initial, topo_gridy_transport,
                 markers_x, markers_y,

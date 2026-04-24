@@ -7,7 +7,7 @@ import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_swarm
 import EarthBox.DataStructures: SedimentTransportParameters
 import ..CompactionTools: compact_or_decompact_layer
-import ..MarkerCompaction: compact_sediment_and_advect_markers
+import ..MarkerCompaction: compact_sediment_and_advect_markers!
 
 """ Apply compaction correction to transport topography and markers.
 
@@ -64,9 +64,12 @@ function apply_compaction_correction_for_topography_and_markers(
     porosity_initial_transport = sediment_transport_parameters.porosity_initial
     decay_depth_transport = 1.0/sediment_transport_parameters.depth_decay_term
     
+    compaction_array = model.topography.arrays.compaction_array.array
+
     (
         topo_gridy_corrected, total_sed_thickness_corrected, new_thickness_decompacted
     ) = decompact_new_sediment_and_compact_markers(
+            compaction_array,
             porosity_initial_transport,
             decay_depth_transport,
             topo_gridx,
@@ -136,6 +139,7 @@ Apply compaction correction to transport topography and markers.
 - `new_thickness_decompacted::Vector{Float64}`: Decompacted new sediment thickness (meters)
 """
 function decompact_new_sediment_and_compact_markers(
+    compaction_array::Array{Float64, 3},
     porosity_initial_transport::Float64,
     decay_depth_transport::Float64,
     topo_gridx::Vector{Float64},
@@ -161,7 +165,8 @@ function decompact_new_sediment_and_compact_markers(
         porosity_initial_transport, decay_depth_transport,
         new_thickness_compacted
     )
-    sediment_thickness_initial_compacted = compact_sediment_and_advect_markers(
+    sediment_thickness_initial_compacted = compact_sediment_and_advect_markers!(
+        compaction_array,
         topo_gridx,
         topo_gridy_initial,
         sediment_thickness_initial,
