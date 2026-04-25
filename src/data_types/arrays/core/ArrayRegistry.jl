@@ -538,14 +538,29 @@ function get_markers_arrays()::NamedTuple
             * "MarkerCompaction.calculate_total_marker_compaction_displacement!.",
         ),
 
-        # Solidification scratch buffer used by Solidification.solidify! for
-        # per-marker random numbers consumed by friction-coefficient
-        # randomization. Refilled via Random.rand! each call.
+        # Solidification / shared random scratch used by Solidification.solidify!
+        # and (via shared reuse) MarkerRecycle.RandomMarkerArray.get_random_marker_array.
+        # Refilled via Random.rand! at each consumer call site.
         marker_random_buffer = ArrayData(
             "marker_random_buffer", "None", MarkerArrayFloat1DState, "NA",
             "`(marknum)` : Pre-allocated scratch for per-marker random "
-            * "numbers consumed by Solidification.solidify! during friction-"
-            * "coefficient randomization. Refilled via Random.rand! each call.",
+            * "numbers. Used by Solidification.solidify! during friction-"
+            * "coefficient randomization, and by "
+            * "MarkerRecycle.RandomMarkerArray.get_random_marker_array for "
+            * "subsurface-marker reset. Each consumer refills via Random.rand! "
+            * "before reading, so values do not leak between consumers.",
+        ),
+
+        # Marker recycling scratch buffer used by
+        # GridFuncs.get_indices_of_markers_outside_domain to mark and pack
+        # outside-marker indices in marker-index order.
+        marker_outside_indices_scratch = ArrayData(
+            "marker_outside_indices_scratch", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the marknum-sized "
+            * "intermediate inside "
+            * "GridFuncs.get_indices_of_markers_outside_domain. Filled in "
+            * "marker-index order, then packed in place before the function "
+            * "returns a length-`nrecycle` copy.",
         ),
     )
 end
