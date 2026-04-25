@@ -2,7 +2,7 @@ module RandomFrictionAngles
 
 import EarthBox.ModelDataContainer: ModelData
 using Printf
-import Random
+import Random: rand!
 
 """
     randomize_initial_friction_angles!(model::ModelData)::Nothing
@@ -13,8 +13,14 @@ This randomizes the initial friction angle θ°ₘ for each marker that is store
 in the array `marker_fric_ini`.
 """
 function randomize_initial_friction_angles!(model::ModelData)::Nothing
-    marknum = model.markers.parameters.distribution.marknum.value
-    marker_random = Random.rand(marknum)
+    # Refill the shared marknum-sized random scratch in place. The buffer
+    # lives at model.markers.arrays.solidification.marker_random_buffer and is
+    # also used by Solidification.solidify! and
+    # MarkerRecycle.RandomMarkerArray.get_random_marker_array. All consumers
+    # rand!() before reading, so values do not leak between them. Saves a
+    # marknum-scale Vector{Float64} allocation each pre-solver step.
+    marker_random = model.markers.arrays.solidification.marker_random_buffer.array
+    rand!(marker_random)
     randomize_initial_friction_angles_loop!(model, marker_random)
     return nothing
 end
