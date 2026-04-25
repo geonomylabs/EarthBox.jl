@@ -43,6 +43,13 @@ Algorithm
 10. Apply compaction displacement to sticky markers
 """
 function compact_sediment_and_advect_markers(
+    compaction_array::Array{Float64, 3},
+    markers_topo_xindex::Vector{Int64},
+    markers_compaction_yindex::Vector{Int64},
+    markers_unit_distance_from_cell_top::Vector{Float64},
+    total_marker_compaction_displacement::Vector{Float64},
+    sticky_displacement_factors::Vector{Float64},
+    sticky_marker_displacement::Vector{Float64},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     sediment_thickness_initial_gridx::Vector{Float64},
@@ -61,18 +68,30 @@ function compact_sediment_and_advect_markers(
     default_porosity_initial::Float64 = 0.4,
     default_decay_depth::Float64 = 2000.0
 )::Vector{Float64}
-    compaction_array = make_compaction_array(topo_gridx)
+    @assert size(compaction_array, 1) == length(topo_gridx)
+    @assert size(compaction_array, 2) == 20
+    @assert size(compaction_array, 3) == 9
+    @assert length(markers_topo_xindex) == length(markers_x)
+    @assert length(markers_compaction_yindex) == length(markers_x)
+    @assert length(markers_unit_distance_from_cell_top) == length(markers_x)
+    @assert length(total_marker_compaction_displacement) == length(markers_x)
+    @assert length(sticky_displacement_factors) == length(markers_x)
+    @assert length(sticky_marker_displacement) == length(markers_x)
+    # Zero-init load-bearing: downstream accumulates via += in slots 2, 3, 4,
+    # 7, 9 and slot 8 is divided by slot 4's count; stale values corrupt the
+    # result.
+    fill!(compaction_array, 0.0)
     calculate_compaction_meshes(
         topo_gridx, topo_gridy,
         sediment_thickness_initial_gridx, compaction_array
     )
-    markers_topo_xindex = assign_topo_xindex_to_markers(
+    assign_topo_xindex_to_markers!(
+        markers_topo_xindex,
         topo_gridx, markers_x, markers_indices_sedimentary_basin
     )
-    (
+    assign_compaction_yindex_to_markers!(
         markers_compaction_yindex,
-        markers_unit_distance_from_cell_top
-    ) = assign_compaction_yindex_to_markers(
+        markers_unit_distance_from_cell_top,
         markers_y, markers_indices_sedimentary_basin,
         compaction_array, markers_topo_xindex
     )
@@ -99,13 +118,13 @@ function compact_sediment_and_advect_markers(
         markers_indices_sedimentary_basin,
         compaction_array
     )
-    total_marker_compaction_displacement = 
-        calculate_total_marker_compaction_displacement(
-            markers_y, markers_topo_xindex, markers_compaction_yindex,
-            markers_unit_distance_from_cell_top,
-            markers_indices_sedimentary_basin,
-            compaction_array
-        )
+    calculate_total_marker_compaction_displacement!(
+        total_marker_compaction_displacement,
+        markers_y, markers_topo_xindex, markers_compaction_yindex,
+        markers_unit_distance_from_cell_top,
+        markers_indices_sedimentary_basin,
+        compaction_array
+    )
     (
         top_marker_sediment_pre_compaction, _
     ) = calculate_top_and_bottom_of_swarm_opt(
@@ -134,7 +153,9 @@ function compact_sediment_and_advect_markers(
         top_marker_sediment_post_compaction -
         top_marker_sediment_pre_compaction
     )
-    apply_compaction_displacement_to_sticky_markers(
+    apply_compaction_displacement_to_sticky_markers!(
+        sticky_displacement_factors,
+        sticky_marker_displacement,
         markers_x,
         markers_y,
         topo_gridx,
@@ -358,15 +379,14 @@ function calculate_compaction_meshes(
     end
 end
 
-function assign_topo_xindex_to_markers(
+function assign_topo_xindex_to_markers!(
+    markers_topo_xindex::Vector{Int64},
     topo_gridx::Vector{Float64},
     markers_x::Vector{Float64},
     marker_indices_sedimentary_basin::Vector{Int64}
-)::Vector{Int64}
+)::Nothing
     nswarm = length(marker_indices_sedimentary_basin)
-    nmarkers = length(markers_x)
     ntopo = length(topo_gridx)
-    markers_topo_xindex = Vector{Int64}(undef, nmarkers)
     Threads.@threads for i in 1:nswarm
         imarker = marker_indices_sedimentary_basin[i]
         x_marker = markers_x[imarker]
@@ -379,7 +399,7 @@ function assign_topo_xindex_to_markers(
         end
         markers_topo_xindex[imarker] = xindex
     end
-    return markers_topo_xindex
+    return nothing
 end
 
 """ Assign the compaction y index to the markers and calculate unit distance
@@ -394,14 +414,14 @@ markers_compaction_yindex : Vector{Int64}
 markers_unit_distance_from_cell_top : Vector{Float64}
     The unit distance from the top of the compaction grid cell.
 """
-function assign_compaction_yindex_to_markers(
+function assign_compaction_yindex_to_markers!(
+    markers_compaction_yindex::Vector{Int64},
+    markers_unit_distance_from_cell_top::Vector{Float64},
     markers_y::Vector{Float64},
     marker_indices_sedimentary_basin::Vector{Int64},
     compaction_array::Array{Float64, 3},
     markers_topo_xindex::Vector{Int64}
-)::Tuple{Vector{Int64}, Vector{Float64}}
-    markers_compaction_yindex = Vector{Int64}(undef, length(markers_y))
-    markers_unit_distance_from_cell_top = Vector{Float64}(undef, length(markers_y))
+)::Nothing
     ncells = size(compaction_array, 2)
     nmarkers_sediment = length(marker_indices_sedimentary_basin)
     Threads.@threads for i in 1:nmarkers_sediment
@@ -427,7 +447,7 @@ function assign_compaction_yindex_to_markers(
         markers_compaction_yindex[imarker] = compaction_yindex
         markers_unit_distance_from_cell_top[imarker] = unit_distance
     end
-    return markers_compaction_yindex, markers_unit_distance_from_cell_top
+    return nothing
 end
 
 """ Calculate the compaction properties for the compaction array.
@@ -705,19 +725,21 @@ Returns
 total_marker_compaction_displacement : Vector{Float64}
     The total marker compaction displacement.
 """
-function calculate_total_marker_compaction_displacement(
+function calculate_total_marker_compaction_displacement!(
+    total_marker_compaction_displacement::Vector{Float64},
     markers_y::Vector{Float64},
     markers_topo_xindex::Vector{Int64},
     markers_compaction_yindex::Vector{Int64},
     markers_unit_distance_from_cell_top::Vector{Float64},
     markers_indices_sedimentary_basin::Vector{Int64},
     compaction_array::Array{Float64, 3}
-)::Vector{Float64}
+)::Nothing
     nswarm = length(markers_indices_sedimentary_basin)
-    nmarkers = length(markers_y)
-    total_marker_compaction_displacement = zeros(Float64, nmarkers)
     ncells = size(compaction_array, 2)
-    
+    # Zero-fill load-bearing: only sedimentary-basin marker positions get
+    # written below; all other positions must read as 0.0 downstream.
+    fill!(total_marker_compaction_displacement, 0.0)
+
     Threads.@threads for i in 1:nswarm
         imarker = markers_indices_sedimentary_basin[i]
         xindex = markers_topo_xindex[imarker]
@@ -736,7 +758,7 @@ function calculate_total_marker_compaction_displacement(
             )
         end
     end
-    return total_marker_compaction_displacement
+    return nothing
 end
 
 """ Apply compaction displacement to sediment markers.
@@ -773,7 +795,9 @@ Algorithm
 2. Calculate sticky marker displacement.
 3. Move sticky markers using compaction field.
 """
-function apply_compaction_displacement_to_sticky_markers(
+function apply_compaction_displacement_to_sticky_markers!(
+    marker_displacement_factors::Vector{Float64},
+    marker_displacement::Vector{Float64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     topo_gridx::Vector{Float64},
@@ -781,11 +805,13 @@ function apply_compaction_displacement_to_sticky_markers(
     sticky_thickness::Vector{Float64},
     max_sticky_displacement::Vector{Float64}
 )::Nothing
-    marker_displacement_factors = calculate_sticky_compaction_displacement_factors_opt(
+    calculate_sticky_compaction_displacement_factors_opt!(
+        marker_displacement_factors,
         marker_x, marker_y, topo_gridx,
         marker_indices_sticky, sticky_thickness
     )
-    marker_displacement = calculate_sticky_marker_displacement_opt(
+    calculate_sticky_marker_displacement_opt!(
+        marker_displacement,
         marker_x, topo_gridx, marker_displacement_factors,
         max_sticky_displacement, marker_indices_sticky
     )
@@ -843,16 +869,18 @@ Returns
 marker_displacement_factors: Vector{Float64}
     The compaction displacement factors for sticky markers.
 """
-function calculate_sticky_compaction_displacement_factors_opt(
+function calculate_sticky_compaction_displacement_factors_opt!(
+    marker_displacement_factors::Vector{Float64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     topo_gridx::Vector{Float64},
     marker_indices_sticky::Vector{Int64},
     sticky_thickness_markers::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     nswarm = length(marker_indices_sticky)
-    marknum = length(marker_x)
-    marker_displacement_factors = Vector{Float64}(undef, marknum)
+    # Zero-fill load-bearing: only sticky marker positions get written;
+    # other positions must read as 0.0 downstream.
+    fill!(marker_displacement_factors, 0.0)
     Threads.@threads for i in 1:nswarm
         imarker = marker_indices_sticky[i]
         x_marker = marker_x[imarker]
@@ -877,7 +905,7 @@ function calculate_sticky_compaction_displacement_factors_opt(
         end
         marker_displacement_factors[imarker] = displacement_factor
     end
-    return marker_displacement_factors
+    return nothing
 end
 
 """ Calculate marker displacement.
@@ -902,16 +930,20 @@ Returns
 marker_displacement: Vector{Float64}
     The marker displacement.
 """
-function calculate_sticky_marker_displacement_opt(
+function calculate_sticky_marker_displacement_opt!(
+    marker_displacement::Vector{Float64},
     markers_x::Vector{Float64},
     topo_gridx::Vector{Float64},
     marker_displacement_factors::Vector{Float64},
     compaction_displacement_max::Vector{Float64},
     marker_indices_sticky::Vector{Int64}
-)::Vector{Float64}
-    marknum = length(markers_x)
+)::Nothing
     nswarm = length(marker_indices_sticky)
-    marker_displacement = Vector{Float64}(undef, marknum)
+    # Zero-fill load-bearing: only sticky marker positions get written;
+    # other positions must read as 0.0 downstream (move_sticky_markers
+    # iterates only sticky indices, so leakage is benign, but we zero for
+    # safety against accidental whole-array reads).
+    fill!(marker_displacement, 0.0)
     Threads.@threads for i in 1:nswarm
         imarker = marker_indices_sticky[i]
         x_marker = markers_x[imarker]
@@ -923,7 +955,7 @@ function calculate_sticky_marker_displacement_opt(
         marker_displacement[imarker] = displacement
     end
 
-    return marker_displacement
+    return nothing
 end
 
 """ Calculate marker displacement.
