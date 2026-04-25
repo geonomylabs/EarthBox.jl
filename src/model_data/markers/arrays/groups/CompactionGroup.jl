@@ -50,6 +50,8 @@ mutable struct Compaction <: AbstractArrayGroup
     markers_compaction_yindex::MarkerArrayInt1DState{Int64}
     markers_unit_distance_from_cell_top::MarkerArrayFloat1DState{Float64}
     total_marker_compaction_displacement::MarkerArrayFloat1DState{Float64}
+    sticky_displacement_factors::MarkerArrayFloat1DState{Float64}
+    sticky_marker_displacement::MarkerArrayFloat1DState{Float64}
 end
 
 function Compaction(marknum::Int)::Compaction
@@ -77,6 +79,18 @@ function Compaction(marknum::Int)::Compaction
             ADATA.total_marker_compaction_displacement.name,
             ADATA.total_marker_compaction_displacement.units,
             ADATA.total_marker_compaction_displacement.description
+        ),
+        MarkerArrayFloat1DState(
+            zeros(Float64, marknum),
+            ADATA.sticky_displacement_factors.name,
+            ADATA.sticky_displacement_factors.units,
+            ADATA.sticky_displacement_factors.description
+        ),
+        MarkerArrayFloat1DState(
+            zeros(Float64, marknum),
+            ADATA.sticky_marker_displacement.name,
+            ADATA.sticky_marker_displacement.units,
+            ADATA.sticky_marker_displacement.description
         )
     )
 end

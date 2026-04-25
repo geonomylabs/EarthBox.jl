@@ -193,7 +193,8 @@ function compact_sediment_and_advect_markers!(
         topo_gridx,
         markers_indices_sticky,
         sticky_thickness_initial_gridx,
-        max_sticky_displacement
+        max_sticky_displacement;
+        model=model
     )
     return sediment_thickness_initial_compacted_gridx
 end
@@ -849,13 +850,25 @@ function apply_compaction_displacement_to_sticky_markers(
     topo_gridx::Vector{Float64},
     marker_indices_sticky::Vector{Int64},
     sticky_thickness::Vector{Float64},
-    max_sticky_displacement::Vector{Float64}
+    max_sticky_displacement::Vector{Float64};
+    model::Union{ModelData, Nothing}=nothing
 )::Nothing
-    marker_displacement_factors = calculate_sticky_compaction_displacement_factors_opt(
+    marknum = length(marker_x)
+    if model !== nothing
+        compaction_buffers = model.markers.arrays.compaction
+        marker_displacement_factors = compaction_buffers.sticky_displacement_factors.array
+        marker_displacement = compaction_buffers.sticky_marker_displacement.array
+    else
+        marker_displacement_factors = Vector{Float64}(undef, marknum)
+        marker_displacement = Vector{Float64}(undef, marknum)
+    end
+    calculate_sticky_compaction_displacement_factors_opt!(
+        marker_displacement_factors,
         marker_x, marker_y, topo_gridx,
         marker_indices_sticky, sticky_thickness
     )
-    marker_displacement = calculate_sticky_marker_displacement_opt(
+    calculate_sticky_marker_displacement_opt!(
+        marker_displacement,
         marker_x, topo_gridx, marker_displacement_factors,
         max_sticky_displacement, marker_indices_sticky
     )
@@ -913,16 +926,19 @@ Returns
 marker_displacement_factors: Vector{Float64}
     The compaction displacement factors for sticky markers.
 """
-function calculate_sticky_compaction_displacement_factors_opt(
+function calculate_sticky_compaction_displacement_factors_opt!(
+    marker_displacement_factors::Vector{Float64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     topo_gridx::Vector{Float64},
     marker_indices_sticky::Vector{Int64},
     sticky_thickness_markers::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     nswarm = length(marker_indices_sticky)
     marknum = length(marker_x)
-    marker_displacement_factors = Vector{Float64}(undef, marknum)
+    @assert length(marker_displacement_factors) >= marknum (
+        "marker_displacement_factors buffer too small"
+    )
     Threads.@threads for i in 1:nswarm
         imarker = marker_indices_sticky[i]
         x_marker = marker_x[imarker]
@@ -947,7 +963,7 @@ function calculate_sticky_compaction_displacement_factors_opt(
         end
         marker_displacement_factors[imarker] = displacement_factor
     end
-    return marker_displacement_factors
+    return nothing
 end
 
 """ Calculate marker displacement.
@@ -972,16 +988,19 @@ Returns
 marker_displacement: Vector{Float64}
     The marker displacement.
 """
-function calculate_sticky_marker_displacement_opt(
+function calculate_sticky_marker_displacement_opt!(
+    marker_displacement::Vector{Float64},
     markers_x::Vector{Float64},
     topo_gridx::Vector{Float64},
     marker_displacement_factors::Vector{Float64},
     compaction_displacement_max::Vector{Float64},
     marker_indices_sticky::Vector{Int64}
-)::Vector{Float64}
+)::Nothing
     marknum = length(markers_x)
     nswarm = length(marker_indices_sticky)
-    marker_displacement = Vector{Float64}(undef, marknum)
+    @assert length(marker_displacement) >= marknum (
+        "marker_displacement buffer too small"
+    )
     Threads.@threads for i in 1:nswarm
         imarker = marker_indices_sticky[i]
         x_marker = markers_x[imarker]
@@ -993,7 +1012,7 @@ function calculate_sticky_marker_displacement_opt(
         marker_displacement[imarker] = displacement
     end
 
-    return marker_displacement
+    return nothing
 end
 
 """ Calculate marker displacement.

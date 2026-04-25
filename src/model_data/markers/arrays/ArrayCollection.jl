@@ -18,6 +18,9 @@ import .StructureGroup: Structure
 import .CompactionGroup: Compaction
 import .SolidificationGroup: Solidification
 import .RecycleGroup: Recycle
+import .LithostaticScratchGroup: LithostaticScratch
+import .SerpentinizationGroup: Serpentinization
+import .SubgridHeatGroup: SubgridHeat
 
 """
     Arrays <: AbstractArrayCollection
@@ -40,6 +43,9 @@ Collection of marker arrays.
 - `compaction::`[`Compaction`](@ref): Marker compaction scratch buffers
 - `solidification::`[`Solidification`](@ref): Marker solidification scratch buffers
 - `recycle::`[`Recycle`](@ref): Marker recycling scratch buffers
+- `lithostatic_scratch::`[`LithostaticScratch`](@ref): Lithostatic-pressure column-filter scratch
+- `serpentinization::`[`Serpentinization`](@ref): Serpentinization scratch buffers
+- `subgrid_heat::`[`SubgridHeat`](@ref): Subgrid heat-diffusion scratch buffers
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -57,6 +63,9 @@ mutable struct Arrays <: AbstractArrayCollection
     compaction::Compaction
     solidification::Solidification
     recycle::Recycle
+    lithostatic_scratch::LithostaticScratch
+    serpentinization::Serpentinization
+    subgrid_heat::SubgridHeat
 end
 
 function Arrays(marknum::Int)::Arrays
@@ -75,7 +84,10 @@ function Arrays(marknum::Int)::Arrays
         Structure(marknum),
         Compaction(marknum),
         Solidification(marknum),
-        Recycle(marknum)
+        Recycle(marknum),
+        LithostaticScratch(marknum),
+        Serpentinization(marknum),
+        SubgridHeat(marknum)
     )
 end
 

@@ -85,7 +85,10 @@ function calculate_subgrid_temperature_change_and_correct_marker_temperature!(
     kt1::Matrix{Float64} = model.heat_equation.arrays.thermal_conductivity.kt1.array
     rhocp1::Matrix{Float64} = model.heat_equation.arrays.rhocp.rhocp1.array
 
-    delta_temp_subgrid_markers = Vector{Float64}(undef, marknum)
+    # Persistent scratch buffer; every position is rewritten by the threaded
+    # loop below (inside_flag == 1 sets the computed delta; else branch sets 0.0).
+    delta_temp_subgrid_markers =
+        model.markers.arrays.subgrid_heat.marker_subgrid_temp_delta_buffer.array
 
     Threads.@threads for imarker in 1:marknum
         if inside_flags[imarker] == Int8(1)

@@ -162,7 +162,10 @@ function calculate_marker_serpentinization(
     mantle_ids = get_mantle_serpentinization_ids(model)
     marknum = model.markers.parameters.distribution.marknum.value
 
-    marker_incremental_serpentinization_ratio = Vector{Float64}(undef, marknum)
+    # Persistent scratch buffer; refilled by the per-marker loop below.
+    # The threaded loop writes to every position (no zero-init dependency).
+    marker_incremental_serpentinization_ratio =
+        model.markers.arrays.serpentinization.marker_serpentinization_increment_buffer.array
 
     Threads.@threads for imarker in 1:marknum
         incremental_serpentinization_ratio = 0.0
