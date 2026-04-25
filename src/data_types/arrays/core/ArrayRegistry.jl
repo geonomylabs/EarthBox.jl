@@ -583,6 +583,31 @@ function get_markers_arrays()::NamedTuple
             * "SubgridDiffusion.calculate_subgrid_temperature_change_and_correct_marker_temperature!.",
         ),
 
+        # Lithostatic pressure column-filter scratch buffers used by
+        # LithostaticPressure.filter_markers_for_column. Three marknum-sized
+        # buffers each pack column-matching markers in front; the function
+        # then copies the prefix into 3 small tight return vectors. Each
+        # buffer is single-use within filter_markers_for_column and never
+        # shared with any other call site or cross-domain consumer.
+        marker_x_filter_scratch = ArrayData(
+            "marker_x_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker x-coordinates "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+        marker_y_filter_scratch = ArrayData(
+            "marker_y_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker y-coordinates "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+        marker_rho_filter_scratch = ArrayData(
+            "marker_rho_filter_scratch", "kg/m^3", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker densities "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+
         # Sediment-transport marker advection scratch buffers used by the four
         # functions in MarkerAdvection.jl
         # (calculate_sediment_compaction_displacement_factors!,

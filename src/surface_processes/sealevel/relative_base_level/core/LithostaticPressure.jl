@@ -9,6 +9,10 @@ Pressure is calculated using the average density of the cell above the node and 
 gravitational acceleration.
 
 # Arguments
+- `marker_x_scratch`: Pre-allocated marknum-sized scratch for column-matching
+    marker x-coordinates (overwritten each call)
+- `marker_y_scratch`: Same, for marker y-coordinates
+- `marker_rho_scratch`: Same, for marker densities
 - `marker_x`: Marker x-coordinates in meters
 - `marker_y`: Marker y-coordinates in meters
 - `marker_rho`: Marker densities in kg/m^3
@@ -24,6 +28,9 @@ gravitational acceleration.
 - `pressure_gridy_from_markers`: Pressure grid from markers in Pascals
 """
 function calculate_lithostatic_pressure_from_marker_swarm(
+    marker_x_scratch::Vector{Float64},
+    marker_y_scratch::Vector{Float64},
+    marker_rho_scratch::Vector{Float64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     marker_rho::Vector{Float64},
@@ -41,6 +48,7 @@ function calculate_lithostatic_pressure_from_marker_swarm(
     (
         marker_x_filtered, marker_y_filtered, marker_rho_filtered
     ) = filter_markers_for_column(
+        marker_x_scratch, marker_y_scratch, marker_rho_scratch,
         marker_x, marker_y, marker_rho, ysize,
         x_location, y_start, cell_thickness_x
     )
@@ -70,6 +78,9 @@ function calculate_lithostatic_pressure_from_marker_swarm(
 end
 
 function filter_markers_for_column(
+    marker_x_scratch::Vector{Float64},
+    marker_y_scratch::Vector{Float64},
+    marker_rho_scratch::Vector{Float64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
     marker_rho::Vector{Float64},
@@ -80,30 +91,34 @@ function filter_markers_for_column(
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
 
     nmarkers = length(marker_x)
-    marker_x_tmp = zeros(Float64, nmarkers)
-    marker_y_tmp = zeros(Float64, nmarkers)
-    marker_rho_tmp = zeros(Float64, nmarkers)
+    @assert length(marker_x_scratch) == nmarkers
+    @assert length(marker_y_scratch) == nmarkers
+    @assert length(marker_rho_scratch) == nmarkers
 
     nmarkers_filtered = 0
     for i in 1:nmarkers
         if marker_x[i] >= x_location - dx/2 && marker_x[i] <= x_location + dx/2
             if marker_y[i] >= y_start && marker_y[i] <= ysize
                 nmarkers_filtered += 1
-                marker_x_tmp[nmarkers_filtered] = marker_x[i]
-                marker_y_tmp[nmarkers_filtered] = marker_y[i]
-                marker_rho_tmp[nmarkers_filtered] = marker_rho[i]
+                marker_x_scratch[nmarkers_filtered] = marker_x[i]
+                marker_y_scratch[nmarkers_filtered] = marker_y[i]
+                marker_rho_scratch[nmarkers_filtered] = marker_rho[i]
             end
         end
     end
 
+    # Tight return copies of the packed prefix. These are nmarkers_filtered-
+    # scale (typically much smaller than nmarkers) and are kept allocating
+    # so callers that cache the returned vectors don't see them mutated by
+    # subsequent filter_markers_for_column calls that overwrite the scratch.
     marker_x_filtered = zeros(Float64, nmarkers_filtered)
     marker_y_filtered = zeros(Float64, nmarkers_filtered)
     marker_rho_filtered = zeros(Float64, nmarkers_filtered)
 
     for i in 1:nmarkers_filtered
-        marker_x_filtered[i] = marker_x_tmp[i]
-        marker_y_filtered[i] = marker_y_tmp[i]
-        marker_rho_filtered[i] = marker_rho_tmp[i]
+        marker_x_filtered[i] = marker_x_scratch[i]
+        marker_y_filtered[i] = marker_y_scratch[i]
+        marker_rho_filtered[i] = marker_rho_scratch[i]
     end
 
     return marker_x_filtered, marker_y_filtered, marker_rho_filtered
