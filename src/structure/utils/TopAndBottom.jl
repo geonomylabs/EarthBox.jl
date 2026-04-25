@@ -1,7 +1,7 @@
 module TopAndBottom
 
 import EarthBox.ModelDataContainer: ModelData
-import ..SmoothSurface: smooth_surface
+import ..SmoothSurface: smooth_surface, smooth_surface!
 
 function calculate_search_radius(
     mxstep::Float64,
@@ -279,6 +279,20 @@ The material layer is a collection of material ids (material_ids).
 Note that this function does not take into account vertically discontinuous layers.
 
 Optimization version of the function below.
+
+# Keyword Arguments
+- `tops_buffer::Union{Vector{Float64}, Nothing}`: When provided, the
+    `tops` output is written into this buffer (length must equal
+    `length(gridx)`). When `nothing` (default), allocates a fresh
+    `Vector{Float64}` per call.
+- `bottoms_buffer::Union{Vector{Float64}, Nothing}`: Same role as
+    `tops_buffer` but for `bottoms`.
+- `smoothed_scratch::Union{Vector{Float64}, Nothing}`: When provided AND
+    `use_smoothing == true` AND buffers are provided, the smoothed result
+    is computed into this scratch buffer (length must equal `length(gridx)`)
+    and then `copyto!`'d back into `tops_buffer`/`bottoms_buffer` so the
+    returned references stay stable. When `nothing`, smoothing falls back
+    to allocating `smooth_surface` outputs.
 """
 function calculate_top_and_bottom_of_swarm_opt(
     x_sorted_marker_indices_swarm::Vector{Int64},
@@ -287,13 +301,32 @@ function calculate_top_and_bottom_of_swarm_opt(
     gridx::Vector{Float64},
     search_radius::Float64;
     use_smoothing::Bool=true,
-    nsmooth::Int=2
+    nsmooth::Int=2,
+    tops_buffer::Union{Vector{Float64}, Nothing}=nothing,
+    bottoms_buffer::Union{Vector{Float64}, Nothing}=nothing,
+    smoothed_scratch::Union{Vector{Float64}, Nothing}=nothing
 )::Tuple{Vector{Float64}, Vector{Float64}}
     nswarm = length(x_sorted_marker_indices_swarm)
     xnum = length(gridx)
-    tops = fill(1e32, xnum)
-    bottoms = fill(-1e32, xnum)
-    
+    if tops_buffer !== nothing
+        @assert length(tops_buffer) == xnum (
+            "tops_buffer length $(length(tops_buffer)) != gridx length $xnum"
+        )
+        fill!(tops_buffer, 1e32)
+        tops = tops_buffer
+    else
+        tops = fill(1e32, xnum)
+    end
+    if bottoms_buffer !== nothing
+        @assert length(bottoms_buffer) == xnum (
+            "bottoms_buffer length $(length(bottoms_buffer)) != gridx length $xnum"
+        )
+        fill!(bottoms_buffer, -1e32)
+        bottoms = bottoms_buffer
+    else
+        bottoms = fill(-1e32, xnum)
+    end
+
     Threads.@threads for m in 1:nswarm
         imarker = x_sorted_marker_indices_swarm[m]
         xmarker = marker_x[imarker]
@@ -323,8 +356,20 @@ function calculate_top_and_bottom_of_swarm_opt(
     end
 
     if use_smoothing
-        tops = smooth_surface(tops, nsmooth=nsmooth)
-        bottoms = smooth_surface(bottoms, nsmooth=nsmooth)
+        if smoothed_scratch !== nothing && tops_buffer !== nothing && bottoms_buffer !== nothing
+            @assert length(smoothed_scratch) == xnum (
+                "smoothed_scratch length $(length(smoothed_scratch)) != gridx length $xnum"
+            )
+            # Smooth into scratch, then copy back into tops_buffer so the
+            # returned reference stays stable across this function call.
+            smooth_surface!(smoothed_scratch, tops, nsmooth=nsmooth)
+            copyto!(tops, smoothed_scratch)
+            smooth_surface!(smoothed_scratch, bottoms, nsmooth=nsmooth)
+            copyto!(bottoms, smoothed_scratch)
+        else
+            tops = smooth_surface(tops, nsmooth=nsmooth)
+            bottoms = smooth_surface(bottoms, nsmooth=nsmooth)
+        end
     end
 
     return tops, bottoms
