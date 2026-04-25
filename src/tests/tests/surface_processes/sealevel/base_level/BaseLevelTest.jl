@@ -83,11 +83,20 @@ function run_test()::Nothing
     )
 
     y_topo = comp_grid.sticky_thickness
+    # Allocate the 3 scratch buffers locally for the test. Production code
+    # pulls equivalents from model.markers.arrays.lithostatic.
+    nmarkers = length(marker_x)
+    marker_x_scratch = zeros(Float64, nmarkers)
+    marker_y_scratch = zeros(Float64, nmarkers)
+    marker_rho_scratch = zeros(Float64, nmarkers)
     (
         gridy_for_marker_averaging,
         density_gridy_from_markers,
         pressure_gridy_from_markers
     ) = calculate_lithostatic_pressure_from_marker_swarm(
+        marker_x_scratch,
+        marker_y_scratch,
+        marker_rho_scratch,
         marker_x,
         marker_y,
         marker_rho,

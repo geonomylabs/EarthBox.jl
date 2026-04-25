@@ -282,8 +282,12 @@ function calculate_lithostatic_pressure_at_base_of_left_edge(
     mxstep = model.markers.parameters.distribution.mxstep.value
     mystep = model.markers.parameters.distribution.mystep.value
 
+    lith = model.markers.arrays.lithostatic
     _, _, pressure_gridy_from_markers =
         LithostaticPressure.calculate_lithostatic_pressure_from_marker_swarm(
+            lith.marker_x_filter_scratch.array,
+            lith.marker_y_filter_scratch.array,
+            lith.marker_rho_filter_scratch.array,
             marker_x,
             marker_y,
             marker_rho,
