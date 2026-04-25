@@ -64,9 +64,17 @@ function apply_compaction_correction_for_topography_and_markers(
     porosity_initial_transport = sediment_transport_parameters.porosity_initial
     decay_depth_transport = 1.0/sediment_transport_parameters.depth_decay_term
     
+    compaction = model.markers.arrays.compaction
     (
         topo_gridy_corrected, total_sed_thickness_corrected, new_thickness_decompacted
     ) = decompact_new_sediment_and_compact_markers(
+            model.topography.arrays.compaction_array.array,
+            compaction.markers_topo_xindex_buffer.array,
+            compaction.markers_compaction_yindex_buffer.array,
+            compaction.markers_unit_distance_from_cell_top_buffer.array,
+            compaction.total_marker_compaction_displacement_buffer.array,
+            compaction.sticky_displacement_factors_buffer.array,
+            compaction.sticky_marker_displacement_buffer.array,
             porosity_initial_transport,
             decay_depth_transport,
             topo_gridx,
@@ -85,7 +93,7 @@ function apply_compaction_correction_for_topography_and_markers(
             search_radius,
             nsmooth_top_bottom
         )
-    
+
     return topo_gridy_corrected, total_sed_thickness_corrected, new_thickness_decompacted
 end
 
@@ -136,6 +144,13 @@ Apply compaction correction to transport topography and markers.
 - `new_thickness_decompacted::Vector{Float64}`: Decompacted new sediment thickness (meters)
 """
 function decompact_new_sediment_and_compact_markers(
+    compaction_array::Array{Float64, 3},
+    markers_topo_xindex::Vector{Int64},
+    markers_compaction_yindex::Vector{Int64},
+    markers_unit_distance_from_cell_top::Vector{Float64},
+    total_marker_compaction_displacement::Vector{Float64},
+    sticky_displacement_factors::Vector{Float64},
+    sticky_marker_displacement::Vector{Float64},
     porosity_initial_transport::Float64,
     decay_depth_transport::Float64,
     topo_gridx::Vector{Float64},
@@ -162,6 +177,13 @@ function decompact_new_sediment_and_compact_markers(
         new_thickness_compacted
     )
     sediment_thickness_initial_compacted = compact_sediment_and_advect_markers(
+        compaction_array,
+        markers_topo_xindex,
+        markers_compaction_yindex,
+        markers_unit_distance_from_cell_top,
+        total_marker_compaction_displacement,
+        sticky_displacement_factors,
+        sticky_marker_displacement,
         topo_gridx,
         topo_gridy_initial,
         sediment_thickness_initial,

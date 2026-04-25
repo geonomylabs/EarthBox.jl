@@ -14,6 +14,7 @@ import .LocationGroup: Location
 import .GridMarkerRelationshipGroup: GridMarkerRelationship
 import .MeltGroup: Melt
 import .AdvectionGroup: Advection
+import .CompactionGroup: Compaction
 import .SolidificationGroup: Solidification
 import .RecycleGroup: Recycle
 import .SerpentinizationGroup: Serpentinization
@@ -36,6 +37,7 @@ Collection of marker arrays.
 - `grid_marker_relationship::`[`GridMarkerRelationship`](@ref): Grid-marker relationship arrays
 - `melt::`[`Melt`](@ref): Melt marker arrays
 - `advection::`[`Advection`](@ref): Marker advection velocity/spin arrays
+- `compaction::`[`Compaction`](@ref): Marker compaction scratch buffers
 - `solidification::`[`Solidification`](@ref): Marker solidification scratch buffer
 - `recycle::`[`Recycle`](@ref): Marker recycling scratch buffer
 - `serpentinization::`[`Serpentinization`](@ref): Serpentinization scratch buffer
@@ -53,6 +55,7 @@ mutable struct Arrays <: AbstractArrayCollection
     grid_marker_relationship::GridMarkerRelationship
     melt::Melt
     advection::Advection
+    compaction::Compaction
     solidification::Solidification
     recycle::Recycle
     serpentinization::Serpentinization
@@ -72,6 +75,7 @@ function Arrays(marknum::Int)::Arrays
         GridMarkerRelationship(marknum),
         Melt(marknum),
         Advection(marknum),
+        Compaction(marknum),
         Solidification(marknum),
         Recycle(marknum),
         Serpentinization(marknum),

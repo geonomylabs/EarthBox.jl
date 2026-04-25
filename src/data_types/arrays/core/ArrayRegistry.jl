@@ -497,6 +497,49 @@ function get_markers_arrays()::NamedTuple
             * "Re-computed every advection step; zero for markers outside the domain.",
         ),
 
+        # Compaction scratch buffers used internally by
+        # MarkerCompaction.compact_sediment_and_advect_markers and its
+        # helpers (sticky path included). Each is single-use within one
+        # compaction call (no cross-callsite sharing). Production callers
+        # extract from model.markers.arrays.compaction.X.array and pass
+        # explicitly to the function; the function fills them as needed.
+        markers_topo_xindex_buffer = ArrayData(
+            "markers_topo_xindex_buffer", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the topography-grid "
+            * "x-index assigned to each sedimentary-basin marker by "
+            * "MarkerCompaction.assign_topo_xindex_to_markers.",
+        ),
+        markers_compaction_yindex_buffer = ArrayData(
+            "markers_compaction_yindex_buffer", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the compaction-grid "
+            * "y-index assigned to each sedimentary-basin marker by "
+            * "MarkerCompaction.assign_compaction_yindex_to_markers.",
+        ),
+        markers_unit_distance_from_cell_top_buffer = ArrayData(
+            "markers_unit_distance_from_cell_top_buffer", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the unit distance from "
+            * "compaction-cell top per sedimentary-basin marker, "
+            * "co-populated with markers_compaction_yindex_buffer.",
+        ),
+        total_marker_compaction_displacement_buffer = ArrayData(
+            "total_marker_compaction_displacement_buffer", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for cumulative compaction "
+            * "displacement per sedimentary-basin marker, populated by "
+            * "MarkerCompaction.calculate_total_marker_compaction_displacement.",
+        ),
+        sticky_displacement_factors_buffer = ArrayData(
+            "sticky_displacement_factors_buffer", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for displacement factors "
+            * "computed by "
+            * "MarkerCompaction.calculate_sticky_compaction_displacement_factors_opt.",
+        ),
+        sticky_marker_displacement_buffer = ArrayData(
+            "sticky_marker_displacement_buffer", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for sticky-marker "
+            * "displacements computed by "
+            * "MarkerCompaction.calculate_sticky_marker_displacement_opt.",
+        ),
+
         # Solidification / shared random scratch used by Solidification.solidify!
         # and (via shared reuse) MarkerRecycle.RandomMarkerArray.get_random_marker_array.
         # Refilled via Random.rand! at each consumer call site.

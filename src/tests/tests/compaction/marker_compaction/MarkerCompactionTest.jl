@@ -68,10 +68,30 @@ function run_test()
         println("Time to plot markers before compaction: $(t2-t1) seconds")
     end
 
+    # Allocate compaction scratch buffers once for the whole test run.
+    # Production code pulls equivalents from
+    # model.topography.arrays.compaction_array and model.markers.arrays.compaction.
+    nmarkers = length(markers_x)
+    ntopo = length(topo_gridx)
+    compaction_array_buf = zeros(Float64, ntopo, 20, 9)
+    markers_topo_xindex_buf = Vector{Int64}(undef, nmarkers)
+    markers_compaction_yindex_buf = Vector{Int64}(undef, nmarkers)
+    markers_unit_distance_from_cell_top_buf = Vector{Float64}(undef, nmarkers)
+    total_marker_compaction_displacement_buf = Vector{Float64}(undef, nmarkers)
+    sticky_displacement_factors_buf = Vector{Float64}(undef, nmarkers)
+    sticky_marker_displacement_buf = Vector{Float64}(undef, nmarkers)
+
     test_type = "correction" # "compaction" or "correction"
     if test_type == "compaction"
         t1 = time()
         compact_sediment_and_advect_markers(
+            compaction_array_buf,
+            markers_topo_xindex_buf,
+            markers_compaction_yindex_buf,
+            markers_unit_distance_from_cell_top_buf,
+            total_marker_compaction_displacement_buf,
+            sticky_displacement_factors_buf,
+            sticky_marker_displacement_buf,
             topo_gridx,
             topo_gridy,
             sediment_thickness_gridx,
@@ -123,6 +143,13 @@ function run_test()
                 total_sediment_thickness_corrected,
                 new_thickness_decompacted
             ) = CompactionCorrection.decompact_new_sediment_and_compact_markers(
+                compaction_array_buf,
+                markers_topo_xindex_buf,
+                markers_compaction_yindex_buf,
+                markers_unit_distance_from_cell_top_buf,
+                total_marker_compaction_displacement_buf,
+                sticky_displacement_factors_buf,
+                sticky_marker_displacement_buf,
                 porosity_initial_transport, decay_depth_transport,
                 topo_gridx, topo_gridy_initial, topo_gridy_transport,
                 markers_x, markers_y,
