@@ -22,7 +22,31 @@ function smooth_surface(
 )::Vector{Float64}
     xnum = length(ytopo)
     y_surface_smooth = Vector{Float64}(undef, xnum)
-    for i in 1:xnum
+    smooth_surface!(y_surface_smooth, ytopo, nsmooth=nsmooth)
+    return y_surface_smooth
+end
+
+""" Smooth topography in place, writing to a pre-allocated output buffer.
+
+The output buffer must be a different array from the input (the algorithm
+reads `ytopo[i ± nsmooth]` while writing `out[i]`; aliasing would corrupt
+results). Both arrays must have the same length.
+
+# Arguments
+- `out::Vector{Float64}`: Pre-allocated output buffer, same length as `ytopo`.
+- `ytopo::Vector{Float64}`: Input surface y-coordinates.
+- `nsmooth::Int`: Number of points on each side of `i` to use in the running
+  average.
+"""
+function smooth_surface!(
+    out::Vector{Float64},
+    ytopo::Vector{Float64};
+    nsmooth::Int = 2
+)::Nothing
+    @assert out !== ytopo "smooth_surface! requires distinct out and ytopo"
+    xnum = length(ytopo)
+    @assert length(out) == xnum "smooth_surface! requires length(out) == length(ytopo)"
+    @inbounds for i in 1:xnum
         ytopo_sum = 0.0
         icount = 0
         for j in 1:nsmooth*2 + 1
@@ -32,9 +56,9 @@ function smooth_surface(
                 icount += 1
             end
         end
-        y_surface_smooth[i] = ytopo_sum/Float64(icount)
+        out[i] = ytopo_sum/Float64(icount)
     end
-    return y_surface_smooth
+    return nothing
 end
 
 end

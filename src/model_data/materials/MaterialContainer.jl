@@ -41,7 +41,8 @@ function Materials()
     arrays = Arrays(nmats)
     dicts = Dicts(
         Dict{String, Int64}(),
-        Dict{String, Vector{Int64}}()
+        Dict{String, Vector{Int64}}(),
+        Int16[]
     )
     colors = MaterialColors()
     return Materials(parameters, arrays, dicts, colors)

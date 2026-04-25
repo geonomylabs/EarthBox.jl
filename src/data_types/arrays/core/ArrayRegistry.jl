@@ -496,6 +496,18 @@ function get_markers_arrays()::NamedTuple
             "`(marknum)` : Runge-Kutta-interpolated spin rate at marker (1/s). "
             * "Re-computed every advection step; zero for markers outside the domain.",
         ),
+
+        # Structure scratch buffer used by layer-finding utilities (see
+        # TopAndBottom.filter_markers_outside_of_layer! and
+        # calculate_top_and_bottom_of_layer_opt). Packed-prefix convention:
+        # only positions [1:icount] valid after each call.
+        marker_indices_layer = ArrayData(
+            "marker_indices_layer", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch buffer for packed indices of "
+            * "markers belonging to a queried material layer. Only positions "
+            * "[1:icount] are valid after each call to "
+            * "filter_markers_outside_of_layer!; the tail is stale.",
+        ),
     )
 end
 

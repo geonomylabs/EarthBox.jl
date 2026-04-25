@@ -3,6 +3,7 @@ module ArrayCollection
 import EarthBox.EarthBoxDtypes: AbstractArrayCollection
 import EarthBox.Arrays.ArrayTypes.TopoArray2D: TopoArray2DState
 import EarthBox.Arrays.ArrayTypes.Array3DFloat: Array3DFloatState
+import EarthBox.Arrays.ArrayTypes.Array1DFloat: Array1DFloatState
 
 """
     Arrays <: AbstractArrayCollection
@@ -22,10 +23,27 @@ Data structure containing array groups for topography evolution.
     scratch buffer used by `MarkerCompaction.compact_sediment_and_advect_markers!`.
     Caller zeros it via `fill!` at start of each call. Only valid during a
     single compaction invocation; not persistent state.
+- `layer_tops_buffer::`[`Array1DFloatState`](@ref): `(toponum)` Pre-allocated
+    scratch buffer used by `TopAndBottom.calculate_top_and_bottom_of_layer_opt`
+    via the `tops_buffer` keyword to avoid allocating a fresh `tops` vector
+    each call. Caller zeros it before use.
+- `layer_bottoms_buffer::`[`Array1DFloatState`](@ref): `(toponum)` Same role
+    as `layer_tops_buffer` but for the `bottoms` array.
+- `oceanic_moho_buffer::`[`Array1DFloatState`](@ref): `(toponum)` Persistent
+    output buffer for the smoothed oceanic moho y-coordinates produced by
+    `Fractionation.calculate_oceanic_moho`. Reused each fractionation call.
+- `partial_melt_buffer::`[`Array1DFloatState`](@ref): `(toponum)` Persistent
+    output buffer for the smoothed top-of-mantle-partial-melt y-coordinates
+    produced by `Drainage.calculate_top_of_mantle_partial_melt_domain`.
+    Reused each fractionation/drainage call.
 
 # Nested Dot Access
 - `model.topography.arrays.gridt.array`
 - `model.topography.arrays.compaction_array.array`
+- `model.topography.arrays.layer_tops_buffer.array`
+- `model.topography.arrays.layer_bottoms_buffer.array`
+- `model.topography.arrays.oceanic_moho_buffer.array`
+- `model.topography.arrays.partial_melt_buffer.array`
 
 # Constructor
     Arrays(toponum::Int)::Arrays
@@ -39,6 +57,10 @@ Create a new Arrays collection with the given topography grid resolution.
 mutable struct Arrays <: AbstractArrayCollection
     gridt::TopoArray2DState
     compaction_array::Array3DFloatState
+    layer_tops_buffer::Array1DFloatState
+    layer_bottoms_buffer::Array1DFloatState
+    oceanic_moho_buffer::Array1DFloatState
+    partial_melt_buffer::Array1DFloatState
 end
 
 function Arrays(toponum::Int)::Arrays
@@ -77,7 +99,42 @@ function Arrays(toponum::Int)::Arrays
         "4=marker count, 5=thickness, 6=thickness delta, 7=cumulative " *
         "y-displacement, 8=max burial depth, 9=updated burial depth."
     )
-    return Arrays(gridt, compaction_array)
+    layer_tops_buffer = Array1DFloatState(
+        zeros(Float64, toponum),
+        "layer_tops_buffer",
+        "m",
+        "`(toponum)` : Pre-allocated scratch buffer for the `tops` output of "
+        * "TopAndBottom.calculate_top_and_bottom_of_layer_opt. Reused across "
+        * "fractionation and drainage calls."
+    )
+    layer_bottoms_buffer = Array1DFloatState(
+        zeros(Float64, toponum),
+        "layer_bottoms_buffer",
+        "m",
+        "`(toponum)` : Pre-allocated scratch buffer for the `bottoms` output "
+        * "of TopAndBottom.calculate_top_and_bottom_of_layer_opt. Reused "
+        * "across fractionation and drainage calls."
+    )
+    oceanic_moho_buffer = Array1DFloatState(
+        zeros(Float64, toponum),
+        "oceanic_moho_buffer",
+        "m",
+        "`(toponum)` : Persistent output buffer for smoothed oceanic moho "
+        * "y-coordinates produced by Fractionation.calculate_oceanic_moho."
+    )
+    partial_melt_buffer = Array1DFloatState(
+        zeros(Float64, toponum),
+        "partial_melt_buffer",
+        "m",
+        "`(toponum)` : Persistent output buffer for smoothed top-of-"
+        * "mantle-partial-melt y-coordinates produced by "
+        * "Drainage.calculate_top_of_mantle_partial_melt_domain."
+    )
+    return Arrays(
+        gridt, compaction_array,
+        layer_tops_buffer, layer_bottoms_buffer,
+        oceanic_moho_buffer, partial_melt_buffer
+    )
 end
 
 function initialize_topo_array(toponum::Int64)::Matrix{Float64}

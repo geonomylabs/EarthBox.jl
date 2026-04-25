@@ -8,7 +8,7 @@ import EarthBox.SurfaceProcesses: calculate_age_ma
 import EarthBox.MathTools: linear_interp_at_x_location, linear_interp_bisection
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
-import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
+import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface, smooth_surface!
 import ..Extraction.MagmaBody: transform_marker_to_magma
 import ..Drainage: calculate_top_of_mantle_partial_melt_domain
 
@@ -94,16 +94,17 @@ function make_fractionated_gabbroic_magma_loop(
     nsmooth = calculate_nsmooth(model)
 
     # This section takes the second most computation time in the function.
-    moho_gridy = calculate_oceanic_moho(model, nsmooth=nsmooth)
+    moho_gridy = calculate_oceanic_moho(model, topo_gridx, topo_gridy, nsmooth=nsmooth)
 
     # This section takes the most computation time in the function.
     use_partial_melt_limit = true
     if use_partial_melt_limit
-        _, _, partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(model)
+        partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(
+            model, topo_gridx)
         # Make sure that the Moho is not below the partial melt domain.
         # This is necessary to avoid the case where gabbroic particles are
         # located below the Moho due to oceanic crustal thinning.
-        moho_gridy = min.(moho_gridy, partial_melt_gridy)
+        moho_gridy .= min.(moho_gridy, partial_melt_gridy)
     end
 
     nmarkers = length(marker_x)
@@ -136,24 +137,33 @@ function calculate_nsmooth(model::ModelData)
     return nsmooth
 end
 
-function calculate_oceanic_moho(model::ModelData; nsmooth::Int=20)
-    gridt = model.topography.arrays.gridt.array
-    topo_gridx = gridt[1, :]
-    topo_gridy = gridt[2, :]
+function calculate_oceanic_moho(
+    model::ModelData,
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64};
+    nsmooth::Int=20
+)
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
     matids_oc = get_matids_oceanic_crust(model)
     mxstep = model.markers.parameters.distribution.mxstep.value
-    marker_search_factor = 
+    marker_search_factor =
         model.topography.parameters.topo_grid.marker_search_factor.value
     search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
+    layer_index_buffer = model.markers.arrays.structure.marker_indices_layer.array
+    tops_buffer = model.topography.arrays.layer_tops_buffer.array
+    bottoms_buffer = model.topography.arrays.layer_bottoms_buffer.array
     _top_oc, bottom_oc = calculate_top_and_bottom_of_layer_opt(
         matids_oc, marker_matid, marker_x,
-        marker_y, topo_gridx, search_radius, use_smoothing=false
+        marker_y, topo_gridx, search_radius, use_smoothing=false,
+        layer_index_buffer=layer_index_buffer,
+        tops_buffer=tops_buffer,
+        bottoms_buffer=bottoms_buffer
     )
     set_zero_values_to_topoy(bottom_oc, topo_gridy)
-    oceanic_moho_gridy = smooth_surface(bottom_oc, nsmooth=nsmooth)
+    oceanic_moho_gridy = model.topography.arrays.oceanic_moho_buffer.array
+    smooth_surface!(oceanic_moho_gridy, bottom_oc, nsmooth=nsmooth)
     return oceanic_moho_gridy
 end
 
@@ -195,19 +205,27 @@ function get_matids_mantle(model::ModelData)
     return ids_mantle
 end
 
-function get_matids_oceanic_crust(model::ModelData)
-    matid_types = model.materials.dicts.matid_types
-    ids_oceanic_crust = vcat(
-        matid_types["SolidifiedGabbro"],
-        matid_types["SolidifiedGabbroPartiallyMolten"],
-        matid_types["SolidifiedLayeredGabbro"],
-        matid_types["SolidifiedLayeredGabbroPartiallyMolten"],
-        matid_types["ExtractedLayeredGabbroicMagma"],
-        matid_types["ExtrudedGabbroicMagma"],
-        matid_types["SolidifiedBasalt"],
-        matid_types["Sediment"]
-    )
-    return ids_oceanic_crust
+""" Return the oceanic-crust matid list, lazy-cached on first call.
+
+The cache lives at `model.materials.dicts.cached_oceanic_crust_ids` and is
+populated on first call. Materials are immutable after construction, so the
+cache never needs invalidation. Returns the cached `Vector{Int16}` directly
+on subsequent calls; callers must treat it as read-only.
+"""
+function get_matids_oceanic_crust(model::ModelData)::Vector{Int16}
+    cache = model.materials.dicts.cached_oceanic_crust_ids
+    if isempty(cache)
+        matid_types = model.materials.dicts.matid_types
+        append!(cache, matid_types["SolidifiedGabbro"])
+        append!(cache, matid_types["SolidifiedGabbroPartiallyMolten"])
+        append!(cache, matid_types["SolidifiedLayeredGabbro"])
+        append!(cache, matid_types["SolidifiedLayeredGabbroPartiallyMolten"])
+        append!(cache, matid_types["ExtractedLayeredGabbroicMagma"])
+        append!(cache, matid_types["ExtrudedGabbroicMagma"])
+        append!(cache, matid_types["SolidifiedBasalt"])
+        append!(cache, matid_types["Sediment"])
+    end
+    return cache
 end
 
 """ Set zero values to topoy.
