@@ -537,6 +537,16 @@ function get_markers_arrays()::NamedTuple
             * "displacement per sedimentary-basin marker, populated by "
             * "MarkerCompaction.calculate_total_marker_compaction_displacement!.",
         ),
+
+        # Solidification scratch buffer used by Solidification.solidify! for
+        # per-marker random numbers consumed by friction-coefficient
+        # randomization. Refilled via Random.rand! each call.
+        marker_random_buffer = ArrayData(
+            "marker_random_buffer", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for per-marker random "
+            * "numbers consumed by Solidification.solidify! during friction-"
+            * "coefficient randomization. Refilled via Random.rand! each call.",
+        ),
     )
 end
 

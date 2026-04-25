@@ -16,6 +16,7 @@ import .MeltGroup: Melt
 import .AdvectionGroup: Advection
 import .StructureGroup: Structure
 import .CompactionGroup: Compaction
+import .SolidificationGroup: Solidification
 
 """
     Arrays <: AbstractArrayCollection
@@ -36,6 +37,7 @@ Collection of marker arrays.
 - `advection::`[`Advection`](@ref): Marker advection velocity/spin arrays
 - `structure::`[`Structure`](@ref): Marker structure-finding scratch buffers
 - `compaction::`[`Compaction`](@ref): Marker compaction scratch buffers
+- `solidification::`[`Solidification`](@ref): Marker solidification scratch buffers
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -51,6 +53,7 @@ mutable struct Arrays <: AbstractArrayCollection
     advection::Advection
     structure::Structure
     compaction::Compaction
+    solidification::Solidification
 end
 
 function Arrays(marknum::Int)::Arrays
@@ -67,7 +70,8 @@ function Arrays(marknum::Int)::Arrays
         Melt(marknum),
         Advection(marknum),
         Structure(marknum),
-        Compaction(marknum)
+        Compaction(marknum),
+        Solidification(marknum)
     )
 end
 
