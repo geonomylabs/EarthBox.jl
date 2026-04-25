@@ -37,7 +37,6 @@ function discretize_and_solve_conductive_heat_equation(
         system_vectors = HeatBuildManager.build_system_of_equations(model)
     end
     N = model.heat_equation.parameters.build.N.value
-    Ls = build_sparse_crs_matrix(system_vectors, N)
     use_mumps = solver_config.use_mumps
 
     if use_mumps
@@ -53,6 +52,10 @@ function discretize_and_solve_conductive_heat_equation(
             )
         end
     else
+        # Ls is only consumed by heat_solve_system_serial; build it only when
+        # the serial backslash path is taken so the MUMPS path doesn't allocate
+        # a SparseMatrixCSC that would be immediately discarded.
+        Ls = build_sparse_crs_matrix(system_vectors, N)
         @timeit_memit "Finished serial direct solver for heat equation" begin
             S = heat_solve_system_serial(model, Ls)
         end
