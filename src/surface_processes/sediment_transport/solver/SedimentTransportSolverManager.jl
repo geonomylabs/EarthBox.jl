@@ -48,6 +48,13 @@ mutable struct SedimentTransportSolver
     use_compaction_correction::Bool
     compaction_correction_type::String
     collections::TransportCollections
+    # Persistent solver-build buffers used by `Solve.solve_downhill_diffusion`
+    # via `BuildSys.build_sys_topo`. Each call zeros them via `fill!` before
+    # writing tridiagonal entries; downstream consumers (`SparseMatrixCSC`,
+    # `lu(...) \ R`) only read them. Single use site, no cross-callsite
+    # sharing.
+    L_buffer::Matrix{Float64}
+    R_buffer::Vector{Float64}
 end
 
 """ Constructor for transport solver.
@@ -153,7 +160,8 @@ function SedimentTransportSolver(
     compaction_correction_type::String="constant_property"
 )
     nsteps, transport_timestep = update_time_step(sediment_transport_parameters)
-    
+    toponum = length(topo_gridx)
+
     return SedimentTransportSolver(
         basic_grid_x_dimensions,
         copy(topo_gridx),
@@ -175,7 +183,9 @@ function SedimentTransportSolver(
         use_constant_diffusivity,
         use_compaction_correction,
         compaction_correction_type,
-        TransportCollections(use_collections)
+        TransportCollections(use_collections),
+        zeros(Float64, toponum, toponum),
+        zeros(Float64, toponum)
     )
 end
 
@@ -249,6 +259,7 @@ function run_sediment_transport_time_steps!(
             solver.topo_gridx, water_depth_x
         )
         solution_array = solve_downhill_diffusion(
+            solver.L_buffer, solver.R_buffer,
             solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
             topo_grid_pelagic_sedimentation_rate,
             solver.basic_grid_x_dimensions, solver.transport_timestep,

@@ -39,7 +39,9 @@ FD representation for variable diffusivity:
 
     where KL = (KnL + KnC)/2 and KR = (KnC + KnR)/2.
 """
-function build_sys_topo(
+function build_sys_topo!(
+    L::Matrix{Float64},
+    R::Vector{Float64},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     topo_grid_diffusivity::Vector{Float64},
@@ -49,14 +51,19 @@ function build_sys_topo(
     timestep::Float64,
     porosity_initial_pelagic::Float64,
     depth_decay_term_pelagic::Float64
-)::Tuple{Matrix{Float64}, Vector{Float64}}
+)::Nothing
     toponum = length(topo_gridx)
+    @assert size(L, 1) == toponum && size(L, 2) == toponum
+    @assert length(R) == toponum
     dx_topo = topo_gridx[2] - topo_gridx[1]
-    L = zeros(toponum, toponum)
-    R = zeros(toponum)
-    
+    # Zero-fill load-bearing: only tridiagonal + boundary entries are
+    # populated below; downstream `SparseMatrixCSC(L)` finds nonzeros by
+    # scanning all entries, so stale values would corrupt the matrix.
+    fill!(L, 0.0)
+    fill!(R, 0.0)
+
     apply_symmetry_boundary_condition_left_boundary(L, R, 1)
-    
+
     for i in 2:toponum-1
         xtopo = topo_gridx[i]
         if inside_model_domain(xtopo, xmin_model_grid, xmax_model_grid)
@@ -69,9 +76,9 @@ function build_sys_topo(
             apply_symmetry_to_external_nodes(L, R, xtopo, xmin_model_grid, i)
         end
     end
-    
+
     apply_symmetry_boundary_condition_right_boundary(L, R, toponum)
-    return L, R
+    return nothing
 end
 
 """ Check if topography node is inside model domain.

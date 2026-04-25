@@ -582,6 +582,32 @@ function get_markers_arrays()::NamedTuple
             * "temperature change. Refilled per call to "
             * "SubgridDiffusion.calculate_subgrid_temperature_change_and_correct_marker_temperature!.",
         ),
+
+        # Sediment-transport marker advection scratch buffers used by the four
+        # functions in MarkerAdvection.jl
+        # (calculate_sediment_compaction_displacement_factors!,
+        # calculate_sediment_marker_displacement!,
+        # calculate_sticky_compaction_displacement_factors!,
+        # calculate_sticky_marker_displacement!). The two buffers are reused
+        # across sediment and sticky advection paths within
+        # advect_markers_using_compaction; each writer fill!(0.0)s before
+        # writing, so prior values never leak between consumers.
+        sediment_transport_marker_displacement_factors_buffer = ArrayData(
+            "sediment_transport_marker_displacement_factors_buffer", "None",
+            MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for displacement factors "
+            * "computed by MarkerAdvection.calculate_sediment_compaction_displacement_factors! "
+            * "and MarkerAdvection.calculate_sticky_compaction_displacement_factors!. "
+            * "Filled with fill!(0.0) at start of each writer call.",
+        ),
+        sediment_transport_marker_displacement_buffer = ArrayData(
+            "sediment_transport_marker_displacement_buffer", "m",
+            MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for marker displacements "
+            * "computed by MarkerAdvection.calculate_sediment_marker_displacement! "
+            * "and MarkerAdvection.calculate_sticky_marker_displacement!. "
+            * "Filled with fill!(0.0) at start of each writer call.",
+        ),
     )
 end
 

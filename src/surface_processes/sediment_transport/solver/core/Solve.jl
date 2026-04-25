@@ -4,7 +4,7 @@ import SparseArrays: SparseMatrixCSC, spzeros
 import LinearAlgebra: lu
 import EarthBox.MathTools: linear_interp_bisection
 import EarthBox.DataStructures: SedimentTransportParameters
-import ..BuildSys: build_sys_topo
+import ..BuildSys: build_sys_topo!
 
 """ Solve downhill diffusion model.
 
@@ -21,6 +21,8 @@ import ..BuildSys: build_sys_topo
 - `S`: Solution vector
 """
 function solve_downhill_diffusion(
+    L::Matrix{Float64},
+    R::Vector{Float64},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     topo_grid_diffusivity::Vector{Float64},
@@ -31,11 +33,12 @@ function solve_downhill_diffusion(
 )::Vector{Float64}
     porosity_initial_pelagic = sediment_transport_parameters.porosity_initial
     depth_decay_term_pelagic = sediment_transport_parameters.depth_decay_term
-    
+
     xmin_bgrid = basic_grid_x_dimensions[1]
     xmax_bgrid = basic_grid_x_dimensions[2]
-    
-    L, R = build_sys_topo(
+
+    build_sys_topo!(
+        L, R,
         topo_gridx, topo_gridy,
         topo_grid_diffusivity,
         topo_grid_pelagic_sedimentation_rate,
@@ -43,7 +46,7 @@ function solve_downhill_diffusion(
         timestep,
         porosity_initial_pelagic, depth_decay_term_pelagic
     )
-    
+
     Ls = SparseMatrixCSC(L)
     S = lu(Ls) \ R
     return S
