@@ -139,6 +139,7 @@ function calculate_top_and_bottom_of_layer_opt(
     tops_buffer::Union{Vector{Float64}, Nothing}=nothing,
     bottoms_buffer::Union{Vector{Float64}, Nothing}=nothing
 )::Tuple{Vector{Float64}, Vector{Float64}}
+    t_filter = time()
     if layer_index_buffer !== nothing
         marker_indices_layer = layer_index_buffer
         marknum_layer = filter_markers_outside_of_layer!(
@@ -148,6 +149,11 @@ function calculate_top_and_bottom_of_layer_opt(
         marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
         marknum_layer = length(marker_indices_layer)
     end
+    println("        >> [top_bottom] filter: ",
+            round(time()-t_filter, digits=4),
+            "s marknum=", length(marker_matid),
+            " marknum_layer=", marknum_layer,
+            " nlayer_ids=", length(material_ids_of_layer))
 
     xnum = length(gridx)
     if tops_buffer !== nothing
@@ -175,6 +181,7 @@ function calculate_top_and_bottom_of_layer_opt(
         bottoms = zeros(Float64, xnum)
     end
 
+    t_loop = time()
     Threads.@threads for j in 1:xnum
         ymin = 1e32
         ymax = -1e32
@@ -208,6 +215,10 @@ function calculate_top_and_bottom_of_layer_opt(
             bottoms[j] = ymax
         end
     end
+    println("        >> [top_bottom] threaded loop: ",
+            round(time()-t_loop, digits=4),
+            "s xnum=", xnum, " marknum_layer=", marknum_layer,
+            " inner_ops≈", xnum*marknum_layer)
 
     if use_smoothing
         tops = smooth_surface(tops, nsmooth=nsmooth)
