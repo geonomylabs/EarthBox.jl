@@ -68,9 +68,17 @@ function update_nodes_for_plastic_yielding(
 
     viscosity_weight_factor = 0.0
 
-    etavp_new = copy(eta_flow)
-    plastic_yield_new = zeros(ynum, xnum)
-    plastic_strain_rate = zeros(ynum, xnum)
+    # Use pre-allocated scratch buffers from model.stokes_continuity.arrays
+    # .plastic_def to avoid per-Picard-iteration allocations of three
+    # (ynum, xnum) Float64 matrices. etavp_buffer is initialized from
+    # eta_flow (matching the original `etavp_new = copy(eta_flow)` semantics);
+    # the other two are zeroed (matching the original `zeros(...)`).
+    etavp_new = model.stokes_continuity.arrays.plastic_def.etavp_buffer.array
+    plastic_yield_new = model.stokes_continuity.arrays.plastic_def.plastic_yield_buffer.array
+    plastic_strain_rate = model.stokes_continuity.arrays.plastic_def.plastic_strain_rate_buffer.array
+    copyto!(etavp_new, eta_flow)
+    fill!(plastic_yield_new, 0.0)
+    fill!(plastic_strain_rate, 0.0)
     nnode_yield = 0
     global_yield_error = 0.0
     global_yield_error_sum = 0.0

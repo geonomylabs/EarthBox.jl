@@ -60,6 +60,14 @@ mutable struct PlasticDef <: AbstractArrayGroup
     dilatation_grid0::ScalarArray2DState
     extractable_meltfrac_grid::ScalarArray2DState
     extractable_meltfrac_grid0::ScalarArray2DState
+    # Pre-allocated `(ynum, xnum)` scratch buffers used by
+    # `PlasticFailureNodes.update_nodes_for_plastic_yielding` to avoid
+    # per-Picard-iteration allocations. Caller initializes them at the start
+    # of each call (etavp_buffer ← copyto!(eta_flow); plastic_yield_buffer
+    # and plastic_strain_rate_buffer ← fill!(0.0)).
+    etavp_buffer::ScalarArray2DState
+    plastic_yield_buffer::ScalarArray2DState
+    plastic_strain_rate_buffer::ScalarArray2DState
 end
 
 function PlasticDef(ynum::Int, xnum::Int)::PlasticDef
@@ -175,6 +183,35 @@ function PlasticDef(ynum::Int, xnum::Int)::PlasticDef
             ADATA.extractable_meltfrac_grid0.units,       # units
             ADATA.extractable_meltfrac_grid0.grid_type,   # grid_type
             ADATA.extractable_meltfrac_grid0.description  # description
+        ),
+        ScalarArray2DState(
+            ynum, xnum,
+            "etavp_buffer",
+            "Pa.s",
+            "basic",
+            "`(ynum, xnum)` Pre-allocated scratch buffer for proposed new "
+            * "viscoplastic viscosity used by "
+            * "PlasticFailureNodes.update_nodes_for_plastic_yielding. Caller "
+            * "writes into it each call; not persistent state."
+        ),
+        ScalarArray2DState(
+            ynum, xnum,
+            "plastic_yield_buffer",
+            "None",
+            "basic",
+            "`(ynum, xnum)` Pre-allocated scratch buffer for new plastic "
+            * "yield flags used by "
+            * "PlasticFailureNodes.update_nodes_for_plastic_yielding. Caller "
+            * "fills with 0.0 then writes per-node yield results."
+        ),
+        ScalarArray2DState(
+            ynum, xnum,
+            "plastic_strain_rate_buffer",
+            "1/s",
+            "basic",
+            "`(ynum, xnum)` Pre-allocated scratch buffer for plastic strain "
+            * "rate used by PlasticFailureNodes.update_nodes_for_plastic_yielding. "
+            * "Caller fills with 0.0 then writes per-node values."
         )
     )
     update_output_format(data)

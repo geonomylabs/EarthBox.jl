@@ -108,22 +108,22 @@ function update_basic_grid_plasticity!(
     etavp_new::Matrix{Float64},
     plastic_yield_new::Matrix{Float64}
 )
-    model.stokes_continuity.arrays.viscosity.etas1.array = copy(etavp_new)
-    model.stokes_continuity.arrays.plastic_def.plastic_yield.array = copy(plastic_yield_new)
+    copyto!(model.stokes_continuity.arrays.viscosity.etas1.array, etavp_new)
+    copyto!(model.stokes_continuity.arrays.plastic_def.plastic_yield.array, plastic_yield_new)
 end
 
 function update_plastic_yield_flags_on_basic_grid!(
     model::ModelData,
     plastic_yield_new::Matrix{Float64}
 )
-    model.stokes_continuity.arrays.plastic_def.plastic_yield.array = copy(plastic_yield_new)
+    copyto!(model.stokes_continuity.arrays.plastic_def.plastic_yield.array, plastic_yield_new)
 end
 
 function update_viscoplastic_viscosity_on_basic_grid_for_plastic_failure!(
     model::ModelData,
     etavp_new::Matrix{Float64}
 )
-    model.stokes_continuity.arrays.viscosity.etas1.array = copy(etavp_new)
+    copyto!(model.stokes_continuity.arrays.viscosity.etas1.array, etavp_new)
 end
 
 function update_plastic_strain_rate_invariant_on_basic_and_pressure_grids!(
@@ -131,7 +131,7 @@ function update_plastic_strain_rate_invariant_on_basic_and_pressure_grids!(
     plastic_strain_rate::Matrix{Float64}
 )
     strain_rate_and_spin = model.stokes_continuity.arrays.strain_rate_and_spin
-    strain_rate_and_spin.eii_plastic_basic.array = copy(plastic_strain_rate)
+    copyto!(strain_rate_and_spin.eii_plastic_basic.array, plastic_strain_rate)
     PlasticStrainRateInterpolation.interpolate_at_pressure_nodes!(model)
 end
 
@@ -140,8 +140,8 @@ function reset_grid_plasticity!(
     etas1_initial::Matrix{Float64},
     plastic_yield_initial::Matrix{Float64}
 )
-    model.stokes_continuity.arrays.viscosity.etas1.array = copy(etas1_initial)
-    model.stokes_continuity.arrays.plastic_def.plastic_yield.array = copy(plastic_yield_initial)
+    copyto!(model.stokes_continuity.arrays.viscosity.etas1.array, etas1_initial)
+    copyto!(model.stokes_continuity.arrays.plastic_def.plastic_yield.array, plastic_yield_initial)
 end
 
 function decrease_timestep!(model::ModelData)
