@@ -282,7 +282,11 @@ function calculate_lithostatic_pressure_at_base_of_left_edge(
     mxstep = model.markers.parameters.distribution.mxstep.value
     mystep = model.markers.parameters.distribution.mystep.value
 
-    _, _, pressure_gridy_from_markers = 
+    # Route persistent column-filter buffers from
+    # model.markers.arrays.lithostatic_scratch to avoid 3 marknum-sized
+    # Vector{Float64} allocations inside filter_markers_for_column.
+    lith_scratch = model.markers.arrays.lithostatic_scratch
+    _, _, pressure_gridy_from_markers =
         LithostaticPressure.calculate_lithostatic_pressure_from_marker_swarm(
             marker_x,
             marker_y,
@@ -291,7 +295,10 @@ function calculate_lithostatic_pressure_at_base_of_left_edge(
             mxstep*8,
             y_topo_left_edge, # Only consider sub-rock material
             mxstep*8,
-            mystep*8
+            mystep*8;
+            marker_x_tmp_buffer=lith_scratch.marker_x_filter_scratch.array,
+            marker_y_tmp_buffer=lith_scratch.marker_y_filter_scratch.array,
+            marker_rho_tmp_buffer=lith_scratch.marker_rho_filter_scratch.array
         )
 
     pressure_at_base_of_model_column = pressure_gridy_from_markers[end]

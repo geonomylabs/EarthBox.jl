@@ -562,6 +562,61 @@ function get_markers_arrays()::NamedTuple
             * "marker-index order, then packed in place before the function "
             * "returns a length-`nrecycle` copy.",
         ),
+
+        # Lithostatic pressure column-filter scratch buffers used by
+        # LithostaticPressure.filter_markers_for_column to avoid 3 marknum-
+        # sized Vector{Float64} allocations per sealevel update.
+        marker_x_filter_scratch = ArrayData(
+            "marker_x_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker x-coordinates "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+        marker_y_filter_scratch = ArrayData(
+            "marker_y_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker y-coordinates "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+        marker_rho_filter_scratch = ArrayData(
+            "marker_rho_filter_scratch", "kg/m^3", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated tmp buffer for marker densities "
+            * "during column filtering inside "
+            * "LithostaticPressure.filter_markers_for_column.",
+        ),
+
+        # Sticky-marker compaction displacement buffers used by helpers
+        # called from MarkerCompaction.apply_compaction_displacement_to_sticky_markers.
+        sticky_displacement_factors = ArrayData(
+            "sticky_displacement_factors", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for displacement factors "
+            * "computed by "
+            * "MarkerCompaction.calculate_sticky_compaction_displacement_factors_opt!.",
+        ),
+        sticky_marker_displacement = ArrayData(
+            "sticky_marker_displacement", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for sticky-marker "
+            * "displacements computed by "
+            * "MarkerCompaction.calculate_sticky_marker_displacement_opt!.",
+        ),
+
+        # Serpentinization scratch buffer used by
+        # Serpentinization.calculate_marker_serpentinization.
+        marker_serpentinization_increment_buffer = ArrayData(
+            "marker_serpentinization_increment_buffer", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the per-marker "
+            * "incremental serpentinization ratio. Refilled per call to "
+            * "Serpentinization.calculate_marker_serpentinization.",
+        ),
+
+        # Subgrid heat diffusion scratch buffer used by
+        # SubgridDiffusion.calculate_subgrid_temperature_change_and_correct_marker_temperature!.
+        marker_subgrid_temp_delta_buffer = ArrayData(
+            "marker_subgrid_temp_delta_buffer", "K", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the per-marker subgrid "
+            * "temperature change. Refilled per call to "
+            * "SubgridDiffusion.calculate_subgrid_temperature_change_and_correct_marker_temperature!.",
+        ),
     )
 end
 
