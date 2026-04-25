@@ -8,7 +8,7 @@ import EarthBox.SurfaceProcesses: calculate_age_ma
 import EarthBox.MathTools: linear_interp_at_x_location, linear_interp_bisection
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
-import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface, smooth_surface!
+import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
 import ..Extraction.MagmaBody: transform_marker_to_magma
 import ..Drainage: calculate_top_of_mantle_partial_melt_domain
 
@@ -80,8 +80,6 @@ function make_fractionated_gabbroic_magma_loop(
     matid_layered_gabbroic_magma::Int16,
     fractionation_threshold_distance::Float64
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}, Vector{Float64}}
-    t_total = time()
-    t_setup = time()
     gridt = model.topography.arrays.gridt.array
 
     topo_gridx = gridt[1, :]
@@ -94,37 +92,25 @@ function make_fractionated_gabbroic_magma_loop(
     age_ma = calculate_age_ma(model)
 
     nsmooth = calculate_nsmooth(model)
-    println(">> [frac] setup: ", round(time()-t_setup, digits=4), "s")
 
     # This section takes the second most computation time in the function.
-    t_moho = time()
     moho_gridy = calculate_oceanic_moho(model, topo_gridx, topo_gridy, nsmooth=nsmooth)
-    println(">> [frac] calculate_oceanic_moho: ", round(time()-t_moho, digits=4), "s")
 
     # This section takes the most computation time in the function.
     use_partial_melt_limit = true
     if use_partial_melt_limit
-        t_pm = time()
         partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(
             model, topo_gridx)
-        println(">> [frac] calculate_top_of_mantle_partial_melt_domain: ",
-                round(time()-t_pm, digits=4), "s")
         # Make sure that the Moho is not below the partial melt domain.
         # This is necessary to avoid the case where gabbroic particles are
         # located below the Moho due to oceanic crustal thinning.
-        t_min = time()
-        moho_gridy .= min.(moho_gridy, partial_melt_gridy)
-        println(">> [frac] moho min broadcast: ", round(time()-t_min, digits=4), "s")
+        moho_gridy = min.(moho_gridy, partial_melt_gridy)
     end
 
     nmarkers = length(marker_x)
-    nmatch = Threads.Atomic{Int}(0)
-    ntransform = Threads.Atomic{Int}(0)
-    t_loop = time()
     Threads.@threads for imarker in 1:nmarkers
         @inbounds matid = marker_matid[imarker]
         if matid == matid_gabbroic_magma
-            Threads.atomic_add!(nmatch, 1)
             @inbounds begin
                 x_marker = marker_x[imarker]
                 y_marker = marker_y[imarker]
@@ -133,16 +119,11 @@ function make_fractionated_gabbroic_magma_loop(
             y_moho = linear_interp_bisection(topo_gridx, moho_gridy, x_marker)
             dist_to_moho = abs(y_marker - y_moho)
             if dist_to_moho < fractionation_threshold_distance
-                Threads.atomic_add!(ntransform, 1)
                 transform_marker_to_magma(
                     model, imarker, age_ma, matid_layered_gabbroic_magma)
             end
         end
     end
-    println(">> [frac] marker loop: ", round(time()-t_loop, digits=4),
-            "s nmarkers=", nmarkers, " nmatch=", nmatch[],
-            " ntransform=", ntransform[])
-    println(">> [frac] TOTAL: ", round(time()-t_total, digits=4), "s")
     return topo_gridx, topo_gridy, moho_gridy, partial_melt_gridy
 end
 
@@ -165,37 +146,17 @@ function calculate_oceanic_moho(
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
     marker_matid = model.markers.arrays.material.marker_matid.array
-    t_ids = time()
     matids_oc = get_matids_oceanic_crust(model)
-    println("    >> [moho] get_matids_oceanic_crust: ",
-            round(time()-t_ids, digits=4), "s len=", length(matids_oc))
     mxstep = model.markers.parameters.distribution.mxstep.value
     marker_search_factor =
         model.topography.parameters.topo_grid.marker_search_factor.value
     search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
-    layer_index_buffer = model.markers.arrays.structure.marker_indices_layer.array
-    tops_buffer = model.topography.arrays.layer_tops_buffer.array
-    bottoms_buffer = model.topography.arrays.layer_bottoms_buffer.array
-    t_tb = time()
     _top_oc, bottom_oc = calculate_top_and_bottom_of_layer_opt(
         matids_oc, marker_matid, marker_x,
-        marker_y, topo_gridx, search_radius, use_smoothing=false,
-        layer_index_buffer=layer_index_buffer,
-        tops_buffer=tops_buffer,
-        bottoms_buffer=bottoms_buffer
+        marker_y, topo_gridx, search_radius, use_smoothing=false
     )
-    println("    >> [moho] calculate_top_and_bottom_of_layer_opt: ",
-            round(time()-t_tb, digits=4), "s")
-    t_zero = time()
     set_zero_values_to_topoy(bottom_oc, topo_gridy)
-    println("    >> [moho] set_zero_values_to_topoy: ",
-            round(time()-t_zero, digits=4), "s")
-    oceanic_moho_gridy = model.topography.arrays.oceanic_moho_buffer.array
-    t_sm = time()
-    smooth_surface!(oceanic_moho_gridy, bottom_oc, nsmooth=nsmooth)
-    println("    >> [moho] smooth_surface!: ",
-            round(time()-t_sm, digits=4), "s nsmooth=", nsmooth)
-    return oceanic_moho_gridy
+    return smooth_surface(bottom_oc, nsmooth=nsmooth)
 end
 
 """ Calculate Moho depth.

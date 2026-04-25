@@ -497,47 +497,6 @@ function get_markers_arrays()::NamedTuple
             * "Re-computed every advection step; zero for markers outside the domain.",
         ),
 
-        # Structure scratch buffer used by layer-finding utilities (see
-        # TopAndBottom.filter_markers_outside_of_layer! and
-        # calculate_top_and_bottom_of_layer_opt). Packed-prefix convention:
-        # only positions [1:icount] valid after each call.
-        marker_indices_layer = ArrayData(
-            "marker_indices_layer", "None", MarkerArrayInt1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch buffer for packed indices of "
-            * "markers belonging to a queried material layer. Only positions "
-            * "[1:icount] are valid after each call to "
-            * "filter_markers_outside_of_layer!; the tail is stale.",
-        ),
-
-        # Compaction scratch buffers used by
-        # MarkerCompaction.compact_sediment_and_advect_markers! and
-        # CompactionCorrection.apply_compaction_correction_for_topography_and_markers.
-        # Each is sized to marknum; values are written/overwritten per call.
-        markers_topo_xindex = ArrayData(
-            "markers_topo_xindex", "None", MarkerArrayInt1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for the topography-grid "
-            * "x-index assigned to each sedimentary-basin marker by "
-            * "MarkerCompaction.assign_topo_xindex_to_markers!.",
-        ),
-        markers_compaction_yindex = ArrayData(
-            "markers_compaction_yindex", "None", MarkerArrayInt1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for the compaction-grid "
-            * "y-index assigned to each sedimentary-basin marker by "
-            * "MarkerCompaction.assign_compaction_yindex_to_markers!.",
-        ),
-        markers_unit_distance_from_cell_top = ArrayData(
-            "markers_unit_distance_from_cell_top", "None", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for the unit distance "
-            * "from compaction-cell top per sedimentary-basin marker, "
-            * "co-populated with markers_compaction_yindex.",
-        ),
-        total_marker_compaction_displacement = ArrayData(
-            "total_marker_compaction_displacement", "m", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for cumulative compaction "
-            * "displacement per sedimentary-basin marker, populated by "
-            * "MarkerCompaction.calculate_total_marker_compaction_displacement!.",
-        ),
-
         # Solidification / shared random scratch used by Solidification.solidify!
         # and (via shared reuse) MarkerRecycle.RandomMarkerArray.get_random_marker_array.
         # Refilled via Random.rand! at each consumer call site.
@@ -561,43 +520,6 @@ function get_markers_arrays()::NamedTuple
             * "GridFuncs.get_indices_of_markers_outside_domain. Filled in "
             * "marker-index order, then packed in place before the function "
             * "returns a length-`nrecycle` copy.",
-        ),
-
-        # Lithostatic pressure column-filter scratch buffers used by
-        # LithostaticPressure.filter_markers_for_column to avoid 3 marknum-
-        # sized Vector{Float64} allocations per sealevel update.
-        marker_x_filter_scratch = ArrayData(
-            "marker_x_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated tmp buffer for marker x-coordinates "
-            * "during column filtering inside "
-            * "LithostaticPressure.filter_markers_for_column.",
-        ),
-        marker_y_filter_scratch = ArrayData(
-            "marker_y_filter_scratch", "m", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated tmp buffer for marker y-coordinates "
-            * "during column filtering inside "
-            * "LithostaticPressure.filter_markers_for_column.",
-        ),
-        marker_rho_filter_scratch = ArrayData(
-            "marker_rho_filter_scratch", "kg/m^3", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated tmp buffer for marker densities "
-            * "during column filtering inside "
-            * "LithostaticPressure.filter_markers_for_column.",
-        ),
-
-        # Sticky-marker compaction displacement buffers used by helpers
-        # called from MarkerCompaction.apply_compaction_displacement_to_sticky_markers.
-        sticky_displacement_factors = ArrayData(
-            "sticky_displacement_factors", "None", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for displacement factors "
-            * "computed by "
-            * "MarkerCompaction.calculate_sticky_compaction_displacement_factors_opt!.",
-        ),
-        sticky_marker_displacement = ArrayData(
-            "sticky_marker_displacement", "m", MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for sticky-marker "
-            * "displacements computed by "
-            * "MarkerCompaction.calculate_sticky_marker_displacement_opt!.",
         ),
 
         # Serpentinization scratch buffer used by

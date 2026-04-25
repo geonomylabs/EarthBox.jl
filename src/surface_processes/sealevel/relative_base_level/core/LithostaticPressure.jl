@@ -2,10 +2,10 @@ module LithostaticPressure
 
 """ Calculate lithostatic pressure from marker swarm using a cellular mesh.
 
-The cellular mesh is a vertical stack of cells. Density is defined in each cell by 
+The cellular mesh is a vertical stack of cells. Density is defined in each cell by
 averaging the density of markers within the cell.
 
-Pressure is calculated using the average density of the cell above the node and the 
+Pressure is calculated using the average density of the cell above the node and the
 gravitational acceleration.
 
 # Arguments
@@ -31,10 +31,7 @@ function calculate_lithostatic_pressure_from_marker_swarm(
     x_location::Float64,
     y_start::Float64,
     cell_thickness_y::Float64,
-    cell_thickness_x::Float64;
-    marker_x_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    marker_y_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    marker_rho_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing
+    cell_thickness_x::Float64
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
 
     column_height = ysize - y_start
@@ -45,10 +42,7 @@ function calculate_lithostatic_pressure_from_marker_swarm(
         marker_x_filtered, marker_y_filtered, marker_rho_filtered
     ) = filter_markers_for_column(
         marker_x, marker_y, marker_rho, ysize,
-        x_location, y_start, cell_thickness_x;
-        marker_x_tmp_buffer=marker_x_tmp_buffer,
-        marker_y_tmp_buffer=marker_y_tmp_buffer,
-        marker_rho_tmp_buffer=marker_rho_tmp_buffer
+        x_location, y_start, cell_thickness_x
     )
 
     gridy, density_gridy_from_markers = calculate_density_grid(
@@ -62,7 +56,7 @@ function calculate_lithostatic_pressure_from_marker_swarm(
     for i in 1:nnodes
         if i > 1
             density_cell_above_node = (
-                density_gridy_from_markers[i-1] + 
+                density_gridy_from_markers[i-1] +
                 density_gridy_from_markers[i]
             ) / 2.0
 
@@ -82,33 +76,13 @@ function filter_markers_for_column(
     ysize::Float64,
     x_location::Float64,
     y_start::Float64,
-    dx::Float64;
-    marker_x_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    marker_y_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    marker_rho_tmp_buffer::Union{Vector{Float64}, Nothing}=nothing
+    dx::Float64
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
 
     nmarkers = length(marker_x)
-    # Persistent or per-call tmp buffers used to pack column-matching
-    # markers in the front and copy out into tight returned vectors.
-    if marker_x_tmp_buffer !== nothing
-        @assert length(marker_x_tmp_buffer) >= nmarkers
-        marker_x_tmp = marker_x_tmp_buffer
-    else
-        marker_x_tmp = Vector{Float64}(undef, nmarkers)
-    end
-    if marker_y_tmp_buffer !== nothing
-        @assert length(marker_y_tmp_buffer) >= nmarkers
-        marker_y_tmp = marker_y_tmp_buffer
-    else
-        marker_y_tmp = Vector{Float64}(undef, nmarkers)
-    end
-    if marker_rho_tmp_buffer !== nothing
-        @assert length(marker_rho_tmp_buffer) >= nmarkers
-        marker_rho_tmp = marker_rho_tmp_buffer
-    else
-        marker_rho_tmp = Vector{Float64}(undef, nmarkers)
-    end
+    marker_x_tmp = zeros(Float64, nmarkers)
+    marker_y_tmp = zeros(Float64, nmarkers)
+    marker_rho_tmp = zeros(Float64, nmarkers)
 
     nmarkers_filtered = 0
     for i in 1:nmarkers
@@ -122,13 +96,9 @@ function filter_markers_for_column(
         end
     end
 
-    # Tight output copies. These are nmarkers_filtered-scale (typically much
-    # smaller than nmarkers) and are kept allocating-each-call so callers
-    # that cache the returned vectors don't see them mutated by subsequent
-    # filter_markers_for_column calls.
-    marker_x_filtered = Vector{Float64}(undef, nmarkers_filtered)
-    marker_y_filtered = Vector{Float64}(undef, nmarkers_filtered)
-    marker_rho_filtered = Vector{Float64}(undef, nmarkers_filtered)
+    marker_x_filtered = zeros(Float64, nmarkers_filtered)
+    marker_y_filtered = zeros(Float64, nmarkers_filtered)
+    marker_rho_filtered = zeros(Float64, nmarkers_filtered)
 
     for i in 1:nmarkers_filtered
         marker_x_filtered[i] = marker_x_tmp[i]
@@ -147,7 +117,7 @@ function calculate_density_grid(
     dy::Float64,
     ncells::Int
 )::Tuple{Vector{Float64}, Vector{Float64}}
-    
+
     gridy_cell_centers = zeros(Float64, ncells)
     density_gridy_cell_centers = zeros(Float64, ncells)
 
@@ -189,7 +159,7 @@ function calculate_density_grid(
             density_gridy[i] = density_gridy_cell_centers[ncells]
         else
             density_gridy[i] = (
-                density_gridy_cell_centers[i-1] + 
+                density_gridy_cell_centers[i-1] +
                 density_gridy_cell_centers[i]
             ) / 2.0
         end
@@ -198,4 +168,4 @@ function calculate_density_grid(
     return gridy, density_gridy
 end
 
-end # module 
+end # module
