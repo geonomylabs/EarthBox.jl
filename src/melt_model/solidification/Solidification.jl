@@ -1,5 +1,6 @@
 module Solidification
 
+import Random: rand!
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.Markers.MarkerFriction.FrictionRandomizer: randomize_initial_friction_coefficient
 import EarthBox.SurfaceProcesses: calculate_age_ma
@@ -52,9 +53,13 @@ function solidify!(model::ModelData)::Float64
     end
     age_ma = calculate_age_ma(model)
 
-    mxnum = model.markers.parameters.distribution.mxnum.value
-    mynum = model.markers.parameters.distribution.mynum.value
-    marker_random = rand(mxnum * mynum)
+    # Refill persistent marker-sized random buffer in place each call. Saves
+    # the per-call allocation of a marknum-scale Vector{Float64}. The buffer
+    # is sized to marknum (= length of the threaded loop below); previous
+    # code sized it to mxnum*mynum which is the initial slot count and may
+    # under-cover marknum after marker injection.
+    marker_random = model.markers.arrays.solidification.marker_random_buffer.array
+    rand!(marker_random)
 
     iuse_random_fric = model.materials.parameters.random_friction.iuse_random_fric.value
     delta_fric_coef = model.materials.parameters.random_friction.delta_fric_coef.value
