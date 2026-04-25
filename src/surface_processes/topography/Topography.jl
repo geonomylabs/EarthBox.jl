@@ -253,14 +253,6 @@ function initialize_topo_arrays!(model::ModelData)::Nothing
     toponum = model.topography.parameters.topo_grid.toponum.value
     model.topography.arrays.gridt.array = initialize_topo_array(toponum)
     model.carbonate.arrays.grid_carb.array = initialize_topo_array(toponum)
-    model.topography.arrays.compaction_array.array = zeros(Float64, toponum, 20, 9)
-    model.topography.arrays.layer_tops_buffer.array = zeros(Float64, toponum)
-    model.topography.arrays.layer_bottoms_buffer.array = zeros(Float64, toponum)
-    model.topography.arrays.oceanic_moho_buffer.array = zeros(Float64, toponum)
-    model.topography.arrays.partial_melt_buffer.array = zeros(Float64, toponum)
-    model.topography.arrays.compaction_post_tops.array = zeros(Float64, toponum)
-    model.topography.arrays.compaction_post_bottoms.array = zeros(Float64, toponum)
-    model.topography.arrays.sticky_thickness_buffer.array = zeros(Float64, toponum)
     return nothing
 end
 

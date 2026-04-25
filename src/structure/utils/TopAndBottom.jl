@@ -1,7 +1,7 @@
 module TopAndBottom
 
 import EarthBox.ModelDataContainer: ModelData
-import ..SmoothSurface: smooth_surface, smooth_surface!
+import ..SmoothSurface: smooth_surface
 
 function calculate_search_radius(
     mxstep::Float64,
@@ -107,24 +107,6 @@ This is the optimized version of this function.
 The material layer is a collection of material ids (material_ids).
 
 Note that this function does not take into account vertically discontinuous layers.
-
-# Keyword Arguments
-- `layer_index_buffer::Union{Vector{Int64}, Nothing}`: When provided, the
-    per-call marknum-sized scratch buffer used by
-    `filter_markers_outside_of_layer!` to pack matching marker indices.
-    Must have `length(buffer) >= length(marker_matid)`. Allocation-free fast
-    path used by hot callers (fractionation, drainage). When `nothing`
-    (default), falls back to allocating a fresh vector — preserved for
-    callers that do not have a buffer at hand. Hot callers should pass
-    `model.markers.arrays.structure.marker_indices_layer.array` (or equivalent).
-- `tops_buffer::Union{Vector{Float64}, Nothing}`: When provided, the
-    `tops` output is written into this buffer (which is zeroed at the start
-    of the call) instead of allocating a fresh `Vector{Float64}(xnum)`. Must
-    have `length(buffer) == length(gridx)`. Incompatible with
-    `use_smoothing=true` (smoothing requires allocating a new vector). When
-    `nothing` (default), falls back to allocation.
-- `bottoms_buffer::Union{Vector{Float64}, Nothing}`: Same as `tops_buffer`
-    but for the `bottoms` output.
 """
 function calculate_top_and_bottom_of_layer_opt(
     material_ids_of_layer::Vector{Int16},
@@ -134,54 +116,15 @@ function calculate_top_and_bottom_of_layer_opt(
     gridx::Vector{Float64},
     search_radius::Float64;
     use_smoothing::Bool=true,
-    nsmooth::Int=2,
-    layer_index_buffer::Union{Vector{Int64}, Nothing}=nothing,
-    tops_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    bottoms_buffer::Union{Vector{Float64}, Nothing}=nothing
+    nsmooth::Int=2
 )::Tuple{Vector{Float64}, Vector{Float64}}
-    t_filter = time()
-    if layer_index_buffer !== nothing
-        marker_indices_layer = layer_index_buffer
-        marknum_layer = filter_markers_outside_of_layer!(
-            marker_indices_layer, marker_matid, material_ids_of_layer
-        )
-    else
-        marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
-        marknum_layer = length(marker_indices_layer)
-    end
-    println("        >> [top_bottom] filter: ",
-            round(time()-t_filter, digits=4),
-            "s marknum=", length(marker_matid),
-            " marknum_layer=", marknum_layer,
-            " nlayer_ids=", length(material_ids_of_layer))
+    marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
+    marknum_layer = length(marker_indices_layer)
 
     xnum = length(gridx)
-    if tops_buffer !== nothing
-        @assert length(tops_buffer) == xnum (
-            "tops_buffer length $(length(tops_buffer)) does not match gridx length $xnum"
-        )
-        @assert !use_smoothing (
-            "tops_buffer is incompatible with use_smoothing=true"
-        )
-        fill!(tops_buffer, 0.0)
-        tops = tops_buffer
-    else
-        tops = zeros(Float64, xnum)
-    end
-    if bottoms_buffer !== nothing
-        @assert length(bottoms_buffer) == xnum (
-            "bottoms_buffer length $(length(bottoms_buffer)) does not match gridx length $xnum"
-        )
-        @assert !use_smoothing (
-            "bottoms_buffer is incompatible with use_smoothing=true"
-        )
-        fill!(bottoms_buffer, 0.0)
-        bottoms = bottoms_buffer
-    else
-        bottoms = zeros(Float64, xnum)
-    end
+    tops = zeros(Float64, xnum)
+    bottoms = zeros(Float64, xnum)
 
-    t_loop = time()
     Threads.@threads for j in 1:xnum
         ymin = 1e32
         ymax = -1e32
@@ -215,10 +158,6 @@ function calculate_top_and_bottom_of_layer_opt(
             bottoms[j] = ymax
         end
     end
-    println("        >> [top_bottom] threaded loop: ",
-            round(time()-t_loop, digits=4),
-            "s xnum=", xnum, " marknum_layer=", marknum_layer,
-            " inner_ops≈", xnum*marknum_layer)
 
     if use_smoothing
         tops = smooth_surface(tops, nsmooth=nsmooth)
@@ -228,59 +167,31 @@ function calculate_top_and_bottom_of_layer_opt(
     return tops, bottoms
 end
 
-""" Filter marker_matid for markers whose ID is in `material_ids_of_layer`.
-
-Allocating fallback used by callers that do not have access to a preallocated
-buffer. New callers should prefer `filter_markers_outside_of_layer!`.
-"""
 function filter_markers_outside_of_layer(
     marker_matid::Vector{Int16},
     material_ids_of_layer::Vector{Int16}
 )::Vector{Int64}
     marknum = length(marker_matid)
-    marker_indices_layer = Vector{Int64}(undef, marknum)
-    icount = filter_markers_outside_of_layer!(
-        marker_indices_layer, marker_matid, material_ids_of_layer
-    )
-    return resize!(marker_indices_layer, icount)
-end
+    marker_indices_layer_tmp = Vector{Int64}(undef, marknum)
 
-""" Filter marker_matid for markers whose ID is in `material_ids_of_layer`,
-writing the matching indices in original-order packed prefix into the
-provided buffer and returning the count.
-
-# Arguments
-- `marker_indices_layer::Vector{Int64}`: Pre-allocated output buffer, size
-    must be at least `length(marker_matid)`. On return, positions
-    `[1:icount]` hold the matching indices in their original-marker-order;
-    the tail (positions `[icount+1:end]`) is left in an unspecified state
-    and must not be read.
-- `marker_matid::Vector{Int16}`: Marker material IDs.
-- `material_ids_of_layer::Vector{Int16}`: Material IDs that define the layer.
-
-# Returns
-- `icount::Int`: Number of matching markers (= number of valid prefix
-    positions in `marker_indices_layer`).
-"""
-function filter_markers_outside_of_layer!(
-    marker_indices_layer::Vector{Int64},
-    marker_matid::Vector{Int16},
-    material_ids_of_layer::Vector{Int16}
-)::Int
-    marknum = length(marker_matid)
-    @assert length(marker_indices_layer) >= marknum (
-        "marker_indices_layer buffer is smaller than marker_matid: " *
-        "$(length(marker_indices_layer)) < $marknum"
-    )
     icount = 0
-    @inbounds for imarker in 1:marknum
+    for imarker in 1:marknum
         mid = marker_matid[imarker]
         if mid in material_ids_of_layer
+            marker_indices_layer_tmp[icount+1] = imarker
             icount += 1
-            marker_indices_layer[icount] = imarker
+        else
+            marker_indices_layer_tmp[imarker] = -1
         end
     end
-    return icount
+
+    marker_indices_layer = Vector{Int64}(undef, icount)
+
+    Threads.@threads for i in 1:icount
+        marker_indices_layer[i] = marker_indices_layer_tmp[i]
+    end
+
+    return marker_indices_layer
 end
 
 """ Find the shallowest and deepest y-coordinates of a material layer.
@@ -290,20 +201,6 @@ The material layer is a collection of material ids (material_ids).
 Note that this function does not take into account vertically discontinuous layers.
 
 Optimization version of the function below.
-
-# Keyword Arguments
-- `tops_buffer::Union{Vector{Float64}, Nothing}`: When provided, the
-    `tops` output is written into this buffer (length must equal
-    `length(gridx)`). When `nothing` (default), allocates a fresh
-    `Vector{Float64}` per call.
-- `bottoms_buffer::Union{Vector{Float64}, Nothing}`: Same role as
-    `tops_buffer` but for `bottoms`.
-- `smoothed_scratch::Union{Vector{Float64}, Nothing}`: When provided AND
-    `use_smoothing == true` AND buffers are provided, the smoothed result
-    is computed into this scratch buffer (length must equal `length(gridx)`)
-    and then `copyto!`'d back into `tops_buffer`/`bottoms_buffer` so the
-    returned references stay stable. When `nothing`, smoothing falls back
-    to allocating `smooth_surface` outputs.
 """
 function calculate_top_and_bottom_of_swarm_opt(
     x_sorted_marker_indices_swarm::Vector{Int64},
@@ -312,31 +209,12 @@ function calculate_top_and_bottom_of_swarm_opt(
     gridx::Vector{Float64},
     search_radius::Float64;
     use_smoothing::Bool=true,
-    nsmooth::Int=2,
-    tops_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    bottoms_buffer::Union{Vector{Float64}, Nothing}=nothing,
-    smoothed_scratch::Union{Vector{Float64}, Nothing}=nothing
+    nsmooth::Int=2
 )::Tuple{Vector{Float64}, Vector{Float64}}
     nswarm = length(x_sorted_marker_indices_swarm)
     xnum = length(gridx)
-    if tops_buffer !== nothing
-        @assert length(tops_buffer) == xnum (
-            "tops_buffer length $(length(tops_buffer)) != gridx length $xnum"
-        )
-        fill!(tops_buffer, 1e32)
-        tops = tops_buffer
-    else
-        tops = fill(1e32, xnum)
-    end
-    if bottoms_buffer !== nothing
-        @assert length(bottoms_buffer) == xnum (
-            "bottoms_buffer length $(length(bottoms_buffer)) != gridx length $xnum"
-        )
-        fill!(bottoms_buffer, -1e32)
-        bottoms = bottoms_buffer
-    else
-        bottoms = fill(-1e32, xnum)
-    end
+    tops = fill(1e32, xnum)
+    bottoms = fill(-1e32, xnum)
 
     Threads.@threads for m in 1:nswarm
         imarker = x_sorted_marker_indices_swarm[m]
@@ -367,20 +245,8 @@ function calculate_top_and_bottom_of_swarm_opt(
     end
 
     if use_smoothing
-        if smoothed_scratch !== nothing && tops_buffer !== nothing && bottoms_buffer !== nothing
-            @assert length(smoothed_scratch) == xnum (
-                "smoothed_scratch length $(length(smoothed_scratch)) != gridx length $xnum"
-            )
-            # Smooth into scratch, then copy back into tops_buffer so the
-            # returned reference stays stable across this function call.
-            smooth_surface!(smoothed_scratch, tops, nsmooth=nsmooth)
-            copyto!(tops, smoothed_scratch)
-            smooth_surface!(smoothed_scratch, bottoms, nsmooth=nsmooth)
-            copyto!(bottoms, smoothed_scratch)
-        else
-            tops = smooth_surface(tops, nsmooth=nsmooth)
-            bottoms = smooth_surface(bottoms, nsmooth=nsmooth)
-        end
+        tops = smooth_surface(tops, nsmooth=nsmooth)
+        bottoms = smooth_surface(bottoms, nsmooth=nsmooth)
     end
 
     return tops, bottoms

@@ -4,7 +4,7 @@ import EarthBox.PrintFuncs: print_info, print_warning
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
-import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface, smooth_surface!
+import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
 
 function calculate_melt_drainage_divides!(
     model::ModelData
@@ -121,17 +121,11 @@ function calculate_top_of_mantle_partial_melt_domain(
 
     # Do not use smoothing for this case since smoothing will be done after
     # setting zero values to model base
-    layer_index_buffer = model.markers.arrays.structure.marker_indices_layer.array
-    tops_buffer = model.topography.arrays.layer_tops_buffer.array
-    bottoms_buffer = model.topography.arrays.layer_bottoms_buffer.array
     (
         top_mantle_partial_melt, _bottom_mantle_partial_melt
     ) = calculate_top_and_bottom_of_layer_opt(
         matids_mantle_partial_melt, marker_matid, marker_x, marker_y,
-        topo_gridx, search_radius; use_smoothing=false,
-        layer_index_buffer=layer_index_buffer,
-        tops_buffer=tops_buffer,
-        bottoms_buffer=bottoms_buffer
+        topo_gridx, search_radius; use_smoothing=false
     )
     set_zero_values_to_model_base(top_mantle_partial_melt, ysize)
 
@@ -146,9 +140,7 @@ function calculate_top_of_mantle_partial_melt_domain(
         )
     end
 
-    smoothed_buffer = model.topography.arrays.partial_melt_buffer.array
-    smooth_surface!(smoothed_buffer, top_mantle_partial_melt; nsmooth=nsmooth)
-    top_mantle_partial_melt = smoothed_buffer
+    top_mantle_partial_melt = smooth_surface(top_mantle_partial_melt; nsmooth=nsmooth)
 
     if debug
         println(

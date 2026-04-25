@@ -14,11 +14,8 @@ import .LocationGroup: Location
 import .GridMarkerRelationshipGroup: GridMarkerRelationship
 import .MeltGroup: Melt
 import .AdvectionGroup: Advection
-import .StructureGroup: Structure
-import .CompactionGroup: Compaction
 import .SolidificationGroup: Solidification
 import .RecycleGroup: Recycle
-import .LithostaticScratchGroup: LithostaticScratch
 import .SerpentinizationGroup: Serpentinization
 import .SubgridHeatGroup: SubgridHeat
 
@@ -39,13 +36,10 @@ Collection of marker arrays.
 - `grid_marker_relationship::`[`GridMarkerRelationship`](@ref): Grid-marker relationship arrays
 - `melt::`[`Melt`](@ref): Melt marker arrays
 - `advection::`[`Advection`](@ref): Marker advection velocity/spin arrays
-- `structure::`[`Structure`](@ref): Marker structure-finding scratch buffers
-- `compaction::`[`Compaction`](@ref): Marker compaction scratch buffers
-- `solidification::`[`Solidification`](@ref): Marker solidification scratch buffers
-- `recycle::`[`Recycle`](@ref): Marker recycling scratch buffers
-- `lithostatic_scratch::`[`LithostaticScratch`](@ref): Lithostatic-pressure column-filter scratch
-- `serpentinization::`[`Serpentinization`](@ref): Serpentinization scratch buffers
-- `subgrid_heat::`[`SubgridHeat`](@ref): Subgrid heat-diffusion scratch buffers
+- `solidification::`[`Solidification`](@ref): Marker solidification scratch buffer
+- `recycle::`[`Recycle`](@ref): Marker recycling scratch buffer
+- `serpentinization::`[`Serpentinization`](@ref): Serpentinization scratch buffer
+- `subgrid_heat::`[`SubgridHeat`](@ref): Subgrid heat-diffusion scratch buffer
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -59,11 +53,8 @@ mutable struct Arrays <: AbstractArrayCollection
     grid_marker_relationship::GridMarkerRelationship
     melt::Melt
     advection::Advection
-    structure::Structure
-    compaction::Compaction
     solidification::Solidification
     recycle::Recycle
-    lithostatic_scratch::LithostaticScratch
     serpentinization::Serpentinization
     subgrid_heat::SubgridHeat
 end
@@ -81,11 +72,8 @@ function Arrays(marknum::Int)::Arrays
         GridMarkerRelationship(marknum),
         Melt(marknum),
         Advection(marknum),
-        Structure(marknum),
-        Compaction(marknum),
         Solidification(marknum),
         Recycle(marknum),
-        LithostaticScratch(marknum),
         Serpentinization(marknum),
         SubgridHeat(marknum)
     )

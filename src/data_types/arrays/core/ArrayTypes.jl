@@ -2,7 +2,6 @@ module ArrayTypes
 
 include("types/Array1DInt.jl")
 include("types/Array1DFloat.jl")
-include("types/Array3DFloat.jl")
 include("types/GridArray1D.jl")
 include("types/MarkerArrayFloat1D.jl")
 include("types/MarkerArrayInt1D.jl")
