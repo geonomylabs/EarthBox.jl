@@ -31,7 +31,7 @@ function advect_markers_using_compaction(
     compaction_displacement_max::Vector{Float64}
 )::Nothing
     sticky_thickness_markers_initial = calculate_sticky_thickness_from_markers(model)
-    
+
     make_debug_plots = false
     if make_debug_plots
         plot_advection_input(
@@ -41,19 +41,30 @@ function advect_markers_using_compaction(
             sticky_thickness_markers_initial
         )
     end
-    
+
+    # Pull persistent scratch buffers once and pass them explicitly to each
+    # phase. The two buffers are reused sequentially across sediment and
+    # sticky paths; each writer fill!(0.0)s before writing.
+    st = model.markers.arrays.sediment_transport
+    factors_buffer = st.marker_displacement_factors_buffer.array
+    displacement_buffer = st.marker_displacement_buffer.array
+
     advect_sediment(
+        factors_buffer,
+        displacement_buffer,
         model,
         sediment_thickness_markers_initial,
         compaction_displacement_max
     )
-    
+
     advect_sticky(
+        factors_buffer,
+        displacement_buffer,
         model,
         sticky_thickness_markers_initial,
         compaction_displacement_max
     )
-    
+
     return nothing
 end
 
@@ -70,17 +81,19 @@ end
     x-grid cell along the pre-transport sediment-sticky interface (meters)
 """
 function advect_sediment(
+    factors_buffer::Vector{Float64},
+    displacement_buffer::Vector{Float64},
     model::ModelData,
     sediment_thickness_markers_initial::Vector{Float64},
     compaction_displacement_max::Vector{Float64}
 )::Nothing
-    displacement_factors = calculate_sediment_compaction_displacement_factors(
-        model, sediment_thickness_markers_initial
+    calculate_sediment_compaction_displacement_factors!(
+        factors_buffer, model, sediment_thickness_markers_initial
     )
-    marker_displacement = calculate_sediment_marker_displacement(
-        model, displacement_factors, compaction_displacement_max
+    calculate_sediment_marker_displacement!(
+        displacement_buffer, model, factors_buffer, compaction_displacement_max
     )
-    move_sediment_markers_using_compaction_field(model, marker_displacement)
+    move_sediment_markers_using_compaction_field(model, displacement_buffer)
     return nothing
 end
 
@@ -97,17 +110,19 @@ end
     x-grid cell along the pre-transport sediment-sticky interface (meters)
 """
 function advect_sticky(
+    factors_buffer::Vector{Float64},
+    displacement_buffer::Vector{Float64},
     model::ModelData,
     sticky_thickness_markers_initial::Vector{Float64},
     compaction_displacement_max::Vector{Float64}
 )::Nothing
-    displacement_factors = calculate_sticky_compaction_displacement_factors(
-        model, sticky_thickness_markers_initial
+    calculate_sticky_compaction_displacement_factors!(
+        factors_buffer, model, sticky_thickness_markers_initial
     )
-    marker_displacement = calculate_sticky_marker_displacement(
-        model, displacement_factors, compaction_displacement_max
+    calculate_sticky_marker_displacement!(
+        displacement_buffer, model, factors_buffer, compaction_displacement_max
     )
-    move_sticky_markers_using_compaction_field(model, marker_displacement)
+    move_sticky_markers_using_compaction_field(model, displacement_buffer)
     return nothing
 end
 
@@ -126,10 +141,11 @@ sediment-sticky-air/water interface.
 # Returns
 - `marker_displacement_factors`: Displacement factors for sediment markers
 """
-function calculate_sediment_compaction_displacement_factors(
+function calculate_sediment_compaction_displacement_factors!(
+    marker_displacement_factors::Vector{Float64},
     model::ModelData,
     sediment_thickness_markers::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     marker_arrays = model.markers.arrays
     marker_matids = marker_arrays.material.marker_matid.array
     location = marker_arrays.location
@@ -137,13 +153,16 @@ function calculate_sediment_compaction_displacement_factors(
     marker_y = location.marker_y.array
     gridt = model.topography.arrays.gridt.array
     gridx = gridt[1, :]
-    
+
     matids_sedimentary_basin = get_matids_sedimentary_basin(model)
-    
+
     use_power_law_displacement = true # Set to false for linear displacement
-    
+
     marknum = length(marker_x)
-    marker_displacement_factors = zeros(marknum)
+    @assert length(marker_displacement_factors) == marknum
+    # Zero-fill load-bearing: the matid filter only updates positions for
+    # sedimentary-basin markers; all other positions must read as 0.0.
+    fill!(marker_displacement_factors, 0.0)
     for imarker in 1:marknum
         matid = marker_matids[imarker]
         if matid in matids_sedimentary_basin
@@ -176,7 +195,7 @@ function calculate_sediment_compaction_displacement_factors(
             marker_displacement_factors[imarker] = displacement_factor
         end
     end
-    return marker_displacement_factors
+    return nothing
 end
 
 """ Check compaction advection model parameters.
@@ -255,22 +274,27 @@ end
 # Returns
 - `marker_displacement`: Displacement of sediment markers due to compaction (meters)
 """
-function calculate_sediment_marker_displacement(
+function calculate_sediment_marker_displacement!(
+    marker_displacement::Vector{Float64},
     model::ModelData,
     marker_displacement_factors::Vector{Float64},
     compaction_displacement_max::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     marker_arrays = model.markers.arrays
     marker_matids = marker_arrays.material.marker_matid.array
     location = marker_arrays.location
     marker_x = location.marker_x.array
     gridt = model.topography.arrays.gridt.array
     gridx = gridt[1, :]
-    
+
     matids_sedimentary_basin = get_matids_sedimentary_basin(model)
-    
+
     marknum = length(marker_x)
-    marker_displacement = zeros(marknum)
+    @assert length(marker_displacement) == marknum
+    # Zero-fill load-bearing: only matching markers get a displacement;
+    # `move_sediment_markers_using_compaction_field` reads displacement[imarker]
+    # for ALL markers and adds it (zero adds yield no movement).
+    fill!(marker_displacement, 0.0)
     for imarker in 1:marknum
         matid = marker_matids[imarker]
         if matid in matids_sedimentary_basin
@@ -283,7 +307,7 @@ function calculate_sediment_marker_displacement(
             marker_displacement[imarker] = displacement
         end
     end
-    return marker_displacement
+    return nothing
 end
 
 """ Calculate marker displacement.
@@ -352,10 +376,11 @@ sticky air/water and sediment.
 # Returns
 - `marker_displacement_factors`: Displacement factors for sticky markers
 """
-function calculate_sticky_compaction_displacement_factors(
+function calculate_sticky_compaction_displacement_factors!(
+    marker_displacement_factors::Vector{Float64},
     model::ModelData,
     sticky_thickness_markers::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     marker_arrays = model.markers.arrays
     marker_matids = marker_arrays.material.marker_matid.array
     location = marker_arrays.location
@@ -363,11 +388,14 @@ function calculate_sticky_compaction_displacement_factors(
     marker_y = location.marker_y.array
     gridt = model.topography.arrays.gridt.array
     gridx = gridt[1, :]
-    
+
     matids_sticky = get_sticky_matids(model)
-    
+
     marknum = length(marker_x)
-    marker_displacement_factors = zeros(marknum)
+    @assert length(marker_displacement_factors) == marknum
+    # Zero-fill load-bearing: matid filter only updates sticky-marker
+    # positions; all other positions must read as 0.0.
+    fill!(marker_displacement_factors, 0.0)
     for imarker in 1:marknum
         if marker_matids[imarker] in matids_sticky
             x_marker = marker_x[imarker]
@@ -383,7 +411,7 @@ function calculate_sticky_compaction_displacement_factors(
             marker_displacement_factors[imarker] = displacement_factor
         end
     end
-    return marker_displacement_factors
+    return nothing
 end
 
 """ Calculate marker displacement.
@@ -397,22 +425,27 @@ end
 # Returns
 - `marker_displacement`: Displacement of sticky markers due to compaction (meters)
 """
-function calculate_sticky_marker_displacement(
+function calculate_sticky_marker_displacement!(
+    marker_displacement::Vector{Float64},
     model::ModelData,
     marker_displacement_factors::Vector{Float64},
     compaction_displacement_max::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     marker_arrays = model.markers.arrays
     marker_matids = marker_arrays.material.marker_matid.array
     location = marker_arrays.location
     marker_x = location.marker_x.array
     gridt = model.topography.arrays.gridt.array
     gridx = gridt[1, :]
-    
+
     matids_sticky = get_sticky_matids(model)
-    
+
     marknum = length(marker_x)
-    marker_displacement = zeros(marknum)
+    @assert length(marker_displacement) == marknum
+    # Zero-fill load-bearing: matid filter only updates sticky-marker
+    # positions; `move_sticky_markers_using_compaction_field` reads
+    # displacement[imarker] for ALL markers and adds it.
+    fill!(marker_displacement, 0.0)
     for imarker in 1:marknum
         if marker_matids[imarker] in matids_sticky
             x_marker = marker_x[imarker]
@@ -424,7 +457,7 @@ function calculate_sticky_marker_displacement(
             marker_displacement[imarker] = displacement
         end
     end
-    return marker_displacement
+    return nothing
 end
 
 function move_sticky_markers_using_compaction_field(

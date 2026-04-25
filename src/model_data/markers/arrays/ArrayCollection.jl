@@ -19,6 +19,7 @@ import .SolidificationGroup: Solidification
 import .RecycleGroup: Recycle
 import .SerpentinizationGroup: Serpentinization
 import .SubgridHeatGroup: SubgridHeat
+import .SedimentTransportGroup: SedimentTransport
 
 """
     Arrays <: AbstractArrayCollection
@@ -42,6 +43,7 @@ Collection of marker arrays.
 - `recycle::`[`Recycle`](@ref): Marker recycling scratch buffer
 - `serpentinization::`[`Serpentinization`](@ref): Serpentinization scratch buffer
 - `subgrid_heat::`[`SubgridHeat`](@ref): Subgrid heat-diffusion scratch buffer
+- `sediment_transport::`[`SedimentTransport`](@ref): Sediment-transport marker advection scratch buffers
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -60,6 +62,7 @@ mutable struct Arrays <: AbstractArrayCollection
     recycle::Recycle
     serpentinization::Serpentinization
     subgrid_heat::SubgridHeat
+    sediment_transport::SedimentTransport
 end
 
 function Arrays(marknum::Int)::Arrays
@@ -79,7 +82,8 @@ function Arrays(marknum::Int)::Arrays
         Solidification(marknum),
         Recycle(marknum),
         Serpentinization(marknum),
-        SubgridHeat(marknum)
+        SubgridHeat(marknum),
+        SedimentTransport(marknum)
     )
 end
 
