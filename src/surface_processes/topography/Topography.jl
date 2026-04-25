@@ -258,6 +258,9 @@ function initialize_topo_arrays!(model::ModelData)::Nothing
     model.topography.arrays.layer_bottoms_buffer.array = zeros(Float64, toponum)
     model.topography.arrays.oceanic_moho_buffer.array = zeros(Float64, toponum)
     model.topography.arrays.partial_melt_buffer.array = zeros(Float64, toponum)
+    model.topography.arrays.compaction_post_tops.array = zeros(Float64, toponum)
+    model.topography.arrays.compaction_post_bottoms.array = zeros(Float64, toponum)
+    model.topography.arrays.sticky_thickness_buffer.array = zeros(Float64, toponum)
     return nothing
 end
 

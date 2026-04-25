@@ -51,20 +51,30 @@ function apply_compaction_correction_for_topography_and_markers(
     mxstep = model.markers.parameters.distribution.mxstep.value
    
     search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
+    # Reuse persistent toponum-sized buffers from topography arrays:
+    # layer_tops/bottoms_buffer hold the swarm tops/bottoms; oceanic_moho_buffer
+    # is the smoothing scratch (free at sediment-transport time since
+    # fractionation has already completed within the timestep).
+    topo_arrays = model.topography.arrays
     top_sticky, bottom_sticky = calculate_top_and_bottom_of_swarm_opt(
         x_sorted_marker_indices_sticky,
         markers_x, markers_y, topo_gridx,
         search_radius,
         use_smoothing=true,
-        nsmooth=nsmooth_top_bottom
+        nsmooth=nsmooth_top_bottom,
+        tops_buffer=topo_arrays.layer_tops_buffer.array,
+        bottoms_buffer=topo_arrays.layer_bottoms_buffer.array,
+        smoothed_scratch=topo_arrays.oceanic_moho_buffer.array
     )
-    
-    sticky_thickness_initial = bottom_sticky .- top_sticky
-    
+
+    # In-place broadcast into the persistent sticky_thickness_buffer.
+    sticky_thickness_initial = topo_arrays.sticky_thickness_buffer.array
+    sticky_thickness_initial .= bottom_sticky .- top_sticky
+
     porosity_initial_transport = sediment_transport_parameters.porosity_initial
     decay_depth_transport = 1.0/sediment_transport_parameters.depth_decay_term
-    
-    compaction_array = model.topography.arrays.compaction_array.array
+
+    compaction_array = topo_arrays.compaction_array.array
 
     (
         topo_gridy_corrected, total_sed_thickness_corrected, new_thickness_decompacted
@@ -86,7 +96,8 @@ function apply_compaction_correction_for_topography_and_markers(
             markers_indices_sticky,
             x_sorted_marker_indices_sedimentary_basin,
             search_radius,
-            nsmooth_top_bottom
+            nsmooth_top_bottom;
+            model=model
         )
     
     return topo_gridy_corrected, total_sed_thickness_corrected, new_thickness_decompacted
@@ -156,7 +167,8 @@ function decompact_new_sediment_and_compact_markers(
     markers_indices_sticky::Vector{Int64},
     x_sorted_marker_indices_sedimentary_basin::Vector{Int64},
     search_radius::Float64,
-    nsmooth_top_bottom::Int64=2
+    nsmooth_top_bottom::Int64=2;
+    model::Union{ModelData, Nothing}=nothing
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
     new_thickness_compacted = calculate_new_sediment_thickness_full_compaction(
         topo_gridy_initial, topo_gridy_from_transport
@@ -183,7 +195,8 @@ function decompact_new_sediment_and_compact_markers(
         search_radius,
         nsmooth_top_bottom;
         default_porosity_initial=porosity_initial_transport,
-        default_decay_depth=decay_depth_transport
+        default_decay_depth=decay_depth_transport,
+        model=model
     )
     total_sed_thickness_uncorrected = sediment_thickness_initial .+ new_thickness_compacted
     total_sed_thickness_corrected = sediment_thickness_initial_compacted .+ new_thickness_decompacted

@@ -36,6 +36,17 @@ Data structure containing array groups for topography evolution.
     output buffer for the smoothed top-of-mantle-partial-melt y-coordinates
     produced by `Drainage.calculate_top_of_mantle_partial_melt_domain`.
     Reused each fractionation/drainage call.
+- `compaction_post_tops::`[`Array1DFloatState`](@ref): `(toponum)` Scratch
+    buffer for the second `calculate_top_and_bottom_of_swarm_opt` call inside
+    `MarkerCompaction.compact_sediment_and_advect_markers!` (post-compaction
+    swarm tops). Distinct from `layer_tops_buffer` so the pre-compaction
+    result remains valid across the second call.
+- `compaction_post_bottoms::`[`Array1DFloatState`](@ref): `(toponum)` Same
+    role as `compaction_post_tops` but for the bottoms output of the second
+    swarm_opt call.
+- `sticky_thickness_buffer::`[`Array1DFloatState`](@ref): `(toponum)` Buffer
+    for the `bottom_sticky .- top_sticky` broadcast inside
+    `CompactionCorrection.apply_compaction_correction_for_topography_and_markers`.
 
 # Nested Dot Access
 - `model.topography.arrays.gridt.array`
@@ -44,6 +55,9 @@ Data structure containing array groups for topography evolution.
 - `model.topography.arrays.layer_bottoms_buffer.array`
 - `model.topography.arrays.oceanic_moho_buffer.array`
 - `model.topography.arrays.partial_melt_buffer.array`
+- `model.topography.arrays.compaction_post_tops.array`
+- `model.topography.arrays.compaction_post_bottoms.array`
+- `model.topography.arrays.sticky_thickness_buffer.array`
 
 # Constructor
     Arrays(toponum::Int)::Arrays
@@ -61,6 +75,9 @@ mutable struct Arrays <: AbstractArrayCollection
     layer_bottoms_buffer::Array1DFloatState
     oceanic_moho_buffer::Array1DFloatState
     partial_melt_buffer::Array1DFloatState
+    compaction_post_tops::Array1DFloatState
+    compaction_post_bottoms::Array1DFloatState
+    sticky_thickness_buffer::Array1DFloatState
 end
 
 function Arrays(toponum::Int)::Arrays
@@ -130,10 +147,34 @@ function Arrays(toponum::Int)::Arrays
         * "mantle-partial-melt y-coordinates produced by "
         * "Drainage.calculate_top_of_mantle_partial_melt_domain."
     )
+    compaction_post_tops = Array1DFloatState(
+        zeros(Float64, toponum),
+        "compaction_post_tops",
+        "m",
+        "`(toponum)` : Scratch buffer for the post-compaction swarm tops "
+        * "output in MarkerCompaction.compact_sediment_and_advect_markers!. "
+        * "Distinct from layer_tops_buffer so the pre-compaction result "
+        * "remains valid across the second swarm_opt call."
+    )
+    compaction_post_bottoms = Array1DFloatState(
+        zeros(Float64, toponum),
+        "compaction_post_bottoms",
+        "m",
+        "`(toponum)` : Same role as compaction_post_tops but for bottoms."
+    )
+    sticky_thickness_buffer = Array1DFloatState(
+        zeros(Float64, toponum),
+        "sticky_thickness_buffer",
+        "m",
+        "`(toponum)` : Buffer for the bottom_sticky .- top_sticky broadcast "
+        * "inside apply_compaction_correction_for_topography_and_markers."
+    )
     return Arrays(
         gridt, compaction_array,
         layer_tops_buffer, layer_bottoms_buffer,
-        oceanic_moho_buffer, partial_melt_buffer
+        oceanic_moho_buffer, partial_melt_buffer,
+        compaction_post_tops, compaction_post_bottoms,
+        sticky_thickness_buffer
     )
 end
 

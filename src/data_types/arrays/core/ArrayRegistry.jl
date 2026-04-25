@@ -508,6 +508,35 @@ function get_markers_arrays()::NamedTuple
             * "[1:icount] are valid after each call to "
             * "filter_markers_outside_of_layer!; the tail is stale.",
         ),
+
+        # Compaction scratch buffers used by
+        # MarkerCompaction.compact_sediment_and_advect_markers! and
+        # CompactionCorrection.apply_compaction_correction_for_topography_and_markers.
+        # Each is sized to marknum; values are written/overwritten per call.
+        markers_topo_xindex = ArrayData(
+            "markers_topo_xindex", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the topography-grid "
+            * "x-index assigned to each sedimentary-basin marker by "
+            * "MarkerCompaction.assign_topo_xindex_to_markers!.",
+        ),
+        markers_compaction_yindex = ArrayData(
+            "markers_compaction_yindex", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the compaction-grid "
+            * "y-index assigned to each sedimentary-basin marker by "
+            * "MarkerCompaction.assign_compaction_yindex_to_markers!.",
+        ),
+        markers_unit_distance_from_cell_top = ArrayData(
+            "markers_unit_distance_from_cell_top", "None", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the unit distance "
+            * "from compaction-cell top per sedimentary-basin marker, "
+            * "co-populated with markers_compaction_yindex.",
+        ),
+        total_marker_compaction_displacement = ArrayData(
+            "total_marker_compaction_displacement", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for cumulative compaction "
+            * "displacement per sedimentary-basin marker, populated by "
+            * "MarkerCompaction.calculate_total_marker_compaction_displacement!.",
+        ),
     )
 end
 
