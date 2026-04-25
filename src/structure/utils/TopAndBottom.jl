@@ -107,6 +107,24 @@ This is the optimized version of this function.
 The material layer is a collection of material ids (material_ids).
 
 Note that this function does not take into account vertically discontinuous layers.
+
+# Keyword Arguments
+- `layer_index_buffer::Union{Vector{Int64}, Nothing}`: When provided, the
+    per-call marknum-sized scratch buffer used by
+    `filter_markers_outside_of_layer!` to pack matching marker indices.
+    Must have `length(buffer) >= length(marker_matid)`. Allocation-free fast
+    path used by hot callers (fractionation, drainage). When `nothing`
+    (default), falls back to allocating a fresh vector — preserved for
+    callers that do not have a buffer at hand. Hot callers should pass
+    `model.markers.arrays.structure.marker_indices_layer.array` (or equivalent).
+- `tops_buffer::Union{Vector{Float64}, Nothing}`: When provided, the
+    `tops` output is written into this buffer (which is zeroed at the start
+    of the call) instead of allocating a fresh `Vector{Float64}(xnum)`. Must
+    have `length(buffer) == length(gridx)`. Incompatible with
+    `use_smoothing=true` (smoothing requires allocating a new vector). When
+    `nothing` (default), falls back to allocation.
+- `bottoms_buffer::Union{Vector{Float64}, Nothing}`: Same as `tops_buffer`
+    but for the `bottoms` output.
 """
 function calculate_top_and_bottom_of_layer_opt(
     material_ids_of_layer::Vector{Int16},
@@ -116,15 +134,47 @@ function calculate_top_and_bottom_of_layer_opt(
     gridx::Vector{Float64},
     search_radius::Float64;
     use_smoothing::Bool=true,
-    nsmooth::Int=2
+    nsmooth::Int=2,
+    layer_index_buffer::Union{Vector{Int64}, Nothing}=nothing,
+    tops_buffer::Union{Vector{Float64}, Nothing}=nothing,
+    bottoms_buffer::Union{Vector{Float64}, Nothing}=nothing
 )::Tuple{Vector{Float64}, Vector{Float64}}
-    marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
-    marknum_layer = length(marker_indices_layer)
+    if layer_index_buffer !== nothing
+        marker_indices_layer = layer_index_buffer
+        marknum_layer = filter_markers_outside_of_layer!(
+            marker_indices_layer, marker_matid, material_ids_of_layer
+        )
+    else
+        marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
+        marknum_layer = length(marker_indices_layer)
+    end
 
     xnum = length(gridx)
-    tops = zeros(Float64, xnum)
-    bottoms = zeros(Float64, xnum)
-    
+    if tops_buffer !== nothing
+        @assert length(tops_buffer) == xnum (
+            "tops_buffer length $(length(tops_buffer)) does not match gridx length $xnum"
+        )
+        @assert !use_smoothing (
+            "tops_buffer is incompatible with use_smoothing=true"
+        )
+        fill!(tops_buffer, 0.0)
+        tops = tops_buffer
+    else
+        tops = zeros(Float64, xnum)
+    end
+    if bottoms_buffer !== nothing
+        @assert length(bottoms_buffer) == xnum (
+            "bottoms_buffer length $(length(bottoms_buffer)) does not match gridx length $xnum"
+        )
+        @assert !use_smoothing (
+            "bottoms_buffer is incompatible with use_smoothing=true"
+        )
+        fill!(bottoms_buffer, 0.0)
+        bottoms = bottoms_buffer
+    else
+        bottoms = zeros(Float64, xnum)
+    end
+
     Threads.@threads for j in 1:xnum
         ymin = 1e32
         ymax = -1e32
@@ -133,7 +183,7 @@ function calculate_top_and_bottom_of_layer_opt(
         xmax_search = xgrid + search_radius
         ifind_top = 0
         ifind_bottom = 0
-        
+
         for imarker_layer in 1:marknum_layer
             imarker = marker_indices_layer[imarker_layer]
             xmarker = marker_x[imarker]
@@ -150,7 +200,7 @@ function calculate_top_and_bottom_of_layer_opt(
                 end
             end
         end
-        
+
         if ifind_top == 1
             tops[j] = ymin
         end
@@ -167,31 +217,59 @@ function calculate_top_and_bottom_of_layer_opt(
     return tops, bottoms
 end
 
+""" Filter marker_matid for markers whose ID is in `material_ids_of_layer`.
+
+Allocating fallback used by callers that do not have access to a preallocated
+buffer. New callers should prefer `filter_markers_outside_of_layer!`.
+"""
 function filter_markers_outside_of_layer(
     marker_matid::Vector{Int16},
     material_ids_of_layer::Vector{Int16}
 )::Vector{Int64}
     marknum = length(marker_matid)
-    marker_indices_layer_tmp = Vector{Int64}(undef, marknum)
+    marker_indices_layer = Vector{Int64}(undef, marknum)
+    icount = filter_markers_outside_of_layer!(
+        marker_indices_layer, marker_matid, material_ids_of_layer
+    )
+    return resize!(marker_indices_layer, icount)
+end
 
+""" Filter marker_matid for markers whose ID is in `material_ids_of_layer`,
+writing the matching indices in original-order packed prefix into the
+provided buffer and returning the count.
+
+# Arguments
+- `marker_indices_layer::Vector{Int64}`: Pre-allocated output buffer, size
+    must be at least `length(marker_matid)`. On return, positions
+    `[1:icount]` hold the matching indices in their original-marker-order;
+    the tail (positions `[icount+1:end]`) is left in an unspecified state
+    and must not be read.
+- `marker_matid::Vector{Int16}`: Marker material IDs.
+- `material_ids_of_layer::Vector{Int16}`: Material IDs that define the layer.
+
+# Returns
+- `icount::Int`: Number of matching markers (= number of valid prefix
+    positions in `marker_indices_layer`).
+"""
+function filter_markers_outside_of_layer!(
+    marker_indices_layer::Vector{Int64},
+    marker_matid::Vector{Int16},
+    material_ids_of_layer::Vector{Int16}
+)::Int
+    marknum = length(marker_matid)
+    @assert length(marker_indices_layer) >= marknum (
+        "marker_indices_layer buffer is smaller than marker_matid: " *
+        "$(length(marker_indices_layer)) < $marknum"
+    )
     icount = 0
-    for imarker in 1:marknum
+    @inbounds for imarker in 1:marknum
         mid = marker_matid[imarker]
         if mid in material_ids_of_layer
-            marker_indices_layer_tmp[icount+1] = imarker
             icount += 1
-        else
-            marker_indices_layer_tmp[imarker] = -1
+            marker_indices_layer[icount] = imarker
         end
     end
-
-    marker_indices_layer = Vector{Int64}(undef, icount)
-    
-    Threads.@threads for i in 1:icount
-        marker_indices_layer[i] = marker_indices_layer_tmp[i]
-    end
-
-    return marker_indices_layer
+    return icount
 end
 
 """ Find the shallowest and deepest y-coordinates of a material layer.

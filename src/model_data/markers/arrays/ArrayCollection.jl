@@ -14,6 +14,7 @@ import .LocationGroup: Location
 import .GridMarkerRelationshipGroup: GridMarkerRelationship
 import .MeltGroup: Melt
 import .AdvectionGroup: Advection
+import .StructureGroup: Structure
 
 """
     Arrays <: AbstractArrayCollection
@@ -32,6 +33,7 @@ Collection of marker arrays.
 - `grid_marker_relationship::`[`GridMarkerRelationship`](@ref): Grid-marker relationship arrays
 - `melt::`[`Melt`](@ref): Melt marker arrays
 - `advection::`[`Advection`](@ref): Marker advection velocity/spin arrays
+- `structure::`[`Structure`](@ref): Marker structure-finding scratch buffers
 """
 mutable struct Arrays <: AbstractArrayCollection
     strat::Stratigraphy
@@ -45,6 +47,7 @@ mutable struct Arrays <: AbstractArrayCollection
     grid_marker_relationship::GridMarkerRelationship
     melt::Melt
     advection::Advection
+    structure::Structure
 end
 
 function Arrays(marknum::Int)::Arrays
@@ -59,7 +62,8 @@ function Arrays(marknum::Int)::Arrays
         Location(marknum),
         GridMarkerRelationship(marknum),
         Melt(marknum),
-        Advection(marknum)
+        Advection(marknum),
+        Structure(marknum)
     )
 end
 

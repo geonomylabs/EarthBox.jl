@@ -4,14 +4,13 @@ import EarthBox.PrintFuncs: print_info, print_warning
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
-import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
+import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface, smooth_surface!
 
 function calculate_melt_drainage_divides!(
     model::ModelData
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
-    (
-        topo_gridx, _, partial_melt_gridy
-    ) = calculate_top_of_mantle_partial_melt_domain(model)
+    topo_gridx = model.topography.arrays.gridt.array[1, :]
+    partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(model, topo_gridx)
     divides_x = calculate_drainage_divides(topo_gridx, partial_melt_gridy)
     update_drainage_info(model, divides_x)
     return topo_gridx, partial_melt_gridy, divides_x
@@ -101,14 +100,11 @@ function print_drainage_info(
 end
 
 function calculate_top_of_mantle_partial_melt_domain(
-    model::ModelData
-)::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+    model::ModelData,
+    topo_gridx::Vector{Float64}
+)::Vector{Float64}
     smoothing_radius = model.melting.parameters.extraction.smoothing_radius_drainage.value
     ysize = model.grids.parameters.geometry.ysize.value
-
-    gridt = model.topography.arrays.gridt.array
-    topo_gridx = gridt[1, :]
-    topo_gridy = gridt[2, :]
 
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
@@ -125,11 +121,17 @@ function calculate_top_of_mantle_partial_melt_domain(
 
     # Do not use smoothing for this case since smoothing will be done after
     # setting zero values to model base
+    layer_index_buffer = model.markers.arrays.structure.marker_indices_layer.array
+    tops_buffer = model.topography.arrays.layer_tops_buffer.array
+    bottoms_buffer = model.topography.arrays.layer_bottoms_buffer.array
     (
         top_mantle_partial_melt, _bottom_mantle_partial_melt
     ) = calculate_top_and_bottom_of_layer_opt(
-        matids_mantle_partial_melt, marker_matid, marker_x, marker_y, 
-        topo_gridx, search_radius; use_smoothing=false
+        matids_mantle_partial_melt, marker_matid, marker_x, marker_y,
+        topo_gridx, search_radius; use_smoothing=false,
+        layer_index_buffer=layer_index_buffer,
+        tops_buffer=tops_buffer,
+        bottoms_buffer=bottoms_buffer
     )
     set_zero_values_to_model_base(top_mantle_partial_melt, ysize)
 
@@ -144,7 +146,9 @@ function calculate_top_of_mantle_partial_melt_domain(
         )
     end
 
-    top_mantle_partial_melt = smooth_surface(top_mantle_partial_melt; nsmooth=nsmooth)
+    smoothed_buffer = model.topography.arrays.partial_melt_buffer.array
+    smooth_surface!(smoothed_buffer, top_mantle_partial_melt; nsmooth=nsmooth)
+    top_mantle_partial_melt = smoothed_buffer
 
     if debug
         println(
@@ -153,7 +157,7 @@ function calculate_top_of_mantle_partial_melt_domain(
         )
     end
 
-    return topo_gridx, topo_gridy, top_mantle_partial_melt
+    return top_mantle_partial_melt
 end
 
 function set_zero_values_to_model_base(array::Vector{Float64}, ysize::Float64)::Nothing

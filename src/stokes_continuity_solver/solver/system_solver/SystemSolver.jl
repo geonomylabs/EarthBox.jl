@@ -33,7 +33,11 @@ function solve_system(
     Ls = build_sparse_crs_matrix(Li, Lj, Lv, N)
     use_mumps = solver_config.use_mumps
     if use_mumps
-        R = copy(model.stokes_continuity.arrays.rhs.RHS.array)
+        # MUMPS does not mutate the RHS in either communication path used by
+        # this codebase (file-IO serializes RHS to disk; MPI-comm receives the
+        # solution in a separate return value). Pass model.…RHS.array directly
+        # to avoid an N-sized Vector{Float64} allocation per Picard iteration.
+        R = model.stokes_continuity.arrays.rhs.RHS.array
         @timeit_memit "Finished parallel direct solver for Stokes-continuity equations" begin
             S = parallel_direct_solver(N, Li, Lj, Lv, R, solver_config)
         end

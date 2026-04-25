@@ -204,7 +204,7 @@ function stokes_solver_build_steps(
         Kinematics.solid_body_rotation!(model)
     end
 
-    return system_vectors.Li, system_vectors.Lj, system_vectors.Lv
+    return system_vectors.Li_out, system_vectors.Lj_out, system_vectors.Lv_out
 end
 
 function solve_system_of_equations(

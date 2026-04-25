@@ -55,7 +55,7 @@ end
 function make_jld2_file(markers_xdmf::MarkersXdmfTimeStep, output_dir::String)
     # If true, print the RAM usage before and after each step. Note this adds
     # a lot of output to benchmark output.
-    print_ram = true
+    print_ram = false
 
     jld_marker_filename = markers_xdmf.markers2djld.jld_markerfile
     jld_dataname_x = markers_xdmf.markers2djld.jld_dataname_x

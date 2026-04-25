@@ -110,6 +110,28 @@ function setobj(
 end
 
 function setobj(
+    eb_obj::ArrayTypes.Array1DFloat.Array1DFloatState,
+    array::Vector{Float64}
+)::Nothing
+    check_1d_float_arrays(array, eb_obj.array)
+    for i in 1:length(array)
+        eb_obj.array[i] = array[i]
+    end
+    return nothing
+end
+
+function setobj(
+    eb_obj::ArrayTypes.Array1DInt.Array1DIntState,
+    array::Vector{Int}
+)::Nothing
+    check_1d_int_arrays(array, eb_obj.array)
+    for i in 1:length(array)
+        eb_obj.array[i] = array[i]
+    end
+    return nothing
+end
+
+function setobj(
     eb_obj::ArrayTypes.RhsHeatArray1D.RhsHeatArray1DState,
     array::Vector{Float64}
 )::Nothing

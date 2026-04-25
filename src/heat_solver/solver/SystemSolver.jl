@@ -39,12 +39,16 @@ function discretize_and_solve_conductive_heat_equation(
     N = model.heat_equation.parameters.build.N.value
     Ls = build_sparse_crs_matrix(system_vectors, N)
     use_mumps = solver_config.use_mumps
-    
+
     if use_mumps
-        R = copy(model.heat_equation.arrays.rhs.RHSheat.array)
+        # MUMPS does not mutate the RHS in either communication path used by
+        # this codebase (file-IO serializes RHS to disk; MPI-comm receives the
+        # solution in a separate return value). Pass model.…RHSheat.array
+        # directly to avoid an N-sized Vector{Float64} allocation per heat solve.
+        R = model.heat_equation.arrays.rhs.RHSheat.array
         @timeit_memit "Finished parallel direct solver for heat equation" begin
             S = parallel_direct_solver(
-                N, system_vectors.Li, system_vectors.Lj, system_vectors.Lv, 
+                N, system_vectors.Li_out, system_vectors.Lj_out, system_vectors.Lv_out,
                 R, solver_config
             )
         end
@@ -62,7 +66,9 @@ function build_sparse_crs_matrix(
     system_vectors::SystemVectors,
     N::Int64
 )::SparseMatrixCSC{Float64,Int64}
-    return sparse(system_vectors.Li, system_vectors.Lj, system_vectors.Lv, N, N)
+    return sparse(
+        system_vectors.Li_out, system_vectors.Lj_out, system_vectors.Lv_out, N, N
+    )
 end
 
 function heat_solve_system_serial(
