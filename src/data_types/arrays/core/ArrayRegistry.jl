@@ -540,6 +540,38 @@ function get_markers_arrays()::NamedTuple
             * "MarkerCompaction.calculate_sticky_marker_displacement_opt.",
         ),
 
+        # Swarm-index scratch buffers used by
+        # MarkerCompaction.calculate_swarm_indices_for_sediment_and_sticky and
+        # MarkerCompaction.calculate_x_sorted_swarm_indices. Each is single-use
+        # within one call and fully overwritten before the result is read, so
+        # safe to reuse across the back-to-back sedimentary-basin and sticky
+        # passes. The packed-prefix idiom matches
+        # GridFuncs.get_indices_of_markers_outside_domain: fill in marker
+        # order, then return a fresh `scratch[1:n_swarm]` so downstream
+        # consumers continue to receive a tight `Vector{Int64}`.
+        marker_swarm_index_scratch = ArrayData(
+            "marker_swarm_index_scratch", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the marknum-sized "
+            * "intermediate inside "
+            * "MarkerCompaction.calculate_swarm_indices_for_sediment_and_sticky. "
+            * "Filled in marker-index order with matched marker indices "
+            * "packed in front, then sliced into a tight return vector.",
+        ),
+        marker_swarm_x_gather_scratch = ArrayData(
+            "marker_swarm_x_gather_scratch", "m", MarkerArrayFloat1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch for the gathered "
+            * "`marker_x[swarm_indices]` values inside "
+            * "MarkerCompaction.calculate_x_sorted_swarm_indices. Refilled "
+            * "from `marker_x` per call before the sortperm! pass.",
+        ),
+        marker_swarm_sortperm_scratch = ArrayData(
+            "marker_swarm_sortperm_scratch", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated scratch holding the `sortperm!` "
+            * "permutation inside "
+            * "MarkerCompaction.calculate_x_sorted_swarm_indices. Initialized "
+            * "by sortperm! itself per call (no carry-over).",
+        ),
+
         # Solidification / shared random scratch used by Solidification.solidify!
         # and (via shared reuse) MarkerRecycle.RandomMarkerArray.get_random_marker_array.
         # Refilled via Random.rand! at each consumer call site.
