@@ -118,44 +118,47 @@ function calculate_top_and_bottom_of_layer_opt(
     use_smoothing::Bool=true,
     nsmooth::Int=2
 )::Tuple{Vector{Float64}, Vector{Float64}}
-    marker_indices_layer = filter_markers_outside_of_layer(marker_matid, material_ids_of_layer)
+    marker_indices_layer = filter_markers_outside_of_layer(
+        marker_matid, material_ids_of_layer)
     marknum_layer = length(marker_indices_layer)
 
     xnum = length(gridx)
+    
     tops = zeros(Float64, xnum)
     bottoms = zeros(Float64, xnum)
 
     Threads.@threads for j in 1:xnum
-        ymin = 1e32
-        ymax = -1e32
-        xgrid = gridx[j]
-        xmin_search = xgrid - search_radius
-        xmax_search = xgrid + search_radius
-        ifind_top = 0
-        ifind_bottom = 0
+        @inbounds begin
+            ymin = 1e32
+            ymax = -1e32
+            xgrid = gridx[j]
+            xmin_search = xgrid - search_radius
+            xmax_search = xgrid + search_radius
+            ifind_top = 0
+            ifind_bottom = 0
 
-        for imarker_layer in 1:marknum_layer
-            imarker = marker_indices_layer[imarker_layer]
-            xmarker = marker_x[imarker]
-            ymarker = marker_y[imarker]
-            mid = marker_matid[imarker]
-            if xmin_search <= xmarker <= xmax_search
-                if mid in material_ids_of_layer && ymarker > ymax
-                    ymax = ymarker
-                    ifind_bottom = 1
-                end
-                if mid in material_ids_of_layer && ymarker < ymin
-                    ymin = ymarker
-                    ifind_top = 1
+            for imarker_layer in 1:marknum_layer
+                imarker = marker_indices_layer[imarker_layer]
+                xmarker = marker_x[imarker]
+                if xmin_search <= xmarker <= xmax_search
+                    ymarker = marker_y[imarker]
+                    if ymarker > ymax
+                        ymax = ymarker
+                        ifind_bottom = 1
+                    end
+                    if ymarker < ymin
+                        ymin = ymarker
+                        ifind_top = 1
+                    end
                 end
             end
-        end
 
-        if ifind_top == 1
-            tops[j] = ymin
-        end
-        if ifind_bottom == 1
-            bottoms[j] = ymax
+            if ifind_top == 1
+                tops[j] = ymin
+            end
+            if ifind_bottom == 1
+                bottoms[j] = ymax
+            end
         end
     end
 
@@ -172,23 +175,22 @@ function filter_markers_outside_of_layer(
     material_ids_of_layer::Vector{Int16}
 )::Vector{Int64}
     marknum = length(marker_matid)
-    marker_indices_layer_tmp = Vector{Int64}(undef, marknum)
 
     icount = 0
-    for imarker in 1:marknum
-        mid = marker_matid[imarker]
-        if mid in material_ids_of_layer
-            marker_indices_layer_tmp[icount+1] = imarker
+    @inbounds for imarker in 1:marknum
+        if marker_matid[imarker] in material_ids_of_layer
             icount += 1
-        else
-            marker_indices_layer_tmp[imarker] = -1
         end
     end
 
     marker_indices_layer = Vector{Int64}(undef, icount)
 
-    Threads.@threads for i in 1:icount
-        marker_indices_layer[i] = marker_indices_layer_tmp[i]
+    idx = 0
+    @inbounds for imarker in 1:marknum
+        if marker_matid[imarker] in material_ids_of_layer
+            idx += 1
+            marker_indices_layer[idx] = imarker
+        end
     end
 
     return marker_indices_layer
