@@ -6,7 +6,8 @@ import EarthBox.ModelDataContainer.Grids3dContainer: Grids3d
 function calculate_ygrid_coordinates!(grids3d::Grids3d)::Nothing
     gridy_b = grids3d.arrays.basic.gridy_b.array
     gridy_vy = grids3d.arrays.staggered_vy.gridy_vy.array
-    gridy_vy .= gridy_b[1:end]
+    #gridy_vy .= gridy_b[1:end]
+    copyto!(gridy_vy, gridy_b)
     return nothing
 end
 

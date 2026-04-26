@@ -1,0 +1,104 @@
+ ▐▛███▜▌   Claude Code v2.1.119
+▝▜█████▛▘  Opus 4.7 · Claude Max
+  ▘▘ ▝▝    ~/apps/julia/EarthBox
+
+❯ Scan this entore codebase for easy win opporunties to increase effciency in   
+  term of RAM usage, decreasing allocations and increasing speed. Do not change 
+   my code yet.                                                                 
+
+● I'll do a thorough scan for easy efficiency wins. Given your prior bad
+  experience with Union-type kwargs + shared buffer arrays (commit 5895fa2),
+  I'll be careful to flag safe wins and explicitly call out anti-patterns to
+  avoid.
+
+● Explore(Scan Julia codebase for efficiency wins)
+  ⎿  Done (43 tool uses · 74.7k tokens · 2m 20s)
+  (ctrl+o to expand)
+
+● Done. Here's the consolidated report — I've grouped findings so you can tackle
+   them incrementally without touching function signatures or sharing buffers
+  across callsites.
+
+  TIER 1 — Easy, safe, local wins
+
+  Stress rotation: redundant trig
+  - src/advection/stress_rotation/MarkersStressRotation.jl:65-68 — sin() and
+  cos() of spin_term2 computed twice. Cache sin2c, cos2c once. Hot loop
+  (Threads.@threads over markers).
+
+  Stokes solver: missing @inbounds in tight grid loops
+  - src/stokes_continuity_solver/utils/GridStress.jl:63-70 and 100-106 — nested
+  for j ... for i ... loops over the grid have no @inbounds. Loop bounds are
+  derived from array dims, so it's provably safe. Wrap inner body with
+  @inbounds. Worth measuring @fastmath here too.
+
+  Type-stability: missing ::Nothing return
+  - src/stokes_continuity_solver/utils/GridStress.jl:30 —
+  forecast_viscoelastic_grid_stress! returns nothing implicitly. Adding
+  ::Nothing removes a small inference uncertainty for callers.
+
+  Slice copies that should be views
+  - src/staggered_grid/utils/VyGridTools.jl:9, 57 — gridy_vy .= gridy_b[1:end]
+  allocates a copy of the slice before broadcasting. Either use @views or just
+  copyto!(gridy_vy, gridy_b).
+  - src/model_manager/xdmf/XdmfTimeStepsManager.jl:64-69 — mixes copy(...) ./ 
+  1000.0 (two allocs) with slice-then-broadcast. Standardize on @views + fused
+  @. dest = src / 1000 into a preallocated buffer.
+
+  IO inside hot loop
+  - src/stokes_continuity_solver/utils/Viscoelastic.jl:32 — if denominator == 0
+  triggers print_warning() per grid point in a degenerate case. Use ≈ 0 || 
+  !isfinite(...) and accumulate a counter, log once at end of step.
+
+  TIER 2 — Small refactor, no signature changes
+
+  Hoist struct field reads out of marker loops
+  - src/compaction/core/MarkerCompaction.jl:45-170 —
+  compact_sediment_and_advect_markers does multiple passes over markers. Pull
+  scalar params (default_porosity_initial, default_decay_depth, etc.) into
+  locals once at function entry instead of re-reading the struct each iteration.
+
+  vcat chains during init
+  - src/melt_model/melt_fraction/MeltFraction.jl:302, 312, 319, 326, 349, 380 —
+  multiple vcat(...) calls allocate temporaries. Not hot path (init only), low
+  priority, but easy to swap for preallocated Vector{T}(undef, n) + indexed
+  fills.
+
+  TIER 3 — Bigger structural (mention only)
+
+  - Multigrid viscosity smoothing stencils
+  (src/stokes_continuity_solver/multigrid/viscosity_scaling/ViscosityScaling.jl)
+   — if smoothing weights are level-invariant, precompute once. Needs careful
+  tracing.
+
+  Anti-patterns flagged (what not to do)
+
+  - No Union{ModelData, Nothing}=nothing buffer kwargs, no shared cross-callsite
+   buffer arrays — i.e., the exact pattern you reverted in 5895fa2. The Tier 1
+  wins above all stay local to a single function and don't change any
+  signatures.
+  - Untyped globals in src/utils/Logging.jl:30, 84 — GLOBAL_STATE rebinding
+  pattern is technically a Julia performance smell, but it's logging only (not
+  hot path). Leave alone.
+
+  Hottest paths (focus here first)
+
+  Per-timestep, per-marker (Threads.@threads):
+  - src/advection/velocity_and_spin/VelocityAndSpin.jl
+  - src/advection/strain/MarkersStrain.jl
+  - src/advection/stress_rotation/MarkersStressRotation.jl
+  - src/advection/location/MarkersLocation.jl
+  - src/stokes_continuity_solver/utils/MarkerPressure.jl
+  - src/interpolation/utils/GridToMarker.jl
+
+  Per-timestep, per-grid-cell:
+  - src/stokes_continuity_solver/utils/GridStress.jl
+
+  The Tier 1 trig-caching and @inbounds wins above land squarely on these hot
+  paths. If you only do two things, do those.
+
+  Want me to apply any of these? I'd suggest starting with
+  MarkersStressRotation.jl:65-68 and GridStress.jl:63-106 — both are surgical,
+  single-function, and easy to revert if a benchmark regresses.
+
+✻ Cooked for 3m 24s

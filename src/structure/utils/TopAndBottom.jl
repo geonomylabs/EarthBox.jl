@@ -123,7 +123,7 @@ function calculate_top_and_bottom_of_layer_opt(
     marknum_layer = length(marker_indices_layer)
 
     xnum = length(gridx)
-    
+
     tops = zeros(Float64, xnum)
     bottoms = zeros(Float64, xnum)
 
@@ -204,7 +204,7 @@ Note that this function does not take into account vertically discontinuous laye
 
 Optimization version of the function below.
 """
-function calculate_top_and_bottom_of_swarm_opt(
+function calculate_top_and_bottom_of_swarm_opt_with_race(
     x_sorted_marker_indices_swarm::Vector{Int64},
     marker_x::Vector{Float64},
     marker_y::Vector{Float64},
@@ -243,6 +243,69 @@ function calculate_top_and_bottom_of_swarm_opt(
         end
         if bottoms[j] == -1e32
             bottoms[j] = 0.0
+        end
+    end
+
+    if use_smoothing
+        tops = smooth_surface(tops, nsmooth=nsmooth)
+        bottoms = smooth_surface(bottoms, nsmooth=nsmooth)
+    end
+
+    return tops, bottoms
+end
+
+""" Race-free variant of calculate_top_and_bottom_of_swarm_opt.
+
+Inverts the parallelism so each thread owns one grid index j and writes only to
+tops[j]/bottoms[j], eliminating the read-modify-write race on shared grid slots.
+Marker x-values are materialized in sorted order once so stdlib binary search
+can be used directly to find the marker range affecting each grid point.
+"""
+function calculate_top_and_bottom_of_swarm_opt(
+    x_sorted_marker_indices_swarm::Vector{Int64},
+    marker_x::Vector{Float64},
+    marker_y::Vector{Float64},
+    gridx::Vector{Float64},
+    search_radius::Float64;
+    use_smoothing::Bool=true,
+    nsmooth::Int=2
+)::Tuple{Vector{Float64}, Vector{Float64}}
+    xnum = length(gridx)
+    tops = zeros(Float64, xnum)
+    bottoms = zeros(Float64, xnum)
+
+    sorted_x = marker_x[x_sorted_marker_indices_swarm]
+
+    Threads.@threads for j in 1:xnum
+        @inbounds begin
+            xgrid = gridx[j]
+            lo = searchsortedfirst(sorted_x, xgrid - search_radius)
+            hi = searchsortedlast(sorted_x,  xgrid + search_radius)
+
+            ymin = 1e32
+            ymax = -1e32
+            ifind_top = 0
+            ifind_bottom = 0
+
+            for m in lo:hi
+                imarker = x_sorted_marker_indices_swarm[m]
+                ymarker = marker_y[imarker]
+                if ymarker > ymax
+                    ymax = ymarker
+                    ifind_bottom = 1
+                end
+                if ymarker < ymin
+                    ymin = ymarker
+                    ifind_top = 1
+                end
+            end
+
+            if ifind_top == 1
+                tops[j] = ymin
+            end
+            if ifind_bottom == 1
+                bottoms[j] = ymax
+            end
         end
     end
 
