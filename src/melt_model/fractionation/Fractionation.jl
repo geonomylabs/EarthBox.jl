@@ -90,7 +90,6 @@ function make_fractionated_gabbroic_magma_loop(
     marker_matid = model.markers.arrays.material.marker_matid.array
 
     age_ma = calculate_age_ma(model)
-
     nsmooth = calculate_nsmooth(model)
 
     # This section takes the second most computation time in the function.
@@ -104,7 +103,7 @@ function make_fractionated_gabbroic_magma_loop(
         # Make sure that the Moho is not below the partial melt domain.
         # This is necessary to avoid the case where gabbroic particles are
         # located below the Moho due to oceanic crustal thinning.
-        moho_gridy = min.(moho_gridy, partial_melt_gridy)
+        moho_gridy .= min.(moho_gridy, partial_melt_gridy)
     end
 
     nmarkers = length(marker_x)
