@@ -48,6 +48,48 @@ function solve_system(
     return S, Ls
 end
 
+""" Optimized Stokes-continuity solve that avoids the per-iteration
+`sparse(Li, Lj, Lv, N, N)` allocation when running under MUMPS.
+
+The legacy `solve_system` builds a SparseMatrixCSC `Ls` so the caller can
+later compute the nonlinear residual `Ls * x_old - R` via `mul!`. Under
+MUMPS, that `Ls` is otherwise unused — MUMPS consumes the (Li, Lj, Lv, R)
+COO triplets directly. This optimized variant skips the sparse build and
+returns only `S`; the caller (when `use_optimized_residuals == true`)
+computes the nonlinear residual directly from the same COO triplets via
+`StokesResiduals.stokes_calc_nonlinear_system_residual_optimized!`.
+
+For serial mode (`use_mumps == false`), `Ls \\ R` still requires a
+SparseMatrixCSC, so this variant builds `Ls` locally inside that branch
+and discards it — preserving correctness for the serial path while still
+avoiding the persistent `Ls` allocation cost on the MUMPS path.
+"""
+function solve_system_optimized(
+    model::ModelData,
+    solver_config::SolverConfigState
+)::Vector{Float64}
+    R = model.stokes_continuity.arrays.rhs.RHS.array
+    sv = model.stokes_continuity.parameters.build.system_vectors
+    Li = sv.Li_out
+    Lj = sv.Lj_out
+    Lv = sv.Lv_out
+    N = model.stokes_continuity.parameters.build.N.value
+    use_mumps = solver_config.use_mumps
+
+    if use_mumps
+        @timeit_memit "Finished parallel direct solver for Stokes-continuity equations" begin
+            S = parallel_direct_solver(N, Li, Lj, Lv, R, solver_config)
+        end
+    else
+        @timeit_memit "Finished serial direct solver for Stokes-continuity equations" begin
+            Ls_local = sparse(Li, Lj, Lv, N, N)
+            S = Ls_local \ R
+        end
+    end
+    print_solution_vector_statistics(S)
+    return S
+end
+
 """ Initialize stokes-continuity parameters.
 
 Steps:
