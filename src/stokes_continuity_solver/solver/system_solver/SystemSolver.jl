@@ -24,47 +24,28 @@ discretize equations.
 """
 function solve_system(
     model::ModelData,
-    Li::Vector{Int64},
-    Lj::Vector{Int64},
-    Lv::Vector{Float64},
     solver_config::SolverConfigState
 )::Tuple{Vector{Float64}, SparseMatrixCSC{Float64,Int64}}
+    R = model.stokes_continuity.arrays.rhs.RHS.array
+    sv = model.stokes_continuity.parameters.build.system_vectors
+    Li = sv.Li_out
+    Lj = sv.Lj_out
+    Lv = sv.Lv_out
     N = model.stokes_continuity.parameters.build.N.value
-    Ls = build_sparse_crs_matrix(Li, Lj, Lv, N)
     use_mumps = solver_config.use_mumps
+
+    Ls = sparse(Li, Lj, Lv, N, N)
     if use_mumps
-        # MUMPS does not mutate the RHS in either communication path used by
-        # this codebase (file-IO serializes RHS to disk; MPI-comm receives the
-        # solution in a separate return value). Pass model.…RHS.array directly
-        # to avoid an N-sized Vector{Float64} allocation per Picard iteration.
-        R = model.stokes_continuity.arrays.rhs.RHS.array
         @timeit_memit "Finished parallel direct solver for Stokes-continuity equations" begin
             S = parallel_direct_solver(N, Li, Lj, Lv, R, solver_config)
         end
     else
         @timeit_memit "Finished serial direct solver for Stokes-continuity equations" begin
-            S = stokes_solve_system_serial(model, Ls)
+            S = Ls \ R
         end
     end
     print_solution_vector_statistics(S)
     return S, Ls
-end
-
-function build_sparse_crs_matrix(
-    Li::Vector{Int64},
-    Lj::Vector{Int64},
-    Lv::Vector{Float64},
-    N::Int64
-)::SparseMatrixCSC{Float64,Int64}
-    return sparse(Li, Lj, Lv, N, N)
-end
-
-function stokes_solve_system_serial(
-    model::ModelData,
-    Ls::SparseMatrixCSC{Float64,Int64}
-)::Vector{Float64}
-    rhs_arrays = model.stokes_continuity.arrays.rhs
-    return Ls \ rhs_arrays.RHS.array
 end
 
 """ Initialize stokes-continuity parameters.
