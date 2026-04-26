@@ -6,6 +6,13 @@ Holds pre-allocated marker-sized buffers used internally by
 (sticky path included). All buffers are single-use within one compaction
 call and never shared with any other call site or cross-domain consumer.
 
+The swarm-index / sortperm buffers below are also reused across the
+back-to-back sedimentary-basin and sticky passes inside
+`calculate_swarm_indices_for_sediment_and_sticky` and
+`calculate_x_sorted_swarm_indices`; both passes are sequential on the
+main thread and each writes its result into a fresh tight `Vector{Int64}`
+before the next pass starts, so a single shared scratch per role is safe.
+
 Each buffer is sized to `marknum` at construction. Production callers
 pass these via positional arguments to `compact_sediment_and_advect_markers`
 so the function signature stays explicit (no `Union{T, Nothing}=nothing`
@@ -35,6 +42,9 @@ Array group holding scratch buffers used by marker compaction.
 - `total_marker_compaction_displacement_buffer::`[`MarkerArrayFloat1DState`](@ref) Float64
 - `sticky_displacement_factors_buffer::`[`MarkerArrayFloat1DState`](@ref) Float64
 - `sticky_marker_displacement_buffer::`[`MarkerArrayFloat1DState`](@ref) Float64
+- `marker_swarm_index_scratch::`[`MarkerArrayInt1DState`](@ref) Int64
+- `marker_swarm_x_gather_scratch::`[`MarkerArrayFloat1DState`](@ref) Float64
+- `marker_swarm_sortperm_scratch::`[`MarkerArrayInt1DState`](@ref) Int64
 
 # Constructor
     Compaction(marknum::Int)
@@ -49,6 +59,9 @@ mutable struct Compaction <: AbstractArrayGroup
     total_marker_compaction_displacement_buffer::MarkerArrayFloat1DState{Float64}
     sticky_displacement_factors_buffer::MarkerArrayFloat1DState{Float64}
     sticky_marker_displacement_buffer::MarkerArrayFloat1DState{Float64}
+    marker_swarm_index_scratch::MarkerArrayInt1DState{Int64}
+    marker_swarm_x_gather_scratch::MarkerArrayFloat1DState{Float64}
+    marker_swarm_sortperm_scratch::MarkerArrayInt1DState{Int64}
 end
 
 function Compaction(marknum::Int)::Compaction
@@ -88,6 +101,24 @@ function Compaction(marknum::Int)::Compaction
             ADATA.sticky_marker_displacement_buffer.name,
             ADATA.sticky_marker_displacement_buffer.units,
             ADATA.sticky_marker_displacement_buffer.description
+        ),
+        MarkerArrayInt1DState(
+            zeros(Int64, marknum),
+            ADATA.marker_swarm_index_scratch.name,
+            ADATA.marker_swarm_index_scratch.units,
+            ADATA.marker_swarm_index_scratch.description
+        ),
+        MarkerArrayFloat1DState(
+            zeros(Float64, marknum),
+            ADATA.marker_swarm_x_gather_scratch.name,
+            ADATA.marker_swarm_x_gather_scratch.units,
+            ADATA.marker_swarm_x_gather_scratch.description
+        ),
+        MarkerArrayInt1DState(
+            zeros(Int64, marknum),
+            ADATA.marker_swarm_sortperm_scratch.name,
+            ADATA.marker_swarm_sortperm_scratch.units,
+            ADATA.marker_swarm_sortperm_scratch.description
         ),
     )
 end

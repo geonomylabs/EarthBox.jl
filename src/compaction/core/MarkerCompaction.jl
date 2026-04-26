@@ -197,21 +197,23 @@ end
 function calculate_swarm_indices_for_sediment_and_sticky(
     model::ModelData
 )::Tuple{Vector{Int64}, Vector{Int64}}
-    markers_x = model.markers.arrays.location.marker_x.array
     markers_matid = model.markers.arrays.material.marker_matid.array
+    swarm_index_scratch = model.markers.arrays.compaction.marker_swarm_index_scratch.array
 
     sedimentary_basin_ids = get_sedimentary_basin_material_ids(
         model.materials.dicts.matid_types
     )
-    markers_indices_sedimentary_basin = calculate_marker_swarm_indices(
-        markers_x, markers_matid, sedimentary_basin_ids
+    markers_indices_sedimentary_basin = calculate_marker_swarm_indices_into!(
+        swarm_index_scratch, markers_matid, sedimentary_basin_ids
     )
 
     sticky_ids = get_sticky_material_ids(
         model.materials.dicts.matid_types
     )
-    markers_indices_sticky = calculate_marker_swarm_indices(
-        markers_x, markers_matid, sticky_ids
+    # The same scratch is reused: the sedimentary-basin pass already
+    # returned its tight Vector, so the next pass may overwrite scratch.
+    markers_indices_sticky = calculate_marker_swarm_indices_into!(
+        swarm_index_scratch, markers_matid, sticky_ids
     )
 
     return markers_indices_sedimentary_basin, markers_indices_sticky
@@ -222,9 +224,64 @@ function calculate_x_sorted_swarm_indices(
     marker_indices_swarm::Vector{Int64}
 )::Vector{Int64}
     marker_x = model.markers.arrays.location.marker_x.array
-    # Sort markers by x-coordinate
-    sorted_indices = sortperm(marker_x[marker_indices_swarm])
-    sorted_marker_indices_swarm = marker_indices_swarm[sorted_indices]
+    gather_scratch = model.markers.arrays.compaction.marker_swarm_x_gather_scratch.array
+    perm_scratch = model.markers.arrays.compaction.marker_swarm_sortperm_scratch.array
+    return calculate_x_sorted_swarm_indices_with_scratch!(
+        gather_scratch, perm_scratch, marker_x, marker_indices_swarm
+    )
+end
+
+# In-place variant that fills `scratch` with the swarm-matched marker
+# indices in marker-index order, then returns a fresh tight `Vector{Int64}`
+# of length `n_swarm`. Mirrors the packed-prefix idiom of
+# GridFuncs.get_indices_of_markers_outside_domain so downstream consumers
+# continue to receive a `Vector{Int64}` (their type signatures require it),
+# while avoiding the per-call `ones(Int64, marknum)` allocation. `scratch`
+# must have capacity ≥ length(marker_matid); the function writes to slots
+# 1..n_swarm only.
+function calculate_marker_swarm_indices_into!(
+    scratch::Vector{Int64},
+    marker_matid::Vector{Int16},
+    swarm_material_ids::Vector{Int16}
+)::Vector{Int64}
+    nmarkers = length(marker_matid)
+    @assert length(scratch) >= nmarkers
+    nmarkers_swarm = 0
+    @inbounds for i in 1:nmarkers
+        if marker_matid[i] in swarm_material_ids
+            nmarkers_swarm += 1
+            scratch[nmarkers_swarm] = i
+        end
+    end
+    return scratch[1:nmarkers_swarm]
+end
+
+# Allocation-light variant of the model-aware sort: gathers marker x-values
+# into `gather_scratch` and uses `sortperm!` over `perm_scratch` instead of
+# allocating both intermediates fresh. Returns a tight `Vector{Int64}` whose
+# contents match `marker_indices_swarm[sortperm(marker_x[marker_indices_swarm])]`
+# bit-for-bit (default stable sort, identical input). Both scratches must
+# have capacity ≥ length(marker_indices_swarm); the function writes only to
+# slots 1..n.
+function calculate_x_sorted_swarm_indices_with_scratch!(
+    gather_scratch::Vector{Float64},
+    perm_scratch::Vector{Int64},
+    marker_x::Vector{Float64},
+    marker_indices_swarm::Vector{Int64}
+)::Vector{Int64}
+    n = length(marker_indices_swarm)
+    @assert length(gather_scratch) >= n
+    @assert length(perm_scratch) >= n
+    @inbounds for k in 1:n
+        gather_scratch[k] = marker_x[marker_indices_swarm[k]]
+    end
+    gather_view = view(gather_scratch, 1:n)
+    perm_view = view(perm_scratch, 1:n)
+    sortperm!(perm_view, gather_view)
+    sorted_marker_indices_swarm = Vector{Int64}(undef, n)
+    @inbounds for k in 1:n
+        sorted_marker_indices_swarm[k] = marker_indices_swarm[perm_view[k]]
+    end
     return sorted_marker_indices_swarm
 end
 
