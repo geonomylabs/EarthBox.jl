@@ -114,23 +114,13 @@ function solve_viscoelastic_stokes_continuity_equations!(
     model::ModelData,
     solver_config::SolverConfigState
 )::Nothing
-    Li, Lj, Lv = build_system_of_equations(model)
+    stokes_solver_build_steps(model)
     if VelocityType.is_velocity_from_stokes_solver(model)
-        S, Ls = solve_system_of_equations(model, Li, Lj, Lv, solver_config)
+        S, Ls = SystemSolver.solve_system(model, solver_config)
         SystemSolver.process_stokes_solution!(model, S)
         calculate_residuals!(model, Ls)
-    else
-        S = zeros(1)
-        Ls = zeros(1, 1)
     end
     return nothing
-end
-
-function build_system_of_equations(
-    model::ModelData
-)::Tuple{Vector{Int64}, Vector{Int64}, Vector{Float64}}
-    Li, Lj, Lv = stokes_solver_build_steps(model)
-    return Li, Lj, Lv
 end
 
 """ Stokes-Continuity solver build steps.
@@ -169,12 +159,12 @@ Note how the old stress with viscoelastic terms are added to RX1
 and RY1.
 
 3. Build the system of equations by looping over basic nodes (solution nodes)
-using viscoplastic viscosity arrays etan0 and etas0 that include the 
+using viscoplastic viscosity arrays etan0 and etas0 that include the
 viscoelastic_factor (see step a), right-hand side part arrays RX1, RY1 and
-RC1, arrays that define staggered grid spacing (xstp, ystp, xstpc, ystpc), 
+RC1, arrays that define staggered grid spacing (xstp, ystp, xstpc, ystpc),
 velocity boundary condition arrays (btopx, btopy, bbottomx, bbottomy, bleftx,
 brightx), pressure boundary condition parameters (pressure_bc_mode, pressure_bc),
-internal boundary condition arrays (bintern_zone, bintern_velocity) and 
+internal boundary condition arrays (bintern_zone, bintern_velocity) and
 pressure scaling factor (pscale) used to condition the system of equations.
 The the large-matrix of the system of equation is defined with
 arrays Li, Lj, Lv that store the i-index (rows), j-index (columns)
@@ -185,37 +175,22 @@ system of equations.
 ** Indices of arrays are not shown to simplify the description of each
 step.
 
-Returns:
-- Li: Large matrix row indices for non-zero matrix elements
-- Lj: Large matrix column indices for non-zero matrix elements
-- Lv: Non-zero matrix values
+The build buffers Li_out, Lj_out and Lv_out are written in place into
+`model.stokes_continuity.parameters.build.system_vectors`; downstream
+consumers read them from there.
 """
-function stokes_solver_build_steps(
-    model::ModelData
-)::Tuple{Vector{Int64}, Vector{Int64}, Vector{Float64}}
+function stokes_solver_build_steps(model::ModelData)::Nothing
     StokesViscoelasticTerms.calc_viscoelastic_terms!(model)
     StokesContinuityRhs.viscoelastic_rhs!(model)
     SystemSolver.initialize_solver!(model)
     @timeit_memit "Finished looping over nodes to calculate non-zero coefficients and rhs vector" begin
-        system_vectors = StokesBuildManager.build_system_of_equations(model)
+        StokesBuildManager.build_system_of_equations(model)
     end
 
     if VelocityType.is_velocity_from_solid_body_rotation(model)
         Kinematics.solid_body_rotation!(model)
     end
-
-    return system_vectors.Li_out, system_vectors.Lj_out, system_vectors.Lv_out
-end
-
-function solve_system_of_equations(
-    model::ModelData,
-    Li::Vector{Int64},
-    Lj::Vector{Int64},
-    Lv::Vector{Float64},
-    solver_config::SolverConfigState
-)::Tuple{Vector{Float64}, SparseMatrixCSC{Float64,Int64}}
-    S, Ls = SystemSolver.solve_system(model, Li, Lj, Lv, solver_config)
-    return S, Ls
+    return nothing
 end
 
 """ Stokes-continuity solution processing.
