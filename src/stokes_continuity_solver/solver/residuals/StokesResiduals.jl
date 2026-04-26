@@ -25,7 +25,7 @@ end
 """ Calculate non-linear residual.
 
 # Updated array from group model.stokes_continuity.arrays.residuals:
-- `resnl.array::Vector{Float64}` ((xnum-1)*(ynum-1)*3): 
+- `resnl.array::Vector{Float64}` ((xnum-1)*(ynum-1)*3):
     - Non-linear stokes-continuity system residual.
 """
 function stokes_calc_nonlinear_system_residual!(
@@ -36,6 +36,47 @@ function stokes_calc_nonlinear_system_residual!(
     resnl = model.stokes_continuity.arrays.residuals.resnl.array
     mul!(work, Ls, model.stokes_continuity.arrays.stokes_solution.soluv1_old.array)
     work .-= model.stokes_continuity.arrays.rhs.RHS.array
+    map!(abs, resnl, work)
+    return nothing
+end
+
+""" Allocation-free variant of `stokes_calc_nonlinear_system_residual!`.
+
+Computes the nonlinear residual `|A * x_old - R|` directly from the
+preallocated COO triplets in
+`model.stokes_continuity.parameters.build.system_vectors` instead of
+materializing a `SparseMatrixCSC` first.
+
+The result is mathematically equal to the legacy variant — both compute
+`sum(Lv[k] * x_old[Lj[k]] for k where Li[k] == i)` for each row `i`, with
+duplicate `(i, j)` triplets summed naturally. Floating-point results
+agree to machine-epsilon (relative ~1e-16) but are not bit-identical:
+`sparse()` reorders the triplets into CSC layout and `mul!` then sums
+column-major, while this loop sums in original triplet order, so the FP
+summation order differs. The Picard outer-loop convergence behavior is
+unaffected by this rounding difference.
+
+# Updated array from group model.stokes_continuity.arrays.residuals:
+- `resnl.array::Vector{Float64}` ((xnum-1)*(ynum-1)*3):
+    - Non-linear stokes-continuity system residual.
+"""
+function stokes_calc_nonlinear_system_residual_optimized!(
+    model::ModelData
+)::Nothing
+    work = model.stokes_continuity.arrays.residuals.resnl_work
+    resnl = model.stokes_continuity.arrays.residuals.resnl.array
+    sv = model.stokes_continuity.parameters.build.system_vectors
+    Li = sv.Li_out
+    Lj = sv.Lj_out
+    Lv = sv.Lv_out
+    x_old = model.stokes_continuity.arrays.stokes_solution.soluv1_old.array
+    R = model.stokes_continuity.arrays.rhs.RHS.array
+    nnz = length(Li)
+    fill!(work, 0.0)
+    @inbounds for k in 1:nnz
+        work[Li[k]] += Lv[k] * x_old[Lj[k]]
+    end
+    work .-= R
     map!(abs, resnl, work)
     return nothing
 end

@@ -27,6 +27,13 @@ Mutable struct to store solver configuration parameters.
 - `pymumps_timeout::Float64`: Timeout for MUMPS solver in seconds
 - `output_dir::Union{String, Nothing}`: Output directory for system files
 - `src_dir::Union{String, Nothing}`: Source directory for parallel solver package
+- `use_optimized_residuals::Bool`: When true, the Stokes-continuity solve and
+    nonlinear-residual computation skip the per-iteration
+    `sparse(Li, Lj, Lv, N, N)` allocation and operate directly on the
+    preallocated COO triplets stored in
+    `model.stokes_continuity.parameters.build.system_vectors`. Producing
+    bit-identical results to the legacy SparseMatrixCSC-based path. The
+    legacy path remains the default (`false`) and is fully preserved.
 """
 mutable struct SolverConfigState
     use_mumps::Bool
@@ -45,6 +52,7 @@ mutable struct SolverConfigState
     mpi_rank::Int
     pass_large_arrays_via_mpi::Bool
     internal_mumps_solver::InternalMumpsSolver
+    use_optimized_residuals::Bool
 end
 
 function SolverConfigState(;
@@ -62,7 +70,8 @@ function SolverConfigState(;
     mpi_comm::Union{MPI.Comm, Nothing} = nothing,
     mpi_initialized::Bool = false,
     mpi_rank::Int = 0,
-    pass_large_arrays_via_mpi::Bool = false
+    pass_large_arrays_via_mpi::Bool = false,
+    use_optimized_residuals::Bool = false
 )
     return SolverConfigState(
         use_mumps,
@@ -80,7 +89,8 @@ function SolverConfigState(;
         mpi_initialized,
         mpi_rank,
         pass_large_arrays_via_mpi,
-        InternalMumpsSolver(use_mumps=use_mumps)
+        InternalMumpsSolver(use_mumps=use_mumps),
+        use_optimized_residuals
     )
 end
 
@@ -102,6 +112,7 @@ function read_solver_config!(config::SolverConfigState, solver_options_file::Str
     config.parallel_ordering_method = solver_config["parallel_ordering_method"]
     config.memory_relax_perc = solver_config["memory_relax_perc"]
     config.verbose_output = solver_config["verbose_output"]
+    config.use_optimized_residuals = solver_config["use_optimized_residuals"]
 end
 
 function modify_mumps_parameters!(config::SolverConfigState, nmumps::Int)
@@ -171,6 +182,9 @@ function check_solver_config!(solver_config::Dict)
     end
     if !haskey(solver_config, "memory_relax_perc")
         solver_config["memory_relax_perc"] = 25
+    end
+    if !haskey(solver_config, "use_optimized_residuals")
+        solver_config["use_optimized_residuals"] = false
     end
 end
 

@@ -116,9 +116,15 @@ function solve_viscoelastic_stokes_continuity_equations!(
 )::Nothing
     stokes_solver_build_steps(model)
     if VelocityType.is_velocity_from_stokes_solver(model)
-        S, Ls = SystemSolver.solve_system(model, solver_config)
-        SystemSolver.process_stokes_solution!(model, S)
-        calculate_residuals!(model, Ls)
+        if solver_config.use_optimized_residuals
+            S = SystemSolver.solve_system_optimized(model, solver_config)
+            SystemSolver.process_stokes_solution!(model, S)
+            calculate_residuals_optimized!(model)
+        else
+            S, Ls = SystemSolver.solve_system(model, solver_config)
+            SystemSolver.process_stokes_solution!(model, S)
+            calculate_residuals!(model, Ls)
+        end
     end
     return nothing
 end
@@ -226,6 +232,18 @@ end
 function calculate_residuals!(model::ModelData, Ls::SparseMatrixCSC{Float64,Int64})::Nothing
     @timeit_memit "Finished calculating nonlinear residuals for Stokes-continuity" begin
         StokesResiduals.stokes_calc_nonlinear_system_residual!(model, Ls)
+    end
+    return nothing
+end
+
+""" Allocation-free counterpart to `calculate_residuals!`. Used when
+`solver_config.use_optimized_residuals == true`. The COO triplets are
+read directly from `model.stokes_continuity.parameters.build.system_vectors`
+inside the residual function — no SparseMatrixCSC is constructed.
+"""
+function calculate_residuals_optimized!(model::ModelData)::Nothing
+    @timeit_memit "Finished calculating nonlinear residuals for Stokes-continuity" begin
+        StokesResiduals.stokes_calc_nonlinear_system_residual_optimized!(model)
     end
     return nothing
 end
