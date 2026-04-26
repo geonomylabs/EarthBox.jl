@@ -116,6 +116,7 @@ function solve_viscoelastic_stokes_continuity_equations!(
 )::Nothing
     stokes_solver_build_steps(model)
     if VelocityType.is_velocity_from_stokes_solver(model)
+        println(">> use_optimized_residuals: $(solver_config.use_optimized_residuals)")
         if solver_config.use_optimized_residuals
             S = SystemSolver.solve_system_optimized(model, solver_config)
             SystemSolver.process_stokes_solution!(model, S)
