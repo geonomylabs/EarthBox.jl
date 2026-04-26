@@ -63,9 +63,13 @@ where sxx_old = -syy_old.
     sxx_old::Float64
 )::Tuple{Float64, Float64}
     spin_term1 = 2.0 * spin * timestep
-    sxy_new = sxx_old * sin(spin_term1) + sxy_old * cos(spin_term1)
     spin_term2 = spin * timestep
-    sxx_new = sxx_old * (cos(spin_term2)^2 - sin(spin_term2)^2) - sxy_old * sin(spin_term1)
+    sin_spin_term1 = sin(spin_term1)
+    cos_spin_term1 = cos(spin_term1)
+    sin_spin_term2 = sin(spin_term2)
+    cos_spin_term2 = cos(spin_term2)
+    sxy_new = sxx_old * sin_spin_term1 + sxy_old * cos_spin_term1
+    sxx_new = sxx_old * (cos_spin_term2^2 - sin_spin_term2^2) - sxy_old * sin_spin_term1
     return sxy_new, sxx_new
 end
 

@@ -27,12 +27,13 @@ approach but with normal viscosity and normal stress interpolated from markers
 (etan1, sxx1), the normal strain rate from the updated Stokes solution (exx), and 
 the normal elastic modulus interpolated from markers (mun1).
 """
-function forecast_viscoelastic_grid_stress!(model::ModelData)
+function forecast_viscoelastic_grid_stress!(model::ModelData)::Nothing
     timestep = model.timestep.parameters.main_time_loop.timestep.value
     xnum = model.grids.parameters.geometry.xnum.value
     ynum = model.grids.parameters.geometry.ynum.value
     forecast_viscoelastic_shear_stress!(model, timestep, ynum, xnum)
     forecast_viscoelastic_normal_stress!(model, timestep, ynum, xnum)
+    return nothing
 end
 
 """
