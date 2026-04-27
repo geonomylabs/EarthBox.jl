@@ -40,6 +40,22 @@ function update_rock_properties_for_porosity!(model::ModelData, inside_flags::Ve
     marker_max_burial_depth = model.markers.arrays.material.marker_max_burial_depth.array
     marknum = model.markers.parameters.distribution.marknum.value
 
+    # Hoist the topography coordinate gather out of the per-marker loop.
+    # Previously each sediment marker triggered a fresh
+    # `get_topo_coordinates(gridt)` call inside `get_depth(x, gridt)`,
+    # allocating ~80 KB × n_sediment_markers per call (gigabytes of GC
+    # traffic for million-marker swarms). The gather is constant within
+    # a single update call (gridt is not mutated), so we do it once here
+    # and pass the vectors through to `calculate_rock_props`. Threads
+    # read these vectors but never mutate them — no race.
+    toponum = size(gridt, 2)
+    topo_gridx = Vector{Float64}(undef, toponum)
+    topo_gridy = Vector{Float64}(undef, toponum)
+    @inbounds for j in 1:toponum
+        topo_gridx[j] = gridt[1, j]
+        topo_gridy[j] = gridt[2, j]
+    end
+
     # Use Julia's parallel processing
     Threads.@threads for imarker in 1:marknum
         if inside_flags[imarker] == 1
@@ -61,7 +77,7 @@ function update_rock_properties_for_porosity!(model::ModelData, inside_flags::Ve
                     heat_capacity, conductivity, density,
                     porosity_at_mudline, porosity_decay_depth,
                     conductivity_water, density_water, heat_capacity_water,
-                    x_marker, y_marker, gridt, max_burial
+                    x_marker, y_marker, topo_gridx, topo_gridy, max_burial
                 )
                 @inbounds begin
                     marker_rho[imarker] = density

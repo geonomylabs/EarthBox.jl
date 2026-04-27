@@ -248,4 +248,134 @@ function apply_symmetry_boundary_condition_right_boundary(
     return nothing
 end
 
-end # module 
+# ----------------------------------------------------------------------
+# Tridiagonal-storage variant of the build path. Same stencil as the
+# legacy `build_sys_topo!`, but writes coefficients into three diagonal
+# vectors instead of a (toponum × toponum) dense matrix.
+#
+# Layout:
+#   dl[i]  = sub-diagonal coefficient at row i+1, column i  (i in 1..n-1)
+#   d[i]   = main-diagonal coefficient at row i, column i   (i in 1..n)
+#   du[i]  = super-diagonal coefficient at row i, column i+1 (i in 1..n-1)
+#
+# So in legacy terms:
+#   L[i, i-1]  ↔  dl[i-1]
+#   L[i, i]    ↔  d[i]
+#   L[i, i+1]  ↔  du[i]
+# ----------------------------------------------------------------------
+function build_sys_topo_tridiagonal!(
+    dl::Vector{Float64},
+    d::Vector{Float64},
+    du::Vector{Float64},
+    R::Vector{Float64},
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64},
+    topo_grid_diffusivity::Vector{Float64},
+    topo_grid_pelagic_sedimentation_rate::Vector{Float64},
+    xmin_model_grid::Float64,
+    xmax_model_grid::Float64,
+    timestep::Float64,
+    porosity_initial_pelagic::Float64,
+    depth_decay_term_pelagic::Float64
+)::Nothing
+    toponum = length(topo_gridx)
+    @assert length(d) == toponum
+    @assert length(dl) == toponum - 1
+    @assert length(du) == toponum - 1
+    @assert length(R) == toponum
+    dx_topo = topo_gridx[2] - topo_gridx[1]
+    # Zero-fill: only the entries we explicitly set below should remain;
+    # any stale values from a prior solve (LU factors after Thomas) would
+    # corrupt the system.
+    fill!(dl, 0.0)
+    fill!(d, 0.0)
+    fill!(du, 0.0)
+    fill!(R, 0.0)
+
+    # Left boundary: L[1,1]=1, L[1,2]=-1  →  d[1]=1, du[1]=-1
+    d[1]  = 1.0
+    du[1] = -1.0
+    R[1]  = 0.0
+
+    for i in 2:toponum-1
+        xtopo = topo_gridx[i]
+        if inside_model_domain(xtopo, xmin_model_grid, xmax_model_grid)
+            apply_internal_stencil_variable_diffusivity_tridiagonal!(
+                dl, d, du, R,
+                topo_gridy, topo_grid_diffusivity,
+                topo_grid_pelagic_sedimentation_rate, timestep, dx_topo, i,
+                porosity_initial_pelagic, depth_decay_term_pelagic
+            )
+        else
+            apply_symmetry_to_external_nodes_tridiagonal!(
+                dl, d, du, R, xtopo, xmin_model_grid, i)
+        end
+    end
+
+    # Right boundary: L[N,N]=1, L[N,N-1]=-1  →  d[N]=1, dl[N-1]=-1
+    d[toponum]    = 1.0
+    dl[toponum-1] = -1.0
+    R[toponum]    = 0.0
+    return nothing
+end
+
+function apply_internal_stencil_variable_diffusivity_tridiagonal!(
+    dl::Vector{Float64},
+    d::Vector{Float64},
+    du::Vector{Float64},
+    R::Vector{Float64},
+    topo_gridy::Vector{Float64},
+    topo_grid_diffusivity::Vector{Float64},
+    topo_grid_pelagic_sedimentation_rate::Vector{Float64},
+    timestep::Float64,
+    dx_topo::Float64,
+    i::Int,
+    porosity_initial_pelagic::Float64,
+    depth_decay_term_pelagic::Float64
+)::Nothing
+    diffusivity_left_mid, diffusivity_right_mid =
+        calculate_average_midpoint_diffusivity(topo_grid_diffusivity, i)
+
+    # L[i, i-1] = -diffusivity_left_mid * dt / dx^2  →  dl[i-1]
+    dl[i-1] = -diffusivity_left_mid * timestep / dx_topo^2
+    # L[i, i]   = 1 + (KL+KR) * dt / dx^2            →  d[i]
+    d[i] = 1.0 + (diffusivity_left_mid + diffusivity_right_mid) *
+        timestep / dx_topo^2
+    # L[i, i+1] = -diffusivity_right_mid * dt / dx^2 →  du[i]
+    du[i] = -diffusivity_right_mid * timestep / dx_topo^2
+
+    compacted_thickness_pelagic =
+        calculate_the_compacted_thickness_for_pelagic_sediment(
+            topo_grid_pelagic_sedimentation_rate[i],
+            timestep, porosity_initial_pelagic, depth_decay_term_pelagic
+        )
+    R[i] = topo_gridy[i] - compacted_thickness_pelagic
+    return nothing
+end
+
+function apply_symmetry_to_external_nodes_tridiagonal!(
+    dl::Vector{Float64},
+    d::Vector{Float64},
+    du::Vector{Float64},
+    R::Vector{Float64},
+    xtopo::Float64,
+    xmin::Float64,
+    i::Int
+)::Nothing
+    if xtopo < xmin
+        # Mirrors apply_symmetry_boundary_condition_left_boundary:
+        # L[i,i]=1, L[i,i+1]=-1
+        d[i]  = 1.0
+        du[i] = -1.0
+        R[i]  = 0.0
+    else
+        # Mirrors apply_symmetry_boundary_condition_right_boundary:
+        # L[i,i]=1, L[i,i-1]=-1
+        d[i]    = 1.0
+        dl[i-1] = -1.0
+        R[i]    = 0.0
+    end
+    return nothing
+end
+
+end # module

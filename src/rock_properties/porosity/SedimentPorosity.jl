@@ -16,7 +16,12 @@ import EarthBox: SedimentWaterInterface
 - `heat_capacity_water`: Heat capacity of water in J/K/kg
 - `x_location`: X location of marker in meters
 - `y_location`: Y location of marker in meters
-- `gridt`: Topography grid array with Y-coordinates of topography stored in grid[:,2]
+- `topo_gridx`: Pre-gathered X-coordinates of topography grid (meters).
+    Identical to `gridt[1, :]`; gathered once by the caller and reused
+    across all markers in a single update call to avoid the per-marker
+    allocation that the legacy `gridt`-based path incurred.
+- `topo_gridy`: Pre-gathered Y-coordinates of topography grid (meters).
+    Identical to `gridt[2, :]`; gathered once by the caller.
 - `max_burial`: Maximum burial depth of marker in meters
 
 # Returns
@@ -35,12 +40,13 @@ import EarthBox: SedimentWaterInterface
     heat_capacity_water::Float64,
     x_location::Float64,
     y_location::Float64,
-    gridt::Array{Float64,2},
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64},
     max_burial::Float64
 )::Tuple{Float64,Float64,Float64}
     porosity = calculate_porosity(
         porosity_at_mudline, porosity_decay_depth,
-        x_location, y_location, gridt, max_burial
+        x_location, y_location, topo_gridx, topo_gridy, max_burial
     )
     bulk_conductivity = calculate_bulk_property(
         conductivity, conductivity_water, porosity)
@@ -59,7 +65,8 @@ end
 - `porosity_decay_depth`: Decay depth of porosity in meters
 - `x_location`: X-location of marker in meters
 - `y_location`: Y-location of marker in meters
-- `gridt`: Topography grid array
+- `topo_gridx`: Pre-gathered X-coordinates of topography grid (meters).
+- `topo_gridy`: Pre-gathered Y-coordinates of topography grid (meters).
 - `max_burial`: Maximum burial depth of marker in meters
 
 # Returns
@@ -70,10 +77,12 @@ end
     porosity_decay_depth::Float64,
     x_location::Float64,
     y_location::Float64,
-    gridt::Array{Float64,2},
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64},
     max_burial::Float64
 )::Float64
-    y_mudline = SedimentWaterInterface.get_depth(x_location, gridt)
+    y_mudline = SedimentWaterInterface.get_depth_from_grids(
+        x_location, topo_gridx, topo_gridy)
     y_submud = y_location - y_mudline
     y_submud = max(y_submud, max_burial)
     depth_decay_term = 1.0 / porosity_decay_depth

@@ -107,7 +107,8 @@ end
 
 function run_sediment_transport_model!(
     model::ModelData;
-    compaction_correction_type::String="constant_property"
+    compaction_correction_type::String="constant_property",
+    use_optimized_solver::Bool=false
 )::Union{Vector{Float64}, Nothing}
     use_compaction_correction = get_boolean_options_for_compaction(model)
     gridx_b = model.grids.arrays.basic.gridx_b.array
@@ -133,7 +134,8 @@ function run_sediment_transport_model!(
         use_print_debug=false,
         use_constant_diffusivity=false,
         use_compaction_correction=use_compaction_correction,
-        compaction_correction_type=compaction_correction_type
+        compaction_correction_type=compaction_correction_type,
+        use_optimized_solver=use_optimized_solver
     )
     run_sediment_transport_time_steps!(transport_solver, model)
     if transport_solver.use_compaction_correction && transport_solver.compaction_correction_type == "constant_property"
