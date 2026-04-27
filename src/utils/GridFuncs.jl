@@ -56,7 +56,15 @@ function get_marker_inside_flags(model::ModelData)::Vector{Int8}
     location = model.markers.arrays.location
     marker_x = location.marker_x.array
     marker_y = location.marker_y.array
-    inside_flags = Vector{Int8}(undef, marknum)
+    # Use the persistent marknum-sized scratch buffer instead of allocating
+    # a fresh Vector{Int8}(marknum) per call. The buffer is always fully
+    # overwritten below (every index 1..marknum gets either 1 or -1), so
+    # stale values from a prior call do not leak through. All downstream
+    # consumers in the time loop treat the result as read-only; the
+    # threaded fill below is the only writer. The two call sites in
+    # TimeLoop.run_loop! / execute_post_solver_steps! are sequential, so
+    # there is no race on the shared buffer.
+    inside_flags = model.markers.arrays.recycle.marker_inside_flags_buffer.array
     xmin, xmax, ymin, ymax = get_domain_limits(model.grids.parameters.geometry)
     Threads.@threads for i in 1:marknum
         x_marker = marker_x[i]
