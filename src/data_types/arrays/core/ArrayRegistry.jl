@@ -596,6 +596,18 @@ function get_markers_arrays()::NamedTuple
             * "marker-index order, then packed in place before the function "
             * "returns a length-`nrecycle` copy.",
         ),
+        marker_inside_flags_buffer = ArrayData(
+            "marker_inside_flags_buffer", "None", MarkerArrayInt1DState, "NA",
+            "`(marknum)` : Pre-allocated `Vector{Int8}` of length `marknum` "
+            * "filled by `GridFuncs.get_marker_inside_flags` with `1` for "
+            * "in-domain markers and `-1` for out-of-domain markers. The "
+            * "function returns this buffer directly; downstream consumers "
+            * "in the time loop treat it as read-only. Two call sites per "
+            * "timestep (pre-solver setup and post-solver re-evaluation) "
+            * "overwrite the buffer in sequence — the second call's values "
+            * "supersede the first; nothing in between persists a reference "
+            * "to the prior values past the second call.",
+        ),
 
         # Serpentinization scratch buffer used by
         # Serpentinization.calculate_marker_serpentinization.
