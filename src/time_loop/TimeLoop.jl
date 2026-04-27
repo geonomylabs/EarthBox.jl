@@ -249,7 +249,11 @@ function execute_post_solver_steps!(
 
     @timeit_memit "# Finished executing post-solver steps" begin
         MeltModel.Extraction.update_melt_extraction!(model, inside_flags, output_dir)
-        SurfaceProcesses.update_topography!(model, inside_flags)
+        SurfaceProcesses.update_topography!(
+            model, inside_flags;
+            use_optimized_sediment_solver=
+                model_manager.config.solver.use_optimized_sediment_solver
+        )
         SurfaceProcesses.Sealevel.update_sealevel!(model)
         update_next_eruption_time!(model)
         Regrid.regrid!(model, boolean_options)

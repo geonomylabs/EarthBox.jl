@@ -49,8 +49,15 @@ struct TopoGrids
 end
 
 """ Test downhill diffusion for multiple time steps using a regular grid.
+
+# Keyword Arguments
+- `use_optimized_solver::Bool=false`: When true, the test uses the
+    tridiagonal/Thomas-algorithm sediment transport solver path
+    (`SedimentTransportSolverManager.solve_downhill_diffusion_optimized`)
+    instead of the legacy dense-matrix + sparse-LU path. Default `false`
+    preserves the existing test behavior.
 """
-function run_test()
+function run_test(; use_optimized_solver::Bool=false)
     pelagic_sedimentation_rate = mm_yr_to_m_s(0.0) # m/s
 
     sediment_transport_parameters = SedimentTransportParameters(
@@ -89,7 +96,8 @@ function run_test()
         use_collections=true,
         use_print_debug=true,
         use_constant_diffusivity=false,
-        use_compaction_correction=true
+        use_compaction_correction=true,
+        use_optimized_solver=use_optimized_solver
     )
 
     SedimentTransportSolverManager.run_sediment_transport_time_steps!(transport_solver)

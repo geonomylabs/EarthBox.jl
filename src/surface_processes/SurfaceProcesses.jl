@@ -23,17 +23,25 @@ import .Topography: get_iuse_topo
 import .CheckMagmaFlush: check_for_initial_magma_flush
 
 
-function update_topography!(model::ModelData, inside_flags::Vector{Int8})::Nothing
+function update_topography!(
+    model::ModelData,
+    inside_flags::Vector{Int8};
+    use_optimized_sediment_solver::Bool=false
+)::Nothing
     Topography.update_topography_using_velocity_field!(model, inside_flags)
     (
         sediment_and_flow_thickness_total_decompacted
-    ) = update_topography_using_sediment_transport!(model)
+    ) = update_topography_using_sediment_transport!(
+        model;
+        use_optimized_sediment_solver=use_optimized_sediment_solver
+    )
     update_topography_using_lava_flow!(model, sediment_and_flow_thickness_total_decompacted)
     return nothing
 end
 
 function update_topography_using_sediment_transport!(
-    model::ModelData
+    model::ModelData;
+    use_optimized_sediment_solver::Bool=false
 )::Union{Vector{Float64}, Nothing}
     iuse_downhill_diffusion = model.obj_dict["iuse_downhill_diffusion"].value
     use_magma_flush = CheckMagmaFlush.check_for_initial_magma_flush(model)
@@ -46,7 +54,10 @@ function update_topography_using_sediment_transport!(
             (
                 sediment_and_flow_thickness_total_decompacted
             ) = run_sediment_transport_model!(
-                model, compaction_correction_type="variable_property")
+                model;
+                compaction_correction_type="variable_property",
+                use_optimized_solver=use_optimized_sediment_solver
+            )
         end
     end
     return sediment_and_flow_thickness_total_decompacted

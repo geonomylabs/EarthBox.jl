@@ -23,6 +23,7 @@ import .DownstreamDistance: calculate_downstream_distances_for_nodes
 import .WaterDepth: calculate_water_depth
 import .Diffusivity: make_topo_diffusivity_grid
 import .Solve: solve_downhill_diffusion
+import .Solve: solve_downhill_diffusion_optimized
 import .Collections: TransportCollections
 import .Collections: update_collections!
 
@@ -53,8 +54,20 @@ mutable struct SedimentTransportSolver
     # writing tridiagonal entries; downstream consumers (`SparseMatrixCSC`,
     # `lu(...) \ R`) only read them. Single use site, no cross-callsite
     # sharing.
-    L_buffer::Matrix{Float64}
+    #
+    # When `use_optimized_solver == true`, the legacy dense `L_buffer`
+    # is set to `nothing` (avoiding the ~190 MB-per-call allocation at
+    # `toponum=5001`) and the tridiagonal buffers
+    # `dl_buffer`/`d_buffer`/`du_buffer` plus solution buffer `S_buffer`
+    # are allocated instead. When `false`, the legacy dense path is
+    # used and the tridiagonal buffers are `nothing`.
+    L_buffer::Union{Matrix{Float64}, Nothing}
     R_buffer::Vector{Float64}
+    dl_buffer::Union{Vector{Float64}, Nothing}
+    d_buffer::Union{Vector{Float64}, Nothing}
+    du_buffer::Union{Vector{Float64}, Nothing}
+    S_buffer::Union{Vector{Float64}, Nothing}
+    use_optimized_solver::Bool
 end
 
 """ Constructor for transport solver.
@@ -157,10 +170,25 @@ function SedimentTransportSolver(
     use_print_debug::Bool=false,
     use_constant_diffusivity::Bool=false,
     use_compaction_correction::Bool=false,
-    compaction_correction_type::String="constant_property"
+    compaction_correction_type::String="constant_property",
+    use_optimized_solver::Bool=false
 )
     nsteps, transport_timestep = update_time_step(sediment_transport_parameters)
     toponum = length(topo_gridx)
+
+    if use_optimized_solver
+        L_buffer = nothing
+        dl_buffer = zeros(Float64, toponum - 1)
+        d_buffer  = zeros(Float64, toponum)
+        du_buffer = zeros(Float64, toponum - 1)
+        S_buffer  = zeros(Float64, toponum)
+    else
+        L_buffer = zeros(Float64, toponum, toponum)
+        dl_buffer = nothing
+        d_buffer  = nothing
+        du_buffer = nothing
+        S_buffer  = nothing
+    end
 
     return SedimentTransportSolver(
         basic_grid_x_dimensions,
@@ -184,8 +212,13 @@ function SedimentTransportSolver(
         use_compaction_correction,
         compaction_correction_type,
         TransportCollections(use_collections),
-        zeros(Float64, toponum, toponum),
-        zeros(Float64, toponum)
+        L_buffer,
+        zeros(Float64, toponum),
+        dl_buffer,
+        d_buffer,
+        du_buffer,
+        S_buffer,
+        use_optimized_solver
     )
 end
 
@@ -258,13 +291,24 @@ function run_sediment_transport_time_steps!(
             pelagic_sedimentation_rate,
             solver.topo_gridx, water_depth_x
         )
-        solution_array = solve_downhill_diffusion(
-            solver.L_buffer, solver.R_buffer,
-            solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
-            topo_grid_pelagic_sedimentation_rate,
-            solver.basic_grid_x_dimensions, solver.transport_timestep,
-            solver.sediment_transport_parameters
-        )
+        if solver.use_optimized_solver
+            solution_array = solve_downhill_diffusion_optimized(
+                solver.dl_buffer, solver.d_buffer, solver.du_buffer,
+                solver.R_buffer, solver.S_buffer,
+                solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
+                topo_grid_pelagic_sedimentation_rate,
+                solver.basic_grid_x_dimensions, solver.transport_timestep,
+                solver.sediment_transport_parameters
+            )
+        else
+            solution_array = solve_downhill_diffusion(
+                solver.L_buffer, solver.R_buffer,
+                solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
+                topo_grid_pelagic_sedimentation_rate,
+                solver.basic_grid_x_dimensions, solver.transport_timestep,
+                solver.sediment_transport_parameters
+            )
+        end
         copy_array_1d!(solution_array, solver.topo_gridy)
         if solver.use_compaction_correction
             if solver.compaction_correction_type == "constant_property" || isnothing(model)

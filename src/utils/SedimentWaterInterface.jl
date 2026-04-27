@@ -2,6 +2,7 @@ module SedimentWaterInterface
 
 import EarthBox.MathTools: linear_interp_at_x_location
 import EarthBox.MathTools: linear_interp_bisection
+import EarthBox.MathTools: linear_interp_single
 
 """ Calculate submud depth.
 
@@ -75,4 +76,32 @@ function get_depth_opt(
     return y_mudline
 end
 
-end # module 
+""" Calculate y-coordinate of sediment water interface (mudline) using
+preallocated topography coordinate vectors.
+
+Differs from `get_depth_opt` only in that it uses `linear_interp_single`
+(linear-search clamp-at-boundary) instead of `linear_interp_bisection`
+(extrapolate-at-boundary). The clamp-at-boundary semantics are
+bit-identical to the legacy `get_depth(x_location, gridt)` for every
+input — verified across below/at/above-grid regimes. This is the
+allocation-free drop-in replacement when the caller already has
+`topo_gridx`/`topo_gridy` in hand (e.g. when looping over many markers
+within a single update call where the topography is constant).
+
+# Arguments
+- `x_location`: X location of marker in meters.
+- `topo_gridx`: Pre-gathered X-coordinates of topography grid (meters).
+- `topo_gridy`: Pre-gathered Y-coordinates of topography grid (meters).
+
+# Returns
+- `y_mudline`: Y-coordinate (meters) of the sediment water interface.
+"""
+function get_depth_from_grids(
+    x_location::Float64,
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64}
+)::Float64
+    return linear_interp_single(topo_gridx, topo_gridy, x_location)
+end
+
+end # module
