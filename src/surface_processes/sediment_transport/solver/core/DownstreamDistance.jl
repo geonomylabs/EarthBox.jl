@@ -12,30 +12,31 @@ module DownstreamDistance
     parameter represents the width of the drainage basin
 - `drainage_divides_x`: X-locations of drainage divides (meters)
 """
-function calculate_downstream_distances_for_nodes(
+function calculate_downstream_distances_for_nodes!(
+    downstream_distances::Vector{Float64},
+    drainage_divides_x::Vector{Float64},
+    topo_shape_scratch::Vector{Int64},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64}
-)::Tuple{Vector{Float64}, Vector{Float64}}
-    topo_shape = classify_topography_shape_at_each_node(topo_gridx, topo_gridy)
-    drainage_divides_x = calculate_x_locations_of_drainage_divides(
-        topo_gridx, topo_shape)
+)::Int
+    classify_topography_shape_at_each_node!(topo_shape_scratch, topo_gridx, topo_gridy)
+    ndivides = calculate_x_locations_of_drainage_divides!(
+        drainage_divides_x, topo_gridx, topo_shape_scratch)
     toponum = length(topo_gridx)
-    ndrainage = length(drainage_divides_x)
-    downstream_distances = zeros(toponum)
-    
+    fill!(downstream_distances, 0.0)
+
     for i in 2:toponum
         xnode = topo_gridx[i]
-        for j in 2:ndrainage
+        for j in 2:ndivides
             x_left_drainage = drainage_divides_x[j-1]
             x_right_drainage = drainage_divides_x[j]
             if x_left_drainage <= xnode <= x_right_drainage
-                distance = x_right_drainage - x_left_drainage
-                downstream_distances[i] = distance
+                downstream_distances[i] = x_right_drainage - x_left_drainage
                 break
             end
         end
     end
-    return downstream_distances, drainage_divides_x
+    return ndivides
 end
 
 """ Classify topography shape at each node.
@@ -51,13 +52,14 @@ end
      1: local minimum node
      2: flat node
 """
-function classify_topography_shape_at_each_node(
+function classify_topography_shape_at_each_node!(
+    topo_shape::Vector{Int64},
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64}
-)::Vector{Int64}
+)::Nothing
     toponum = length(topo_gridx)
-    topo_shape = fill(2, toponum)
-    
+    fill!(topo_shape, 2)
+
     for i in 2:toponum-1
         y_left = topo_gridy[i-1]
         y_center = topo_gridy[i]
@@ -72,7 +74,7 @@ function classify_topography_shape_at_each_node(
             topo_shape[i] = 0
         end
     end
-    return topo_shape
+    return nothing
 end
 
 """ Calculate x-locations of drainage divides.
@@ -88,27 +90,22 @@ end
 # Returns
 - `drainage_divides_x`: X-locations of drainage divides (meters)
 """
-function calculate_x_locations_of_drainage_divides(
+function calculate_x_locations_of_drainage_divides!(
+    drainage_divides_x::Vector{Float64},
     topo_gridx::Vector{Float64},
     topo_shape::Vector{Int64}
-)::Vector{Float64}
+)::Int
     toponum = length(topo_gridx)
-    drainage_divides_x_tmp = fill(-1e38, toponum)
-    drainage_divides_x_tmp[1] = topo_gridx[1]
+    drainage_divides_x[1] = topo_gridx[1]
     icount = 1
-    
+
     for i in 2:toponum
         if topo_shape[i] != 0
-            drainage_divides_x_tmp[icount+1] = topo_gridx[i]
+            drainage_divides_x[icount+1] = topo_gridx[i]
             icount += 1
         end
     end
-    
-    drainage_divides_x = zeros(icount)
-    for i in 1:icount
-        drainage_divides_x[i] = drainage_divides_x_tmp[i]
-    end
-    return drainage_divides_x
+    return icount
 end
 
 end # module 

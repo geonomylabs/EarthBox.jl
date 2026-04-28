@@ -19,11 +19,11 @@ function TransportCollections(use_collections::Bool=true)
 end
 
 function update_collections!(
-    collections::TransportCollections, 
-    istep::Int, 
-    topo_gridy::Vector{Float64}, 
-    drainage_divides_x::Vector{Float64},
-    water_depth_x::Vector{Float64}
+    collections::TransportCollections,
+    istep::Int,
+    topo_gridy::AbstractVector{Float64},
+    drainage_divides_x::AbstractVector{Float64},
+    water_depth_x::AbstractVector{Float64}
 )
     if collections.use_collections
         collections.topo_collection[istep] = copy(topo_gridy)
@@ -31,6 +31,14 @@ function update_collections!(
         collections.water_depth_collection[istep] = copy(water_depth_x)
         collections.basement_collection[istep] = copy(topo_gridy)
     end
+end
+
+function clear!(collections::TransportCollections)::Nothing
+    empty!(collections.topo_collection)
+    empty!(collections.water_depth_collection)
+    empty!(collections.divides_collection)
+    empty!(collections.basement_collection)
+    return nothing
 end
 
 end

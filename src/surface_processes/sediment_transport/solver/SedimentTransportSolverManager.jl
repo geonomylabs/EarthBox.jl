@@ -19,13 +19,14 @@ import EarthBox.DataStructures: SedimentTransportParameters
 import EarthBox.Compaction.CompactionCorrection: apply_compaction_correction
 import EarthBox.Compaction.CompactionCorrection: apply_compaction_correction_for_topography_and_markers
 import EarthBox.EBCopy: copy_array_1d!
-import .DownstreamDistance: calculate_downstream_distances_for_nodes
-import .WaterDepth: calculate_water_depth
+import .DownstreamDistance: calculate_downstream_distances_for_nodes!
+import .WaterDepth: calculate_water_depth!
 import .Diffusivity: make_topo_diffusivity_grid!
 import .Solve: solve_downhill_diffusion
 import .Solve: solve_downhill_diffusion_optimized
 import .Collections: TransportCollections
 import .Collections: update_collections!
+import .Collections: clear! as clear_collections!
 
 mutable struct SedimentTransportSolver
     basic_grid_x_dimensions::Tuple{Float64, Float64}
@@ -74,6 +75,16 @@ mutable struct SedimentTransportSolver
     # element they care about, so prior contents are irrelevant.
     topo_grid_diffusivity_buffer::Vector{Float64}
     topo_grid_pelagic_sedimentation_rate_buffer::Vector{Float64}
+    # Per-call / per-inner-step geometry scratch buffers. All sized
+    # `toponum`. `drainage_divides_x_buffer` holds at most `toponum`
+    # entries; the live count is the return value of
+    # `calculate_downstream_distances_for_nodes!`.
+    sealevel_x_buffer::Vector{Float64}
+    water_depth_x_buffer::Vector{Float64}
+    downstream_distances_x_buffer::Vector{Float64}
+    drainage_divides_x_buffer::Vector{Float64}
+    topo_shape_buffer::Vector{Int64}
+    sediment_thickness_total_buffer::Vector{Float64}
     use_optimized_solver::Bool
 end
 
@@ -200,6 +211,13 @@ function SedimentTransportSolver(
     topo_grid_diffusivity_buffer = zeros(Float64, toponum)
     topo_grid_pelagic_sedimentation_rate_buffer = zeros(Float64, toponum)
 
+    sealevel_x_buffer                = zeros(Float64, toponum)
+    water_depth_x_buffer             = zeros(Float64, toponum)
+    downstream_distances_x_buffer    = zeros(Float64, toponum)
+    drainage_divides_x_buffer        = zeros(Float64, toponum)
+    topo_shape_buffer                = zeros(Int64,   toponum)
+    sediment_thickness_total_buffer  = zeros(Float64, toponum)
+
     return SedimentTransportSolver(
         basic_grid_x_dimensions,
         copy(topo_gridx),
@@ -230,8 +248,90 @@ function SedimentTransportSolver(
         S_buffer,
         topo_grid_diffusivity_buffer,
         topo_grid_pelagic_sedimentation_rate_buffer,
+        sealevel_x_buffer,
+        water_depth_x_buffer,
+        downstream_distances_x_buffer,
+        drainage_divides_x_buffer,
+        topo_shape_buffer,
+        sediment_thickness_total_buffer,
         use_optimized_solver
     )
+end
+
+""" Check whether an existing solver's preallocated buffers are sized
+    consistently with a new caller's grid + solver-flavor.
+
+    Returns `false` if `length(topo_gridx)` differs from the solver's
+    buffer length, or if `use_optimized_solver` differs (the optimized
+    and legacy paths allocate different buffers, so they aren't
+    interchangeable without reallocation).
+"""
+function is_compatible(
+    solver::SedimentTransportSolver,
+    toponum::Int,
+    use_optimized_solver::Bool
+)::Bool
+    if length(solver.topo_gridx) != toponum
+        return false
+    end
+    if solver.use_optimized_solver != use_optimized_solver
+        return false
+    end
+    return true
+end
+
+""" Refresh per-call inputs on an existing solver without reallocating
+    buffers. Mirrors the body of the constructor's positional `return
+    SedimentTransportSolver(...)` block, but writes into existing storage
+    instead of returning a fresh struct.
+
+    Caller must guarantee `is_compatible(solver, length(topo_gridx),
+    use_optimized_solver) == true` before calling — buffer sizes are
+    assumed to match.
+"""
+function reset!(
+    solver::SedimentTransportSolver,
+    basic_grid_x_dimensions::Tuple{Float64, Float64},
+    topo_gridx::Vector{Float64},
+    topo_gridy_initial::Vector{Float64},
+    sediment_thickness_initial::Vector{Float64},
+    sediment_transport_parameters::Union{SedimentTransportParameters, Nothing},
+    y_sealevel::Float64,
+    pelagic_sedimentation_rate::Float64;
+    pelagic_sedimentation_rate_reduction_factor::Float64=1.0,
+    pelagic_sedimentation_rate_reduction_time::Float64=1000.0,
+    use_collections::Bool=true,
+    use_print_debug::Bool=false,
+    use_constant_diffusivity::Bool=false,
+    use_compaction_correction::Bool=false,
+    compaction_correction_type::String="constant_property"
+)::Nothing
+    nsteps, transport_timestep = update_time_step(sediment_transport_parameters)
+
+    solver.basic_grid_x_dimensions = basic_grid_x_dimensions
+    copy_array_1d!(topo_gridx, solver.topo_gridx)
+    copy_array_1d!(topo_gridy_initial, solver.topo_gridy_initial)
+    copy_array_1d!(topo_gridy_initial, solver.topo_gridy)
+    copy_array_1d!(sediment_thickness_initial, solver.sediment_thickness_initial)
+    solver.sediment_thickness_initial_compacted = nothing
+    solver.sediment_thickness_total_decompacted = nothing
+    solver.sediment_transport_parameters = sediment_transport_parameters
+    solver.compaction_displacement_max = nothing
+    solver.y_sealevel = y_sealevel
+    solver.pelagic_sedimentation_rate = pelagic_sedimentation_rate
+    solver.pelagic_sedimentation_rate_reduction_factor = pelagic_sedimentation_rate_reduction_factor
+    solver.pelagic_sedimentation_rate_reduction_time = pelagic_sedimentation_rate_reduction_time
+    solver.transport_timestep = transport_timestep
+    solver.nsteps = nsteps
+    solver.use_collections = use_collections
+    solver.use_print_debug = use_print_debug
+    solver.use_constant_diffusivity = use_constant_diffusivity
+    solver.use_compaction_correction = use_compaction_correction
+    solver.compaction_correction_type = compaction_correction_type
+    solver.collections.use_collections = use_collections
+    clear_collections!(solver.collections)
+
+    return nothing
 end
 
 function update_time_step(
@@ -259,15 +359,24 @@ end
 
 """
 function run_sediment_transport_time_steps!(
-    solver::SedimentTransportSolver, 
+    solver::SedimentTransportSolver,
     model::Union{ModelData, Nothing}=nothing
 )::Nothing
-    (
-        downstream_distances_x, drainage_divides_x
-    ) = calculate_downstream_distances_for_nodes(solver.topo_gridx, solver.topo_gridy)
-    sealevel_x = fill(solver.y_sealevel, length(solver.topo_gridx))
-    water_depth_x = calculate_water_depth(solver.topo_gridy, sealevel_x)
-    update_collections!(solver.collections, 0, solver.topo_gridy, drainage_divides_x, water_depth_x)
+    sealevel_x = solver.sealevel_x_buffer
+    water_depth_x = solver.water_depth_x_buffer
+    downstream_distances_x = solver.downstream_distances_x_buffer
+    drainage_divides_x = solver.drainage_divides_x_buffer
+
+    fill!(sealevel_x, solver.y_sealevel)
+    ndivides = calculate_downstream_distances_for_nodes!(
+        downstream_distances_x, drainage_divides_x, solver.topo_shape_buffer,
+        solver.topo_gridx, solver.topo_gridy
+    )
+    calculate_water_depth!(water_depth_x, solver.topo_gridy, sealevel_x)
+    update_collections!(
+        solver.collections, 0, solver.topo_gridy,
+        view(drainage_divides_x, 1:ndivides), water_depth_x
+    )
     if solver.compaction_correction_type == "variable_property" && !isnothing(model)
         markers_indices_sedimentary_basin, markers_indices_sticky = 
             calculate_swarm_indices_for_sediment_and_sticky(model)
@@ -287,7 +396,8 @@ function run_sediment_transport_time_steps!(
         end
     end
     print_info("Pelagic sedimentation rate (mm/yr): $(meters_per_seconds_to_mm_per_yr(pelagic_sedimentation_rate))", level=2)
-    sediment_thickness_total = copy(solver.sediment_thickness_initial)
+    sediment_thickness_total = solver.sediment_thickness_total_buffer
+    copy_array_1d!(solver.sediment_thickness_initial, sediment_thickness_total)
     for istep in 1:solver.nsteps
         if solver.use_print_debug
             print_timestep_info(solver, istep)
@@ -354,15 +464,15 @@ function run_sediment_transport_time_steps!(
             end
         end
         copy_array_1d!(solver.topo_gridy, solver.topo_gridy_initial)
-        (
-            downstream_distances_x, drainage_divides_x
-        ) = calculate_downstream_distances_for_nodes(
-            solver.topo_gridx, solver.topo_gridy)
-        water_depth_x = calculate_water_depth(solver.topo_gridy, sealevel_x)
+        ndivides = calculate_downstream_distances_for_nodes!(
+            downstream_distances_x, drainage_divides_x, solver.topo_shape_buffer,
+            solver.topo_gridx, solver.topo_gridy
+        )
+        calculate_water_depth!(water_depth_x, solver.topo_gridy, sealevel_x)
         update_collections!(
-            solver.collections, istep, solver.topo_gridy, 
-            drainage_divides_x, water_depth_x
-            )
+            solver.collections, istep, solver.topo_gridy,
+            view(drainage_divides_x, 1:ndivides), water_depth_x
+        )
     end
 
     if solver.use_compaction_correction
