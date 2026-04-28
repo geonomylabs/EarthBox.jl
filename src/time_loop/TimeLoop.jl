@@ -170,6 +170,12 @@ function run_loop!(model_manager::ModelManagerState)::Nothing
     SurfaceProcesses.reset_marker_compaction_properties!(model)
     initialize_next_eruption_time!(model)
     inside_flags = GridFuncs.get_marker_inside_flags(model)
+    
+    print_info(
+        "iuse_fixed_output_counter: " *
+        "$(model.timestep.parameters.output_steps.iuse_fixed_output_counter.value)",
+        level=1,
+    )
 
     t1 = time()
     for _ntimestep in _ntimestep_initial:ntimestep_max
