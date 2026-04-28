@@ -3,19 +3,20 @@ module Diffusivity
 import EarthBox.ConversionFuncs: mm_per_yr_to_meters_per_seconds
 import EarthBox.DataStructures: SedimentTransportParameters
 
-function make_topo_diffusivity_grid(
+function make_topo_diffusivity_grid!(
+    topo_grid_diffusivity::Vector{Float64},
     topo_gridx::Vector{Float64},
     water_depth_x::Vector{Float64},
     downstream_distances_x::Vector{Float64},
     sediment_transport_parameters::SedimentTransportParameters,
     use_constant_diffusivity::Bool
-)::Vector{Float64}
+)::Nothing
     if use_constant_diffusivity
-        xnum = length(topo_gridx)
         topo_diff_coef = sediment_transport_parameters.subaerial_slope_diffusivity
-        return fill(topo_diff_coef, xnum)
+        fill!(topo_grid_diffusivity, topo_diff_coef)
     else
-        return calculate_sediment_transport_diffusivity(
+        calculate_sediment_transport_diffusivity!(
+            topo_grid_diffusivity,
             topo_gridx, water_depth_x,
             downstream_distances_x,
             sediment_transport_parameters.subaerial_slope_diffusivity,
@@ -25,6 +26,7 @@ function make_topo_diffusivity_grid(
             sediment_transport_parameters.submarine_diffusion_decay_depth
         )
     end
+    return nothing
 end
 
 """ Calculate slope diffusion coefficient.
@@ -64,7 +66,8 @@ end
 # Returns
 - `topo_grid_diffusivity`: Topography diffusion coefficient (m^2/s)
 """
-function calculate_sediment_transport_diffusivity(
+function calculate_sediment_transport_diffusivity!(
+    topo_grid_diffusivity::Vector{Float64},
     topo_gridx::Vector{Float64},
     water_depth_x::Vector{Float64},
     downstream_distances::Vector{Float64},
@@ -73,22 +76,22 @@ function calculate_sediment_transport_diffusivity(
     subaerial_transport_coefficient::Float64,
     submarine_slope_diffusivity::Float64,
     submarine_diffusion_decay_depth::Float64
-)::Vector{Float64}
+)::Nothing
     toponum = length(topo_gridx)
-    topo_grid_diffusivity = zeros(toponum)
-    
+    topo_grid_diffusivity[1] = 0.0
+
     for i in 2:toponum
         dd_dist = downstream_distances[i]
         water_depth = water_depth_x[i]
         if water_depth > 0.0
-            topo_grid_diffusivity[i] = submarine_slope_diffusivity * 
+            topo_grid_diffusivity[i] = submarine_slope_diffusivity *
                 exp(-water_depth / submarine_diffusion_decay_depth)
         else
-            topo_grid_diffusivity[i] = subaerial_slope_diffusivity + 
+            topo_grid_diffusivity[i] = subaerial_slope_diffusivity +
                 precipitation_rate * subaerial_transport_coefficient * dd_dist
         end
     end
-    return topo_grid_diffusivity
+    return nothing
 end
 
 """ Print topography diffusion coefficient in mm^2/yr.

@@ -21,7 +21,7 @@ import EarthBox.Compaction.CompactionCorrection: apply_compaction_correction_for
 import EarthBox.EBCopy: copy_array_1d!
 import .DownstreamDistance: calculate_downstream_distances_for_nodes
 import .WaterDepth: calculate_water_depth
-import .Diffusivity: make_topo_diffusivity_grid
+import .Diffusivity: make_topo_diffusivity_grid!
 import .Solve: solve_downhill_diffusion
 import .Solve: solve_downhill_diffusion_optimized
 import .Collections: TransportCollections
@@ -67,6 +67,13 @@ mutable struct SedimentTransportSolver
     d_buffer::Union{Vector{Float64}, Nothing}
     du_buffer::Union{Vector{Float64}, Nothing}
     S_buffer::Union{Vector{Float64}, Nothing}
+    # Per-inner-step scratch buffers, written by `make_topo_diffusivity_grid!`
+    # and `calculate_pelagic_sedimentation_rate_grid!` then read by
+    # `solve_downhill_diffusion[_optimized]`. Reused across the `nsteps`
+    # inner loop and across timesteps; both functions overwrite every
+    # element they care about, so prior contents are irrelevant.
+    topo_grid_diffusivity_buffer::Vector{Float64}
+    topo_grid_pelagic_sedimentation_rate_buffer::Vector{Float64}
     use_optimized_solver::Bool
 end
 
@@ -190,6 +197,9 @@ function SedimentTransportSolver(
         S_buffer  = nothing
     end
 
+    topo_grid_diffusivity_buffer = zeros(Float64, toponum)
+    topo_grid_pelagic_sedimentation_rate_buffer = zeros(Float64, toponum)
+
     return SedimentTransportSolver(
         basic_grid_x_dimensions,
         copy(topo_gridx),
@@ -218,6 +228,8 @@ function SedimentTransportSolver(
         d_buffer,
         du_buffer,
         S_buffer,
+        topo_grid_diffusivity_buffer,
+        topo_grid_pelagic_sedimentation_rate_buffer,
         use_optimized_solver
     )
 end
@@ -280,14 +292,14 @@ function run_sediment_transport_time_steps!(
         if solver.use_print_debug
             print_timestep_info(solver, istep)
         end
-        topo_grid_diffusivity = make_topo_diffusivity_grid(
+        make_topo_diffusivity_grid!(
+            solver.topo_grid_diffusivity_buffer,
             solver.topo_gridx, water_depth_x, downstream_distances_x,
             solver.sediment_transport_parameters,
             solver.use_constant_diffusivity
         )
-        (
-            topo_grid_pelagic_sedimentation_rate
-        ) = calculate_pelagic_sedimentation_rate_grid(
+        calculate_pelagic_sedimentation_rate_grid!(
+            solver.topo_grid_pelagic_sedimentation_rate_buffer,
             pelagic_sedimentation_rate,
             solver.topo_gridx, water_depth_x
         )
@@ -295,16 +307,18 @@ function run_sediment_transport_time_steps!(
             solution_array = solve_downhill_diffusion_optimized(
                 solver.dl_buffer, solver.d_buffer, solver.du_buffer,
                 solver.R_buffer, solver.S_buffer,
-                solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
-                topo_grid_pelagic_sedimentation_rate,
+                solver.topo_gridx, solver.topo_gridy,
+                solver.topo_grid_diffusivity_buffer,
+                solver.topo_grid_pelagic_sedimentation_rate_buffer,
                 solver.basic_grid_x_dimensions, solver.transport_timestep,
                 solver.sediment_transport_parameters
             )
         else
             solution_array = solve_downhill_diffusion(
                 solver.L_buffer, solver.R_buffer,
-                solver.topo_gridx, solver.topo_gridy, topo_grid_diffusivity,
-                topo_grid_pelagic_sedimentation_rate,
+                solver.topo_gridx, solver.topo_gridy,
+                solver.topo_grid_diffusivity_buffer,
+                solver.topo_grid_pelagic_sedimentation_rate_buffer,
                 solver.basic_grid_x_dimensions, solver.transport_timestep,
                 solver.sediment_transport_parameters
             )
@@ -380,14 +394,15 @@ function update_compaction_displacement_max!(
     return nothing
 end
 
-function calculate_pelagic_sedimentation_rate_grid(
+function calculate_pelagic_sedimentation_rate_grid!(
+    topo_grid_pelagic_sedimentation_rate::Vector{Float64},
     pelagic_sedimentation_rate::Float64,
     topo_gridx::Vector{Float64},
     water_depth_x::Vector{Float64}
-)::Vector{Float64}
+)::Nothing
     toponum = length(topo_gridx)
-    topo_grid_pelagic_sedimentation_rate = zeros(Float64, toponum)
-    
+    topo_grid_pelagic_sedimentation_rate[1] = 0.0
+
     for i in 2:toponum
         water_depth = water_depth_x[i]
         if water_depth > 0.0
@@ -396,7 +411,7 @@ function calculate_pelagic_sedimentation_rate_grid(
             topo_grid_pelagic_sedimentation_rate[i] = 0.0
         end
     end
-    return topo_grid_pelagic_sedimentation_rate
+    return nothing
 end
 
 function print_timestep_info(solver::SedimentTransportSolver, istep::Int)::Nothing
