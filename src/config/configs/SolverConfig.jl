@@ -33,14 +33,14 @@ Mutable struct to store solver configuration parameters.
     preallocated COO triplets stored in
     `model.stokes_continuity.parameters.build.system_vectors`. Producing
     bit-identical results to the legacy SparseMatrixCSC-based path. The
-    legacy path remains the default (`false`) and is fully preserved.
+    legacy path remains the default (`true`) and is fully preserved.
 - `use_optimized_sediment_solver::Bool`: When true, the sediment transport
     downhill-diffusion solver uses tridiagonal storage (three length-`toponum`
     vectors) and a hand-rolled Thomas algorithm in place of the legacy
     `Matrix{Float64}(toponum, toponum)` dense allocation followed by
     `SparseMatrixCSC(L)` and `lu(Ls) \\ R`. Eliminates the ~190 MB-per-call
     dense `L_buffer` allocation. Produces machine-epsilon-equivalent results.
-    Default `false`; legacy path fully preserved.
+    Default `true`; legacy path fully preserved.
 """
 mutable struct SolverConfigState
     use_mumps::Bool
@@ -79,8 +79,8 @@ function SolverConfigState(;
     mpi_initialized::Bool = false,
     mpi_rank::Int = 0,
     pass_large_arrays_via_mpi::Bool = false,
-    use_optimized_residuals::Bool = false,
-    use_optimized_sediment_solver::Bool = false
+    use_optimized_residuals::Bool = true,
+    use_optimized_sediment_solver::Bool = true
 )
     return SolverConfigState(
         use_mumps,

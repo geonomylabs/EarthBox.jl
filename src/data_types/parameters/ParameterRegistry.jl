@@ -820,9 +820,12 @@ function get_markers_parameters()::NamedTuple
         stype_move_markers = ParameterStr(
             "None", "stype_move_markers", "None", "Displacement options name"),
         iuse_local_adaptive_time_stepping = ParameterInt(
-            0, "iuse_local_adaptive_time_stepping", "None", 
+            0, "iuse_local_adaptive_time_stepping", "None",
             "Activate local adaptive time stepping where displacement is calculated at staggered grid nodes. "
-            * "The default value is 0 (off). If deactivated then adaptive time stepping using average grid spacing."
+            * "The default value is 0 (off). If deactivated then adaptive time stepping using average grid spacing. "
+            * "Note: when this flag is 1 the time step can vary significantly between steps, so "
+            * "`iuse_fixed_output_counter` is automatically forced to 0 during time-loop initialization "
+            * "so that output is triggered by total model time rather than by a fixed step counter."
             ),
 
         # Markers - Subgrid diffusion parameters
@@ -1654,11 +1657,15 @@ function get_timestep_parameters()::NamedTuple
             0.0, "time_of_next_output_myr", "Myr", "Time of next output in Myr"),
         # Timestep - Main time loop parameters
         iuse_fixed_output_counter = ParameterInt(
-            1, "iuse_fixed_output_counter", "None", 
+            1, "iuse_fixed_output_counter", "None",
             "Flag to use fixed output counter: 0 = off; 1 = on. When active, the model will output "
-            *"at a fixed number of time steps based on an initial estimate at the start of the simulation."
-            *"If set to 0, then the model will output once total model time (timesum) reaches the next output time based"
-            *"on the output time step."
+            *"at a fixed number of time steps based on an initial estimate at the start of the simulation. "
+            *"If set to 0, then the model will output once total model time (timesum) reaches the next output time based "
+            *"on the output time step. "
+            *"Note: this flag is automatically forced to 0 during time-loop initialization when "
+            *"`iuse_local_adaptive_time_stepping = 1`, since under local adaptive time stepping the "
+            *"time step can vary significantly and the fixed-step counter (`nskip`) computed from the "
+            *"initial time step is no longer a reliable output trigger."
             ),
 
         )
