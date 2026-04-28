@@ -1,0 +1,247 @@
+ ▐▛███▜▌   Claude Code v2.1.119
+▝▜█████▛▘  Opus 4.7 · Claude Max
+  ▘▘ ▝▝    ~/apps/julia/EarthBox
+
+❯ I notice that a white band is being display after around 7-8 Myr where the    
+  marker density is so low that it aapears white in the partially molten        
+  domain. Here is an example from case 1 of                                     
+  '/home/ekneller/apps/julia/EarthBox_models/sdr_dynamics':                     
+  '/home/ekneller/tmp/marker_composition_zoomin_45.png'. I did not see this in  
+  the python version '/home/ekneller/apps/python/earthbox'. I wonder if there   
+  is a difference in the way markers are being recycled. Perhaps there is some  
+  other reason. Please investigate. Do not modify my code.                      
+
+  Read 1 file (ctrl+o to expand)
+
+● I can see the image - there's a partially molten region in the center where
+  some areas appear washed out. Let me investigate the marker recycling logic in
+   both versions.
+
+  Searched for 1 pattern, read 1 file, listed 6 directories (ctrl+o to expand)
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+  Read 6 files, listed 4 directories (ctrl+o to expand)
+
+  Searched for 24 patterns, read 18 files, listed 5 directories (ctrl+o to expand)
+  Searched for 21 patterns, read 10 files, listed 1 directory (ctrl+o to expand)
+
+● I traced the marker bookkeeping end-to-end in both Julia and Python. Here's
+  what I found.
+
+  Marker recycling is functionally identical in both versions
+
+  Comparing boundary_conditions/marker_recycle/types/Extension.jl (Julia) with
+  boundary_conditions/recycle_types/extension.py (Python), they implement the
+  same algorithm:
+
+  - GridFuncs.get_marker_inside_flags / grid_funcs.get_marker_inside_flags use
+  the same axis-aligned bounding-box test: xmin ≤ x ≤ xmax && ymin ≤ y ≤ ymax.
+  - Out-of-domain markers above the surface get re-seeded near y=0.
+  - Out-of-domain subsurface markers get re-seeded near y=ysize and relabeled to
+   Asthenosphere with bottom pressure/temperature.
+  - The recycle is purely boundary-driven: marknum never grows, and there is no
+  logic in either version that injects new markers into low-density interior
+  cells.
+
+  I confirmed both case files (EarthBox_models/sdr_dynamics/Model.jl and python 
+  earthbox/examples/sdr_formation/model.py) configure the same BC
+  (LithosphericExtensionFixedBoundaries) and the same extraction parameters
+  (iuse_shallow_mantle_injection=1, extraction_fraction=0.99,
+  iuse_random_injection_subdomain=1, iuse_normal_injection_subdomain=1,
+  number_of_injection_subdomains=10, mantle_search_width=200_000, etc.).
+
+  What's actually depleting the partial-melt domain
+
+  In melt_model/extraction/core/MagmaBody.jl:131-198 (and the matching Python
+  magma_body.py:198-304), with iuse_shallow_mantle_injection=1 the loop runs
+  nmarkers_magma_mantle times per drainage basin and on each iteration:
+
+  1. Finds the shallowest partially-molten mantle marker — this is only used to
+  locate the injection column (its x is stored, the marker itself is not
+  converted in this branch).
+  2. Inside that column it picks the shallowest mantle marker of any matid in 
+  mantle_emplacement_mat_ids (fertile/refractory/partially-molten/serpentinite).
+  3. Calls transform_marker_to_magma, relabeling that marker to
+  ExtractedGabbroicMagma (matid only — the marker stays at its current location 
+  until the next advection step).
+
+  So the relabeling is concentrated in a narrow column
+  (characteristic_injection_width = 10_000 m) directly above the shallowest
+  partial-melt peak, in subdomains chosen randomly each step. After a few Myr
+  those relabeled markers buoy upward and form the gabbroic crust, leaving the
+  column they came from with reduced density of partially-molten and
+  fertile-mantle markers — exactly where the user sees the white band.
+
+  This depletion mechanism is identical in both codebases. There is no
+  Python-side reseeding, density-driven injection, or compaction step that would
+   patch over the depleted column — I searched for it explicitly (add_marker,
+  inject_marker, np.append.*marker, np.concatenate.*marker_x, marker_x.array =)
+  and found nothing.
+
+  Likely sources of the visual difference
+
+  Since the algorithms match, the residual differences are stochastic and
+  timing-related:
+
+  1. PRNG divergence. Both versions select the injection subdomain randomly
+  (rand(0:N-1) in Julia vs np.random.randint in Python) and similarly for the
+  random-eruption-location and friction-randomization paths. With
+  number_of_injection_subdomains=10, the column where extractions cluster
+  wanders differently — Julia may happen to revisit one subdomain more often,
+  causing a more visible depleted band.
+  2. Adaptive timestep. adjust_time_step_using_displacement_limit runs after
+  every Stokes solve; if Julia's solver/rheology produces slightly different
+  velocities the timestep differs, which changes nmarkers_magma_mantle per step
+  and the cumulative extraction pattern.
+  3. Plot-time only. The marker_composition plot just renders matid per cell.
+  Once a column is sparsely populated by partially-molten/fertile markers,
+  whatever non-matching matid (e.g. UltramaficAsthenosphereDepletedDryFertile)
+  bleeds through. This isn't a "missing marker" — it's a scatter/density
+  artifact in the visualization that's more pronounced when extractions cluster.
+
+  What the comment in Solidification.jl is telling you
+
+  Solidification.jl:60 notes that marker_random_buffer was previously sized to
+  mxnum*mynum and "may under-cover marknum after marker injection." That comment
+   anticipates a future feature; I confirmed nothing in the current Julia tree
+  (or the Python tree) actually grows marknum. So it's not the cause of the
+  band, just a forward-looking comment in the buffer-sizing fix.
+
+  Suggested next steps if you want to confirm
+
+  - Plot only the marker scatter (no rasterization) for the same frame; if you
+  see plenty of partially-molten markers in the white band, it's a
+  plot-density/colormap artifact, not real depletion.
+  - Print nmarkers_partial_melt and nmarkers_magma_mantle per drainage basin per
+   timestep (Julia's print_extraction_info already emits these at level=3) and
+  compare to the Python extraction.py log to see whether extraction rates
+  diverge.
+  - Pin both PRNGs to the same seed and rerun: if the band disappears in Julia,
+  it's stochastic clustering, not algorithmic.
+
+  I did not modify any code.
+
+✻ Cogitated for 8m 13s
+
+❯ Is there something in the plotting alogithm or settings in                    
+  '/home/ekneller/apps/julia/EarthBox_models/sdr_dynamics/Plot.jl' that could   
+  explain this?                                                                 
+
+  Read 1 file (ctrl+o to expand)
+
+● Yes — there's a strong candidate in the plotting setup. Let me look at the
+  underlying plot functions to confirm.
+
+  Searched for 8 patterns, read 6 files (ctrl+o to expand)
+
+● Bash(find /home/ekneller/apps/python/earthbox/src/earthbox/plot_tools -name
+      "*.py" | xargs grep -l
+      "plot_filtered_meltfrac\|melt_fraction_min\|meltfrac" 2>/dev/null…)
+  ⎿  /home/ekneller/apps/python/earthbox/src/earthbox/plot_tools/model_plot
+     s/marker_plots/marker_plots.py
+     /home/ekneller/apps/python/earthbox/src/earthbox/plot_tools/model_plot
+     … +7 lines (ctrl+o to expand)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● I think I've found a very likely cause. Let me verify by checking the Python
+  plot configuration.
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Found it. There's a strong candidate in the marker scatter rendering — and
+  it's not just the case-level setting.
+
+  The most likely cause: markersize units differ between CairoMakie (Julia) and 
+  matplotlib (Python)
+
+  The composition image is built up of overlapping scatter markers, one per
+  particle. In Plot.jl:
+
+  marker_size=1.0, decimation_factor=marker_decimation_factor,  # =1 in zoom-in
+
+  That value flows down to Scatter.jl:104:
+
+  CairoMakie.scatter!(axes, x_array, y_array, color=color_array,
+      colormap=cmap, markersize=marker_size, marker=:circle,
+      strokewidth=0.0, ...)
+
+  In CairoMakie, markersize for scatter defaults to pixel units — so
+  markersize=1.0 renders as ~1 px in the rasterized PNG, regardless of figure
+  DPI.
+
+  The Python sibling (scatter.py:150) does:
+
+  plot = axes.scatter(x_array, y_array, c=color_array, cmap=cmap, marker='o',
+                      s=marker_size, lw=0, ...)
+
+  In matplotlib, s is marker area in points², where 1 point = 1/72 inch. At
+  figure_dpi=250 (Python's setting in plot.py:230), s=1.5 → diameter ≈
+  √(4·1.5/π) pt ≈ 1.38 pt ≈ 4.8 px.
+
+  So at the same nominal "marker_size":
+  - Julia (CairoMakie): markersize=1.0 → ~1 px circle
+  - Python (matplotlib): s=1.5 → ~5 px circle
+
+  That's a ~5× ratio in linear dimension and ~25× in pixel area.
+
+  Why this produces a "white band" only in Julia
+
+  In the rift center column, melt extraction (with
+  iuse_shallow_mantle_injection=1) progressively converts the shallowest mantle
+  markers to ExtractedGabbroicMagma and they advect upward into the crust.
+  Whatever was there gets thinned. In Python, the 5-pixel splats overlap by ~4
+  pixels each way, so even when local marker spacing grows to 4–5 px the field
+  still looks solid. In Julia, 1-pixel splats leave visible gaps the moment
+  local spacing exceeds 1 px — and the white you see is the figure background 
+  showing through the scatter layer, not missing markers.
+
+  The plot order in MarkerPlotFuncs.jl:39–50 puts plot_composition first, then
+  the melt-fraction overlay (and age, strain, etc.) on top. The melt-fraction
+  overlay is also a scatter with the same tiny markersize=1.0, and it's filtered
+   to mantle-melting matids only (get_mantle_melting_matids →
+  fertile/partially-molten/refractory). So inside the partial-melt zone you're
+  getting two thin scatter passes, neither of which fills the gaps. The yellow
+  color is from the plasma cmap on the meltfrac layer; the white sliver is just
+  the canvas where neither layer drew a pixel.
+
+  A few corroborating details:
+
+  - figure_dpi=200.0 in Plot.jl:71 and markersize=1.0 are pixel-tight even
+  before any extraction depletion.
+  - marker_decimation_factor = 1 for the zoom-in (Plot.jl:75), so the markers
+  aren't being decimated — that already rules out one suspect.
+  - hidden_composition_matids in Plot.jl:242 only suppresses the colorbar legend
+   entries: Scatter.jl:121-134 uses hidden_colorbar_bins to build a compact
+  colorbar, but the underlying CairoMakie.scatter! (line 104) gets the full
+  color_array — so hidden matids are still drawn.
+  - rasterize=true is on, so anti-aliasing won't bridge sub-pixel gaps.
+  - Python's case file examples/sdr_formation/plot.py:42-48 uses 1.5 (not 1.0) —
+   even before the unit conversion, Python is intentionally using a larger
+  marker.
+
+  Quick test before changing anything
+
+  The cleanest way to confirm without modifying production code is to bump the
+  size in just Plot.jl:
+
+  marker_size=4.0,    # was 1.0 — try 3.0–6.0 to see if the band fills in
+
+  That alone should restore a continuous look in the partial-melt zone if my
+  reading is right. If the band persists at marker_size=6.0, then the marker
+  count really is dropping fast enough that even fat dots can't bridge the gap,
+  and the discussion shifts back to the extraction physics.
+
+  Two other small things worth noting if you do investigate further:
+  - Check the units CairoMakie uses for your installed version with
+  CairoMakie.scatter!'s markerspace keyword. If you ever want a more
+  matplotlib-like behavior, setting markerspace=:data (and a small data-units
+  size) makes density-independent rendering.
+  - The melt-fraction overlay uses melt_fraction_max=0.26 with
+  use_discontinuous_colormap_meltfrac=true. The plasma cmap goes pale yellow
+  near 1.0 but tops out at a saturated yellow near 0.26 — so this is not
+  clipping to white. The white is empty canvas, not a colormap artifact.
+
+  I did not modify any code.
+
+✻ Baked for 3m 51s
