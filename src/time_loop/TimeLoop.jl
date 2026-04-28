@@ -88,6 +88,32 @@ function initialize!(
     update_model_time_step!(model)
     update_nskip!(model)
     make_sure_output_timestep_is_larger_than_ve_timestep!(model)
+    force_total_time_output_for_adaptive_stepping!(model)
+    return nothing
+end
+
+""" Force output to be driven by total model time when local adaptive time
+stepping is active.
+
+With `iuse_local_adaptive_time_stepping = 1` the time step can vary
+significantly from one step to the next, so the fixed-step output counter
+(`nskip`) computed from the initial time step is not a reliable trigger.
+In that case `iuse_fixed_output_counter` is forced to 0 so that output is
+triggered by total model time (`timesum`) instead.
+"""
+function force_total_time_output_for_adaptive_stepping!(model::ModelData)::Nothing
+    iuse_local_adaptive_time_stepping =
+        model.markers.parameters.advection.iuse_local_adaptive_time_stepping.value
+    iuse_fixed_output_counter =
+        model.timestep.parameters.output_steps.iuse_fixed_output_counter.value
+    if iuse_local_adaptive_time_stepping == 1 && iuse_fixed_output_counter == 1
+        print_info(
+            "iuse_local_adaptive_time_stepping=1 detected; forcing " *
+            "iuse_fixed_output_counter=0 (output by total model time).",
+            level=1,
+        )
+        set_parameter!(model, "iuse_fixed_output_counter", 0)
+    end
     return nothing
 end
 
