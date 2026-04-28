@@ -155,6 +155,7 @@ function run_loop!(model_manager::ModelManagerState)::Nothing
         execute_heat_solver_steps!(model_manager, inside_flags)
         execute_advection_steps!(model_manager, inside_flags)
         advance_model_time!(model)
+        inside_flags = GridFuncs.get_marker_inside_flags(model)
         inside_flags = execute_post_solver_steps!(model_manager, inside_flags)
         if Stopping.terminate_loop(model)
             break
