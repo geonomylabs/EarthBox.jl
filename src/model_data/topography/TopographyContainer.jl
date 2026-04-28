@@ -27,13 +27,21 @@ Create a new Topography collection with default parameters.
 mutable struct Topography <: CollectionContainer
     parameters::Parameters
     arrays::Arrays
+    # Persistent sediment-transport solver. Lazy-initialized on the first
+    # call to `SurfaceProcesses.SedimentTransport.run_sediment_transport_model!`
+    # and reused across timesteps so its preallocated buffers don't get
+    # thrown out and reallocated every call. Typed `Any` because the
+    # concrete type lives in the surface_processes module which loads
+    # after model_data; backup walkers ignore non-EarthBox-typed fields,
+    # so this field is invisible to JLD2 save/load.
+    sediment_transport_solver::Any
 end
 
 function Topography()::Topography
     parameters = Parameters()
     toponum = parameters.topo_grid.toponum.value
     arrays = Arrays(toponum)
-    return Topography(parameters, arrays)
+    return Topography(parameters, arrays, nothing)
 end
 
 end # module 

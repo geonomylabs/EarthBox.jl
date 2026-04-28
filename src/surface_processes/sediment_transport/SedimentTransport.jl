@@ -13,6 +13,8 @@ import EarthBox.Compaction: get_boolean_options_for_compaction
 import EarthBox.TimeStep: TimeStepCalculator
 import .SedimentTransportSolverManager: SedimentTransportSolver
 import .SedimentTransportSolverManager: run_sediment_transport_time_steps!
+import .SedimentTransportSolverManager: is_compatible
+import .SedimentTransportSolverManager: reset! as reset_solver!
 import .SedimentTransportSolverManager.MarkerAdvection: advect_markers_using_compaction
 
 const PDATA = get_eb_parameters()
@@ -122,7 +124,8 @@ function run_sediment_transport_model!(
     (
         pelagic_sedimentation_rate
     ) = model.topography.parameters.depo_and_erosion_rates.pelagic_sedimentation_rate.value
-    transport_solver = SedimentTransportSolver(
+    transport_solver = get_or_init_solver!(
+        model,
         (gridx_b[1], gridx_b[end]),
         topo_gridx,
         topo_gridy_initial,
@@ -130,12 +133,9 @@ function run_sediment_transport_model!(
         sediment_transport_parameters,
         y_sealevel,
         pelagic_sedimentation_rate,
-        use_collections=false,
-        use_print_debug=false,
-        use_constant_diffusivity=false,
-        use_compaction_correction=use_compaction_correction,
-        compaction_correction_type=compaction_correction_type,
-        use_optimized_solver=use_optimized_solver
+        use_compaction_correction,
+        compaction_correction_type,
+        use_optimized_solver
     )
     run_sediment_transport_time_steps!(transport_solver, model)
     if transport_solver.use_compaction_correction && transport_solver.compaction_correction_type == "constant_property"
@@ -147,6 +147,74 @@ function run_sediment_transport_model!(
     end
     copy_new_topography_to_topography_array(transport_solver.topo_gridy, gridt)
     return transport_solver.sediment_thickness_total_decompacted
+end
+
+""" Return a `SedimentTransportSolver` whose preallocated buffers persist
+    across timesteps.
+
+    On the first call (or when buffers are sized inconsistently with the
+    current `topo_gridx` length, or when the optimized/legacy flavor has
+    flipped), constructs a fresh solver and stashes it on
+    `model.topography.sediment_transport_solver`. On subsequent calls,
+    reuses the stashed solver after `reset!`-ing its per-call inputs in
+    place — this is the hoist that turns the previously throw-away
+    constructor into a one-time allocation.
+
+    The returned solver is the same object that lives on
+    `model.topography.sediment_transport_solver` after this call.
+"""
+function get_or_init_solver!(
+    model::ModelData,
+    basic_grid_x_dimensions::Tuple{Float64, Float64},
+    topo_gridx::Vector{Float64},
+    topo_gridy_initial::Vector{Float64},
+    sediment_thickness_initial::Vector{Float64},
+    sediment_transport_parameters::SedimentTransportParameters,
+    y_sealevel::Float64,
+    pelagic_sedimentation_rate::Float64,
+    use_compaction_correction::Bool,
+    compaction_correction_type::String,
+    use_optimized_solver::Bool
+)::SedimentTransportSolver
+    cached = model.topography.sediment_transport_solver
+    toponum = length(topo_gridx)
+    if cached isa SedimentTransportSolver &&
+       is_compatible(cached, toponum, use_optimized_solver)
+        reset_solver!(
+            cached,
+            basic_grid_x_dimensions,
+            topo_gridx,
+            topo_gridy_initial,
+            sediment_thickness_initial,
+            sediment_transport_parameters,
+            y_sealevel,
+            pelagic_sedimentation_rate;
+            use_collections=false,
+            use_print_debug=false,
+            use_constant_diffusivity=false,
+            use_compaction_correction=use_compaction_correction,
+            compaction_correction_type=compaction_correction_type
+        )
+        return cached
+    end
+
+    solver = SedimentTransportSolver(
+        basic_grid_x_dimensions,
+        topo_gridx,
+        topo_gridy_initial,
+        sediment_thickness_initial,
+        sediment_transport_parameters,
+        y_sealevel,
+        pelagic_sedimentation_rate,
+        use_collections=false,
+        use_print_debug=false,
+        use_constant_diffusivity=false,
+        use_compaction_correction=use_compaction_correction,
+        compaction_correction_type=compaction_correction_type,
+        use_optimized_solver=use_optimized_solver
+    )
+    model.topography.sediment_transport_solver = solver
+    return solver
 end
 
 function get_sediment_transport_parameters(model::ModelData)
