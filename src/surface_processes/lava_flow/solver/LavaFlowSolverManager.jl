@@ -97,6 +97,47 @@ function LavaFlowSolver(
     )
 end
 
+""" Refresh the per-timestep array state of a persistent LavaFlowSolver.
+
+    Copies the current topography (`topo_gridx`, `topo_gridy`) and the
+    pre-existing sediment/flow thickness into the solver's owned buffers via
+    `copy_array_1d!`. Used by `get_or_init_lava_flow_solver!` (Step 4) to
+    refresh inputs at the start of each `run_lava_flow_model` call without
+    reallocating the solver.
+
+    Per-timestep scalars (residual thicknesses, y_sealevel, decompaction
+    parameters, eruption-style flags, use_compaction_correction) are updated
+    by `get_or_init_lava_flow_solver!` separately via direct field
+    assignment. Per-basin scalars are updated by `reset!` (per-basin)
+    separately within the basin loop.
+"""
+function reset_timestep!(
+    solver::LavaFlowSolver,
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64},
+    sediment_and_flow_thickness_initial::Vector{Float64}
+)::Nothing
+    copy_array_1d!(topo_gridx, solver.topo_gridx)
+    copy_array_1d!(topo_gridy, solver.topo_gridy)
+    copy_array_1d!(sediment_and_flow_thickness_initial,
+                   solver.sediment_and_flow_thickness_initial)
+    return nothing
+end
+
+""" Check whether an existing solver's preallocated buffers are sized to
+    handle the current `toponum` and `decimation_factor`. If anything has
+    changed (xnum or decimation_factor flipped between timesteps), the
+    decimated/topo buffers are wrong-sized and the solver must be rebuilt.
+"""
+function is_compatible(
+    solver::LavaFlowSolver,
+    toponum::Int,
+    decimation_factor::Int
+)::Bool
+    return length(solver.topo_gridx) == toponum &&
+           solver.decimation_factor == decimation_factor
+end
+
 """ Update per-basin scalar parameters on a persistent LavaFlowSolver.
 
     Per-timestep constants (topo arrays, residual thicknesses, y_sealevel,

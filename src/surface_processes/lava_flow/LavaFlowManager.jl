@@ -21,6 +21,8 @@ import .PrintLavaFlowInfo: print_lava_model_info
 import .LavaFlowSolverManager: LavaFlowSolver
 import .LavaFlowSolverManager: extrude_magma
 import .LavaFlowSolverManager: reset!
+import .LavaFlowSolverManager: reset_timestep!
+import .LavaFlowSolverManager: is_compatible
 
 function lava_flow_manager(
     model::ModelData,
@@ -93,39 +95,46 @@ function run_lava_flow_model(
 
     gridt = model.topography.arrays.gridt.array
     zero_out_extrusion_thickness_for_timestep(gridt)
-    
+
     (topo_gridx, topo_gridy) = copy_topography_coordinate_arrays(gridt)
-    
+
+    # Translate `nothing` to zeros once here so the persistent solver always
+    # holds a real Vector{Float64} (matches the convenience constructor's
+    # behavior; required by `reset_timestep!` which uses copy_array_1d!).
+    sediment_and_flow_thickness_initial_resolved =
+        sediment_and_flow_thickness_initial === nothing ?
+            zeros(Float64, length(topo_gridx)) : sediment_and_flow_thickness_initial
+
     lava_flow_decompaction_parameters = get_lava_flow_decompaction_parameters(
         model.melting.parameters.extrusion.porosity_initial_lava_flow.value,
         model.melting.parameters.extrusion.decay_depth_lava_flow.value
     )
-    
+
     extrusion_volumes = model.melting.arrays.extraction.extrusion_volumes.array
 
     use_compaction_correction = get_boolean_options_for_compaction(model)
 
-    # Hoisted out of the basin loop: per-timestep buffers and constants live on
-    # one solver, refreshed per active basin via reset!. Per-basin scalars start
-    # as placeholders (overwritten by the first reset!).
-    flow_solver = LavaFlowSolver(
+    # Persistent solver: lazy-initialized on the first call, reused on
+    # subsequent timesteps via in-place buffer refresh.
+    flow_solver = get_or_init_lava_flow_solver!(
+        model,
         topo_gridx,
         topo_gridy,
-        sediment_and_flow_thickness_initial,
-        0.0,
-        0.0,
-        0.0,
-        1,
+        sediment_and_flow_thickness_initial_resolved,
         residual_lava_thickness_subaerial,
         residual_laval_thickness_submarine,
         y_sealevel,
-        lava_flow_decompaction_parameters;
-        use_random_eruption_location=use_random_eruption_location,
-        use_normal_eruption_location=use_normal_eruption_location,
-        use_compaction_correction=use_compaction_correction,
-        decimation_factor=decimation_factor
+        lava_flow_decompaction_parameters,
+        use_random_eruption_location,
+        use_normal_eruption_location,
+        use_compaction_correction,
+        decimation_factor
     )
 
+    # The persistent solver owns its topo buffers; the local `topo_gridy`
+    # diverges from `flow_solver.topo_gridy` once `extrude_magma` mutates
+    # the latter, so we use the solver's buffer for forecasting and write-
+    # back across the basin loop.
     ndrainage_basin = model.melting.parameters.extraction.ndrainage_basin.value
     for idrainage_basin in 1:ndrainage_basin
         (
@@ -140,8 +149,8 @@ function run_lava_flow_model(
         ) = forecast_eruption_location(
             eruption_location_x_min,
             width_eruption_domain,
-            topo_gridx,
-            topo_gridy
+            flow_solver.topo_gridx,
+            flow_solver.topo_gridy
         )
 
         characteristic_volume_per_flow = calculate_characteristic_volume_per_flow(
@@ -187,7 +196,7 @@ function run_lava_flow_model(
 
             extrude_magma(flow_solver, model)
 
-            copy_new_topography_to_topography_array(topo_gridy, gridt)
+            copy_new_topography_to_topography_array(flow_solver.topo_gridy, gridt)
 
             update_extrusion_thickness(flow_solver.total_lava_thickness, gridt)
 
@@ -195,7 +204,7 @@ function run_lava_flow_model(
             if plot_thickness
                 plot_lava_thickness(
                     model,
-                    topo_gridx,
+                    flow_solver.topo_gridx,
                     flow_solver.total_lava_thickness,
                     idrainage_basin
                 )
@@ -203,6 +212,74 @@ function run_lava_flow_model(
         end
     end
     return nothing
+end
+
+""" Return a `LavaFlowSolver` whose preallocated buffers persist across
+    timesteps.
+
+    On the first call (or when buffers are sized inconsistently with the
+    current `topo_gridx` length / `decimation_factor`), constructs a fresh
+    solver and stashes it on `model.topography.lava_flow_solver`. On
+    subsequent calls, reuses the stashed solver after refreshing its
+    per-timestep array buffers via `reset_timestep!` and updating its
+    per-timestep scalar configuration in place.
+
+    Per-basin scalars are reset separately by `reset!` inside the basin
+    loop in `run_lava_flow_model`.
+"""
+function get_or_init_lava_flow_solver!(
+    model::ModelData,
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64},
+    sediment_and_flow_thickness_initial::Vector{Float64},
+    residual_lava_thickness_subaerial::Float64,
+    residual_laval_thickness_submarine::Float64,
+    y_sealevel::Float64,
+    lava_flow_decompaction_parameters::SedimentTransportParameters,
+    use_random_eruption_location::Bool,
+    use_normal_eruption_location::Bool,
+    use_compaction_correction::Bool,
+    decimation_factor::Int
+)::LavaFlowSolver
+    cached = model.topography.lava_flow_solver
+    toponum = length(topo_gridx)
+    if cached isa LavaFlowSolver && is_compatible(cached, toponum, decimation_factor)
+        # Refresh per-timestep array state in place.
+        reset_timestep!(cached, topo_gridx, topo_gridy, sediment_and_flow_thickness_initial)
+        # Refresh per-timestep scalar configuration. (Per-basin scalars are
+        # set by `reset!` inside the basin loop; we leave those untouched.)
+        cached.residual_lava_thickness_subaerial   = residual_lava_thickness_subaerial
+        cached.residual_laval_thickness_submarine  = residual_laval_thickness_submarine
+        cached.y_sealevel                          = y_sealevel
+        cached.lava_flow_decompaction_parameters   = lava_flow_decompaction_parameters
+        cached.use_random_eruption_location        = use_random_eruption_location
+        cached.use_normal_eruption_location        = use_normal_eruption_location
+        cached.use_compaction_correction           = use_compaction_correction
+        return cached
+    end
+
+    # First-call path (or buffer-size / decimation_factor changed): build a
+    # fresh solver. Per-basin scalars start as placeholders; the basin loop
+    # overwrites them via `reset!` before the first `extrude_magma`.
+    solver = LavaFlowSolver(
+        topo_gridx,
+        topo_gridy,
+        sediment_and_flow_thickness_initial,
+        0.0,
+        0.0,
+        0.0,
+        1,
+        residual_lava_thickness_subaerial,
+        residual_laval_thickness_submarine,
+        y_sealevel,
+        lava_flow_decompaction_parameters;
+        use_random_eruption_location=use_random_eruption_location,
+        use_normal_eruption_location=use_normal_eruption_location,
+        use_compaction_correction=use_compaction_correction,
+        decimation_factor=decimation_factor
+    )
+    model.topography.lava_flow_solver = solver
+    return solver
 end
 
 """ Get sediment transport parameters.

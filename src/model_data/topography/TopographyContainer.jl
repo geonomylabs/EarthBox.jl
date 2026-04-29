@@ -35,13 +35,17 @@ mutable struct Topography <: CollectionContainer
     # after model_data; backup walkers ignore non-EarthBox-typed fields,
     # so this field is invisible to JLD2 save/load.
     sediment_transport_solver::Any
+    # Persistent lava-flow solver. Same lazy-init pattern as the sediment
+    # transport solver above — populated on the first call to
+    # `LavaFlowManager.run_lava_flow_model` and reused across timesteps.
+    lava_flow_solver::Any
 end
 
 function Topography()::Topography
     parameters = Parameters()
     toponum = parameters.topo_grid.toponum.value
     arrays = Arrays(toponum)
-    return Topography(parameters, arrays, nothing)
+    return Topography(parameters, arrays, nothing, nothing)
 end
 
 end # module 
