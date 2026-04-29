@@ -125,6 +125,13 @@ end
 
 """ Calculate the maximum difference between new and old lava thicknesses.
 
+Allocation-free fused loop that replaces the original
+`maximum(abs.(a .- b))` formulation. Bit-equivalent to that formulation
+for finite inputs (the reduction is `max` over `abs` of element-wise
+differences; `max` is associative so iteration order doesn't matter).
+NaN propagation matches the original because `max(NaN, x) === NaN` and
+`max(x, NaN) === NaN`.
+
 # Arguments
 - `lava_thickness`: Current lava thickness array
 - `lava_thickness_old`: Previous iteration's lava thickness array
@@ -133,6 +140,25 @@ end
 - Maximum absolute difference between arrays
 """
 function calculate_max_difference(
+    lava_thickness::Vector{Float64},
+    lava_thickness_old::Vector{Float64}
+)::Float64
+    max_diff = 0.0
+    @inbounds @simd for i in eachindex(lava_thickness)
+        d = abs(lava_thickness[i] - lava_thickness_old[i])
+        max_diff = max(max_diff, d)
+    end
+    return max_diff
+end
+
+""" Original allocating implementation, kept for reference.
+
+The `abs.(...)` broadcast allocates a fresh `Vector{Float64}` of length
+`xnum` every call, and `lava_flow_pulse` calls this function once per
+iteration of its convergence loop (up to `nmax=1000` per pulse, with
+many pulses per flow). Replaced by the fused-loop version above.
+"""
+function calculate_max_difference_old(
     lava_thickness::Vector{Float64},
     lava_thickness_old::Vector{Float64}
 )::Float64
