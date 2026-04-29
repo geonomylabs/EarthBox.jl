@@ -8,6 +8,7 @@ Exported Test Modules:
 - LavaFlowTestMultiple
 - LavaFlowTestSteep
 - LavaFlowTestMultipleSteep
+- LavaFlowTestCompactionThickSediment
 - MarkerCompactionTest
 - MagmaBodyTest
 - MeltDrainageDividesTest
@@ -45,6 +46,7 @@ include("tests/surface_processes/lava_flow/LavaFlowTestSingle.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestMultiple.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestSteep.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestMultipleSteep.jl")
+include("tests/surface_processes/lava_flow/LavaFlowTestCompactionThickSediment.jl")
 include("tests/compaction/marker_compaction/MarkerCompactionTest.jl")
 include("tests/melt_model/extraction/MagmaBodyTest.jl")
 include("tests/melt_model/divides/MeltDrainageDividesTest.jl")
@@ -65,6 +67,7 @@ include("tests/gravity/TestGridGravity.jl")
 
 import .SedimentTransportTest, .SedimentTransportSolverResetTest
 import .LavaFlowTestSingle, .LavaFlowTestMultiple, .LavaFlowTestSteep, .LavaFlowTestMultipleSteep
+import .LavaFlowTestCompactionThickSediment
 import .MarkerCompactionTest, .MagmaBodyTest, .MeltDrainageDividesTest
 import .MeltDamageTest, .GabbroSolidusLiquidusTest, .PeridotiteSolidusLiquidusTest
 import .ConductivityTest, .HeatCapacityTest, .SerpentinizationTest
@@ -73,6 +76,7 @@ import .BisectionInterpTest, .CompactionTest, .TestGridGravity, .TestCellGravity
 
 export SedimentTransportTest, SedimentTransportSolverResetTest
 export LavaFlowTestSingle, LavaFlowTestMultiple, LavaFlowTestSteep, LavaFlowTestMultipleSteep
+export LavaFlowTestCompactionThickSediment
 export MarkerCompactionTest, MagmaBodyTest, MeltDrainageDividesTest
 export MeltDamageTest, GabbroSolidusLiquidusTest, PeridotiteSolidusLiquidusTest
 export ConductivityTest, HeatCapacityTest, SerpentinizationTest
