@@ -8,7 +8,7 @@ import EarthBox.MathTools: linear_interp_single, generate_normal_random_number
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_swarm_opt
 import EarthBox.DataStructures: SedimentTransportParameters
 import EarthBox.EBCopy: copy_array_1d!
-import EarthBox.Compaction.ApplyCompaction: apply_compaction_model
+import EarthBox.Compaction.ApplyCompaction: apply_compaction_model!
 import .MakeFlow: make_flow
 import .MakeFlow: make_flow!
 import ..PrintLavaFlowInfo: print_flow_info
@@ -164,12 +164,14 @@ function extrude_magma_at_surface(
     lava_flow_decompaction_parameters::SedimentTransportParameters,
     use_compaction_correction::Bool=false
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+
+    # lava_flow_loop modifies topo_gridy, so we need to copy it to topo_gridy_initial
     topo_gridy_initial = copy(topo_gridy)
 
     (
         eruption_location_out_of_bounds, 
         total_lava_thickness
-    ) = lava_flow_loop(
+    ) = lava_flow_loop!(
         topo_gridx, topo_gridy, eruption_location_x_min, width_eruption_domain,
         total_extrusion_volume, number_of_flows_per_model_time_step,
         residual_lava_thickness_subaerial, residual_laval_thickness_submarine,
@@ -177,19 +179,19 @@ function extrude_magma_at_surface(
         decimation_factor
     )
 
-    sediment_and_flow_thickness_total = copy(sediment_and_flow_thickness_initial)
-    sediment_and_flow_thickness_initial_compacted = copy(sediment_and_flow_thickness_initial)
-
     if use_compaction_correction && !eruption_location_out_of_bounds && model !== nothing
         (
             total_lava_thickness, 
             sediment_and_flow_thickness_total,
             sediment_and_flow_thickness_initial_compacted
-         ) = apply_compaction_model(
+         ) = apply_compaction_model!(
             model, topo_gridx, topo_gridy, topo_gridy_initial,
             sediment_and_flow_thickness_initial,
             lava_flow_decompaction_parameters
         )
+    else
+        sediment_and_flow_thickness_total = copy(sediment_and_flow_thickness_initial)
+        sediment_and_flow_thickness_initial_compacted = copy(sediment_and_flow_thickness_initial)
     end
 
     return (
@@ -255,7 +257,7 @@ end
     flow markers.
 
 """
-function lava_flow_loop(
+function lava_flow_loop!(
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     eruption_location_x_min::Float64,

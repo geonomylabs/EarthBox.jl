@@ -9,7 +9,7 @@ import EarthBox.Interpolation.MarkerGridMapping: upr_left_x_mapping_vy_grid
 import EarthBox.Interpolation.MarkerGridMapping: upr_left_y_mapping_vy_grid
 import EarthBox: ConversionFuncs
 import EarthBox.SedimentThickness: calculate_sediment_thickness_from_markers
-import EarthBox.Compaction.ApplyCompaction: apply_compaction_model
+import EarthBox.Compaction.ApplyCompaction: apply_compaction_model!
 import EarthBox.DataStructures: SedimentTransportParameters
 
 function set_topo_velocity_to_zeros!(toponum::Int, gridt::Array{Float64,2})::Nothing
@@ -278,7 +278,7 @@ function advect_topography_vertically_for_salt_deposition!(model::ModelData)::No
 
         salt_decompaction_parameters = get_salt_decompaction_parameters()
 
-        _, _, _ = apply_compaction_model(
+        _, _, _ = apply_compaction_model!(
             model, topo_gridx, topo_gridy, topo_gridy_initial,
             sediment_thickness_initial,
             salt_decompaction_parameters

@@ -61,7 +61,7 @@ import ..CompactionCorrection: apply_compaction_correction_for_topography_and_ma
     The initial sediment and flow thickness after compaction (meters).
 
 """
-function apply_compaction_model(
+function apply_compaction_model!(
     model::ModelData,
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
