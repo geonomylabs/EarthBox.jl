@@ -16,7 +16,6 @@ import ..PrintLavaFlowInfo: print_flow_info
 mutable struct LavaFlowSolver
     topo_gridx::Vector{Float64}
     topo_gridy::Vector{Float64}
-    topo_gridy_initial::Vector{Float64}
     sediment_and_flow_thickness_initial::Union{Vector{Float64}, Nothing}
     sediment_and_flow_thickness_initial_compacted::Union{Vector{Float64}, Nothing}
     sediment_and_flow_thickness_total::Union{Vector{Float64}, Nothing}
@@ -56,7 +55,6 @@ function LavaFlowSolver(
     LavaFlowSolver(
         topo_gridx,
         topo_gridy,
-        copy(topo_gridy),
         sediment_and_flow_thickness_initial,
         nothing,
         nothing,

@@ -77,6 +77,8 @@ function run_test()
     println("   >> characteristic_volume_per_flow: ", characteristic_volume_per_flow)
     println("   >> number of flows: ", number_of_flows)
 
+    topo_gridy_initial_snapshot = copy(topo_gridy_initial)
+
     lava_flow_solver = LavaFlowSolver(
         topo_gridx,
         topo_gridy_initial,
@@ -97,7 +99,7 @@ function run_test()
     extrude_magma(lava_flow_solver)
 
     top_sediment = lava_flow_solver.topo_gridy .+ lava_flow_solver.total_lava_thickness
-    basement_initial = lava_flow_solver.topo_gridy_initial .+ sediment_thickness_initial
+    basement_initial = topo_gridy_initial_snapshot .+ sediment_thickness_initial
 
     make_plot(
         lava_flow_solver.topo_gridx,

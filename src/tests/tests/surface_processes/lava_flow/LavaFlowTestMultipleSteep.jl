@@ -95,6 +95,7 @@ function run_test()
         slot_half_width, slot_floor_depth, slot_wall_width,
         broad_depth_at_slot_edge, broad_half_width
     )
+    topo_composite_initial = copy(topo_composite)
 
     solver_composite = LavaFlowSolver(
         topo_gridx, topo_composite, sediment_initial,
@@ -117,6 +118,7 @@ function run_test()
     topo_broad = make_topoy_broad_rift(
         topo_gridx, x_eruption, broad_half_width, broad_depth_at_slot_edge
     )
+    topo_broad_initial = copy(topo_broad)
 
     solver_broad = LavaFlowSolver(
         topo_gridx, topo_broad, sediment_initial,
@@ -135,9 +137,6 @@ function run_test()
     print_diagnostics("Broad rift only (no slot)",
                       solver_broad.total_lava_thickness,
                       x_eruption, slot_half_width, total_extrusion_volume, dx)
-
-    topo_composite_initial = solver_composite.topo_gridy_initial
-    topo_broad_initial     = solver_broad.topo_gridy_initial
 
     plot_surface_comparison(
         topo_gridx,
