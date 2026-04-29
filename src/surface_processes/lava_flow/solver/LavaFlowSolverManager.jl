@@ -338,8 +338,7 @@ function lava_flow_loop(
         end
     end
 
-    total_lava_thickness = copy(total_lava_thickness_compacted)
-    return eruption_location_out_of_bounds, total_lava_thickness
+    return eruption_location_out_of_bounds, total_lava_thickness_compacted
 end
 
 function calculate_eruption_x_location(
