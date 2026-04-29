@@ -531,7 +531,8 @@ function calculate_compaction_properties_for_compaction_array_opt(
     ncells = size(compaction_array, 2)
     nmarkers_sediment = length(marker_indices_sedimentary_basin)
 
-    Threads.@threads for k in 1:nmarkers_sediment
+    # Threading removed due to race condition on compaction_array
+    for k in 1:nmarkers_sediment
         imarker = marker_indices_sedimentary_basin[k]
         compaction_yindex = markers_compaction_yindex[imarker]
         if !(compaction_yindex < 1)
