@@ -8,9 +8,17 @@ module LavaFlowPulse
 - `topo_gridx`: The x-coordinates (meters) of the topography grid
 - `topo_gridy`: The y-coordinates (meters) of the topography grid
 - `lava_thickness`: The thickness of lava on the topography grid (meters)
+- `lava_thickness_old`: Caller-provided scratch buffer of length `xnum`.
+    Contents on entry are irrelevant — `fill!`-ed with `1e38` here as a
+    sentinel to force the convergence loop to enter at least once.
+- `sorted_indices`: Caller-provided permutation of `1:xnum` ordered by
+    distance from `eruption_node`. Within a single `make_flow` call the
+    eruption location is fixed, so the same permutation is reused across
+    all pulses.
+- `eruption_node`: Grid node index of the eruption. Caller is
+    responsible for clamping into `1:xnum`.
 - `eruption_thickness`: The thickness of lava at the eruption point (meters)
 - `residual_lava_thickness`: The residual thickness of lava (meters)
-- `x_eruption`: The x-coordinate of the eruption point (meters)
 - `tolerance`: The tolerance for the lava flow model
 - `nmax`: The maximum number of iterations for the lava flow model
 
@@ -21,32 +29,25 @@ function lava_flow_pulse(
     topo_gridx::Vector{Float64},
     topo_gridy::Vector{Float64},
     lava_thickness::Vector{Float64},
+    lava_thickness_old::Vector{Float64},
+    sorted_indices::Vector{Int},
+    eruption_node::Int,
     eruption_thickness::Float64,
-    residual_lava_thickness::Float64,
-    x_eruption::Float64;
+    residual_lava_thickness::Float64;
     tolerance::Float64=1e-6,
     nmax::Int=20
 )::Int
     xnum = length(topo_gridx)
-    dx = topo_gridx[2] - topo_gridx[1]
-    eruption_node = floor(Int, x_eruption / dx) + 1
-    if eruption_node < 1 || eruption_node > xnum
-        eruption_node = 1
-    end
 
     lava_thickness[eruption_node] += eruption_thickness
-    lava_thickness_old = Vector{Float64}(undef, xnum) #fill(1e38, xnum)
-    Threads.@threads for i in 1:xnum
-        lava_thickness_old[i] = 1e38
-    end
+    fill!(lava_thickness_old, 1e38)
 
     max_diff = calculate_max_difference(lava_thickness, lava_thickness_old)
-    sorted_indices = radiate_indices(xnum, eruption_node)
     icount = 0
 
     while max_diff > tolerance && icount < nmax
         lava_thickness_old .= lava_thickness
-        for mm in 1:xnum
+        @inbounds for mm in 1:xnum
             i = sorted_indices[mm]
             if 1 < i < xnum
                 thickness_left = lava_thickness[i-1]
@@ -61,8 +62,8 @@ function lava_flow_pulse(
                 y_surface_active = topo_active - thickness_active
                 y_surface_right = topo_right - thickness_right
 
-                delta_elevation_left = max(0, y_surface_left - y_surface_active)
-                delta_elevation_right = max(0, y_surface_right - y_surface_active)
+                delta_elevation_left = max(0.0, y_surface_left - y_surface_active)
+                delta_elevation_right = max(0.0, y_surface_right - y_surface_active)
 
                 delta_elevation_nonzero_minimum = calculate_minimum_nonzero_delta_elevation(
                     delta_elevation_left, delta_elevation_right
@@ -70,7 +71,7 @@ function lava_flow_pulse(
 
                 delta_elevation_total = abs(delta_elevation_left) + abs(delta_elevation_right)
 
-                if delta_elevation_total > 0 && thickness_active > residual_lava_thickness
+                if delta_elevation_total > 0.0 && thickness_active > residual_lava_thickness
                     total_potential_outflow_thickness = calculate_total_potential_outflow_thickness(
                         lava_thickness[i],
                         residual_lava_thickness,
@@ -78,7 +79,7 @@ function lava_flow_pulse(
                     )
 
                     total_outflow_thickness = 0.0
-                    if delta_elevation_left > 0
+                    if delta_elevation_left > 0.0
                         outflow_thickness_to_left = calculate_outflow_thickness(
                             total_potential_outflow_thickness,
                             delta_elevation_left,
@@ -88,7 +89,7 @@ function lava_flow_pulse(
                         lava_thickness[i-1] += outflow_thickness_to_left
                     end
 
-                    if delta_elevation_right > 0
+                    if delta_elevation_right > 0.0
                         outflow_thickness_to_right = calculate_outflow_thickness(
                             total_potential_outflow_thickness,
                             delta_elevation_right,
@@ -108,16 +109,43 @@ function lava_flow_pulse(
     return icount
 end
 
-""" Radiate indices from a reference index.
+""" Radiate indices from a reference index, allocation-free.
+
+Writes a permutation of `1:size` into `sorted_indices`, ordered by
+ascending `abs(i - ref_index)`. Uses `distances_scratch` as a
+preallocated scratch buffer. Bit-equivalent to `radiate_indices_old`
+because `sortperm!` defaults to a stable sort: ties (same distance) are
+broken by ascending original index, which is the same tie-breaker the
+old `indices[sortperm(distances)]` formulation produces.
 
 # Arguments
-- `size`: Size of the array
-- `ref_index`: Reference index to radiate from
-
-# Returns
-- Array of indices sorted by distance from reference index
+- `sorted_indices`: Output buffer, length `size`. Filled with the
+    permutation; prior contents irrelevant.
+- `distances_scratch`: Scratch buffer, length `size`. Overwritten.
+- `size`: Length of the index range.
+- `ref_index`: Reference index from which distance is measured.
 """
-function radiate_indices(size::Int, ref_index::Int)::Vector{Int}
+function radiate_indices!(
+    sorted_indices::Vector{Int},
+    distances_scratch::Vector{Int},
+    size::Int,
+    ref_index::Int
+)::Nothing
+    @inbounds for i in 1:size
+        distances_scratch[i] = abs(i - ref_index)
+    end
+    sortperm!(sorted_indices, distances_scratch)
+    return nothing
+end
+
+""" Original allocating implementation, kept for reference.
+
+`collect(1:size)` + `abs.(... .- ref_index)` + `sortperm(distances)` +
+`indices[sortperm(...)]` allocated four `Vector{Int}` of length `size`
+per call; with `npulses ≈ 100` per flow these were a major component of
+the lava-flow allocation budget. Replaced by `radiate_indices!` above.
+"""
+function radiate_indices_old(size::Int, ref_index::Int)::Vector{Int}
     indices = collect(1:size)
     distances = abs.(indices .- ref_index)
     return indices[sortperm(distances)]
