@@ -10,6 +10,7 @@ import EarthBox.DataStructures: SedimentTransportParameters
 import EarthBox.EBCopy: copy_array_1d!
 import EarthBox.Compaction.ApplyCompaction: apply_compaction_model
 import .MakeFlow: make_flow
+import .MakeFlow: make_flow!
 import ..PrintLavaFlowInfo: print_flow_info
 
 mutable struct LavaFlowSolver
@@ -101,8 +102,10 @@ function extrude_magma(
         solver.number_of_flows_per_model_time_step,
         solver.residual_lava_thickness_subaerial,
         solver.residual_laval_thickness_submarine,
-        solver.y_sealevel, solver.use_random_eruption_location,
-        solver.use_normal_eruption_location, solver.decimation_factor,
+        solver.y_sealevel, 
+        solver.use_random_eruption_location,
+        solver.use_normal_eruption_location, 
+        solver.decimation_factor,
         solver.lava_flow_decompaction_parameters,
         solver.use_compaction_correction
     )
@@ -273,6 +276,20 @@ function lava_flow_loop(
     flow_volume = total_extrusion_volume / number_of_flows_per_model_time_step
 
     total_lava_thickness_compacted = zeros(Float64, xnum)
+    flow_thickness = zeros(Float64, xnum)
+
+    # Buffers passed into make_flow! so per-flow allocations of the
+    # decimated grid + pulse scratch arrays are eliminated. Sized once
+    # at the decimated grid length and reused for all flows in this
+    # loop.
+    xnum_decimated = length(1:decimation_factor:xnum)
+    topo_gridx_decimated     = Vector{Float64}(undef, xnum_decimated)
+    topo_gridy_decimated     = Vector{Float64}(undef, xnum_decimated)
+    flow_thickness_decimated = Vector{Float64}(undef, xnum_decimated)
+    lava_thickness_old       = Vector{Float64}(undef, xnum_decimated)
+    sorted_indices           = Vector{Int}(undef,     xnum_decimated)
+    distances_scratch        = Vector{Int}(undef,     xnum_decimated)
+
     eruption_location_out_of_bounds = false
 
     for mm in 1:number_of_flows_per_model_time_step
@@ -295,11 +312,13 @@ function lava_flow_loop(
                 residual_lava_thickness_submarine
             )
 
-        flow_thickness = zeros(Float64, xnum)
+        fill!(flow_thickness, 0.0)
         if xmin < eruption_location_x < xmax
-            make_flow(
-                topo_gridx, topo_gridy, flow_thickness, flow_volume,
-                residual_lava_thickness, eruption_location_x;
+            make_flow!(
+                topo_gridx, topo_gridy, flow_thickness,
+                topo_gridx_decimated, topo_gridy_decimated, flow_thickness_decimated,
+                lava_thickness_old, sorted_indices, distances_scratch,
+                flow_volume, residual_lava_thickness, eruption_location_x;
                 decimation_factor=decimation_factor, tolerance=1e-4, nmax=1000,
                 use_single_pulse=false
             )
