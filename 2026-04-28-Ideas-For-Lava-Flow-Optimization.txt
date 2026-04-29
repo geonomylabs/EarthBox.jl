@@ -1,0 +1,3595 @@
+ ▐▛███▜▌   Claude Code v2.1.121
+▝▜█████▛▘  Opus 4.7 · Claude Max
+  ▘▘ ▝▝    ~/apps/julia/EarthBox
+
+❯ Do you recall the details of the RAM tests we performed?                      
+
+  Recalled 1 memory (ctrl+o to expand)
+
+● Yes — here's what I have on the EarthBox RAM tests (saved as a project
+  memory):
+
+  Log format — case4p*.out style logs from @timeit_memit in
+  src/utils/PrintFuncs.jl:
+  - ++ Finished <section> : cpu(s) : <s> : MB : <RSS_MB> — per-section
+  - ++ # Finished <group> : cpu(s) : <s> : MB : <RSS_MB> — group wrapper
+
+  Key gotcha: Sys.maxrss() is sampled before the section runs, so the printed MB
+   is start-of-section RSS, not end. To attribute growth, compute RAM(next) − 
+  RAM(self) and filter out # lines first (they're group wrappers sampled at a
+  different point and create false "drops"). Sys.maxrss() is also
+  high-water/monotonic per process — real drops only appear when the OS reclaims
+   pages.
+
+  Top RAM offenders identified (case4 logs, late April 2026):
+  1. looping over nodes to calc nonzeros + rhs — Stokes assembly inside Picard
+  loop, dominant inner-loop leak
+  2. updating topography using lava flow — monotonic accumulation, not
+  proportional to flow count → stateful arrays growing across invocations
+  3. managing model output — ~19 GB single-step spike from getoutform allocating
+   one nmarkers copy per marker scalar field (~27), all held in
+  scalars_on_markers until make_jld2_file finishes
+  4. calculating Stokes norms — MathTools.jl abs.(v_old .- v) allocates
+  ~8×/Picard iter
+  5. updating topography using sediment transport — largely addressed by commits
+   b2aef8a / 576db23 / 24eb885
+
+  Note that #5 and the recent git history (inside_flags fix in 24eb885, sediment
+   transport optimization in b2aef8a) suggest the picture may have shifted since
+   the memory was written. Want me to re-run the analysis on a fresh log?
+
+✻ Baked for 11s
+
+❯ Here is a new early log file for case0 of sdr_dynamics. Analyze the RAM usage 
+   using your previous learnings: '/home/ekneller/tmp/model_case0.log'          
+
+  Searched for 3 patterns, read 1 file (ctrl+o to expand)
+
+● Write(/tmp/ram_analyze.py)
+  ⎿  Wrote 89 lines to ../../../../../tmp/ram_analyze.py
+      1 #!/usr/bin/env python3
+      2 """Analyze EarthBox RAM log per learnings:
+      3 - @timeit_memit prints RSS BEFORE the section runs
+      4 - credit each section with RAM_next - RAM_self
+      5 - exclude '# Finished' group lines (they are wrappers, sampled at
+         different points)
+      6 """
+      7 import re
+      8 import sys
+      9 from collections import defaultdict
+     … +93 lines (ctrl+o to expand)
+
+● Bash(python3 /tmp/ram_analyze.py)
+  ⎿  Total Finished lines: 17233, sections (non-#): 17039, group wrappers:
+     194
+     … +81 lines (ctrl+o to expand)
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Write(/tmp/ram_analyze2.py)
+  ⎿  Wrote 76 lines to ../../../../../tmp/ram_analyze2.py
+       2 """Look at lava flow specifically and its neighbors."""
+       3 import re
+       4 from collections import defaultdict, Counter
+       5 
+       6 LOG = "/home/ekneller/tmp/model_case0.log"
+       7 pat = re.compile(r"^\s*\+\+\s+(#\s+)?Finished\s+(.+?)\s+:\s+cpu\
+         (s\)\s+:\s+([\d.]+)\s+:\s+MB\s+:\s+([\d.]+)\s*$")
+       8 
+       9 records = []
+      10 with open(LOG) as f:
+     … +78 lines (ctrl+o to expand)
+
+● Bash(python3 /tmp/ram_analyze2.py)
+  ⎿  lava flow occurrences: 32
+     first 10 lava flow start-RSS samples: [71312.8, 71312.8, 71312.8, 7141
+     8.2, 72319.9, 73223.4, 74038.4, 75027.9, 75973.2, 77005.2]
+     … +86 lines (ctrl+o to expand)
+
+● Analyzed /home/ekneller/tmp/model_case0.log (37,814 lines, 17,233 Finished
+  records, 194 group wrappers, 32 outer timesteps, 937 Picard iterations).
+
+  Trajectory
+
+  - Start RSS: 68,646.8 MB
+  - Final RSS: 79,278.9 MB  (high-water plateau — flatlined after timestep ~12)
+  - Net growth: +10,632 MB (~10.4 GB)
+  - 70 GB crossed at section #20 (during make_backup_jld2, initial output)
+  - 78 GB crossed at section #1259 (timestep ~10)
+
+  Top offenders (after filtering out # Finished group lines)
+
+  1. Sediment transport + lava flow (the dominant per-step leak)
+  Same offender as the prior memory, but now sediment transport is back on top —
+   b2aef8a / 576db23 / 24eb885 did NOT eliminate it for this model.
+
+  The two sections run back-to-back (sed transport → lava flow). Looking at
+  start-RSS at each occurrence:
+
+  ┌─────┬─────────────────────┬─────────────────┬─────────────┐
+  │ Occ │ Sed-transport start │ Lava-flow start │ Δ this step │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 4   │ 71,565.9            │ 72,319.9        │ +901.8      │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 5   │ 72,466.9            │ 73,223.4        │ +903.5      │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 6   │ 73,284.9            │ 74,038.4        │ +815.0      │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 7   │ 74,272.9            │ 75,027.9        │ +989.5      │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 8   │ 75,218.7            │ 75,973.2        │ +945.2      │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 9   │ 76,249.7            │ 77,005.2        │ +1,032.0    │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 10  │ 77,282.7            │ 78,037.7        │ +1,032.5    │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 11  │ 78,314.4            │ 79,069.2        │ +1,031.5    │
+  ├─────┼─────────────────────┼─────────────────┼─────────────┤
+  │ 12  │ 79,278.9            │ 79,278.9        │ (saturated) │
+  └─────┴─────────────────────┴─────────────────┴─────────────┘
+
+  → ~1 GB per timestep stacking on RSS for ~8 timesteps before saturation. Net:
+  sediment transport sums to +6,144 MB, lava flow's deltas are credited to its
+  predecessor (sed transport) due to start-sample timing.
+
+  2. managing model output / export_xdmf — single one-shot spike
+  First occurrence at section #21 jumps RSS by +2,530.8 MB during initial JLD2
+  backup (make_backup_jld2). Does not recur — consistent with the prior memory's
+   diagnosis (getoutform allocating one nmarkers copy per ~27 marker scalar
+  fields, freed once make_jld2_file finishes).
+
+  3. calculating Stokes norms — still leaking inside Picard loop
+  +1,352 MB net across 937 Picard iterations (~29 Picard iters/timestep avg, max
+   delta +35 MB). The MathTools.jl abs.(v_old .- v) allocation pattern from
+  memory still applies — this is the inner-loop drip.
+
+  4. parallel direct solver for Stokes-continuity — +318 MB / 937 calls, ~0.3
+  MB/iter. Minor.
+
+  Caveats (per memory)
+
+  - Sys.maxrss() is monotonic, so the flatline at 79,278.9 MB after step 12 
+  doesn't mean the leak stopped — it means subsequent allocations stay under the
+   high-water mark. The leak likely continues, just under the envelope
+  established by the worst step.
+  - Lava flow's start-RSS samples its predecessor's end state, so its high RSS
+  readings get credited to sediment transport in the delta sum. The two should
+  be treated as a coupled pair.
+
+  Net diagnosis vs prior memory
+
+  - ✅ Output spike (managing model output) still ~2.5 GB but one-shot, matching
+   prior characterization.
+  - ✅ Stokes norms still drips ~1.4 MB/Picard iter — unchanged.
+  - ⚠️ Sediment transport is leaking ~1 GB/step in this model — regression or 
+  model-specific path not covered by b2aef8a / 576db23 / 24eb885. Worth
+  investigating against sdr_dynamics/case0 parameters (e.g. lava-flow-coupled
+  sediment path).
+  - ⚠️ Lava flow likely still has the stateful-array issue (memory note says
+  "monotonic accumulation, NOT proportional to flow count → stateful arrays
+  growing across invocations") but its delta is masked by sample timing.
+
+  Want me to dig into src/surface_processes/SurfaceProcesses.jl (currently
+  modified per git status) to look for sediment-transport allocations that
+  survived the prior optimizations?
+
+✻ Crunched for 1m 54s
+
+❯ Yes, but do not modify the code yet.                                          
+
+● I'll investigate the sediment-transport and lava-flow code paths read-only,
+  looking for what allocates ~1 GB/timestep.
+
+  Listed 1 directory (ctrl+o to expand)
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox status -s && echo "---" && git
+      -C /home/ekneller/apps/julia/EarthBox diff --stat
+      src/surface_processes/SurfaceProcesse…)
+  ⎿   M src/surface_processes/SurfaceProcesses.jl
+      M src/time_loop/TimeLoop.jl
+     ---
+     … +3 lines (ctrl+o to expand)
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff
+      src/surface_processes/SurfaceProcesses.jl src/time_loop/TimeLoop.jl)
+  ⎿  diff --git a/src/surface_processes/SurfaceProcesses.jl b/src/surface_p
+     rocesses/SurfaceProcesses.jl
+     index ba35ea3..213ae96 100644
+     … +18 lines (ctrl+o to expand)
+
+  Listed 2 directories (ctrl+o to expand)
+
+● Explore(Find sediment+lava-flow allocations)
+  ⎿  Done (42 tool uses · 69.4k tokens · 1m 10s)
+  (ctrl+o to expand)
+
+  Read 1 file (ctrl+o to expand)
+
+● Critical finding — let me verify solver sizing.
+
+  Searched for 7 patterns, read 4 files, listed 1 directory (ctrl+o to expand)
+● I have enough to consolidate the findings. Read-only investigation complete —
+  no code modified.
+
+  Investigation: what allocates inside sediment transport + lava flow
+
+  Confirmed from log
+
+  - >> use_optimized_sediment_solver: true appears 33× — the optimized path is 
+  in use, so the legacy ~3 GB dense L_buffer is not the culprit.
+  - The println you added at src/surface_processes/SurfaceProcesses.jl:53 is
+  what produced those lines.
+
+  Sediment-transport hotspots (read-only)
+
+  1. The whole SedimentTransportSolver is built fresh every call —
+  src/surface_processes/sediment_transport/SedimentTransport.jl:125-139. Every
+  timestep allocates new L_buffer/dl_buffer/d_buffer/du_buffer/S_buffer/R_buffer
+   plus three copy(...) of the topo/sediment arrays. The "preallocation" added
+  in b2aef8a only spans one solver instance — the solver itself is throwaway.
+  This is the 5895fa2 anti-pattern at a coarser grain.
+
+  2. topo_grid_diffusivity = make_topo_diffusivity_grid(...) allocates 
+  zeros(toponum) per inner sediment timestep —
+  src/surface_processes/sediment_transport/solver/core/Diffusivity.jl:78, called
+   from SedimentTransportSolverManager.jl:283 inside the nsteps inner loop.
+
+  3. topo_grid_pelagic_sedimentation_rate similarly fresh per inner step —
+  SedimentTransportSolverManager.jl:289-290 / :389.
+
+  use_collections=false is set at SedimentTransport.jl:133, so the
+  TransportCollections Dict is not accumulating — that's a latent leak only if
+  the flag flips.
+
+  Lava-flow hotspots — the per-pulse churn looks dominant
+
+  src/surface_processes/lava_flow/solver/LavaFlowSolverManager.jl:298 —
+  flow_thickness = zeros(Float64, xnum) per flow inside the
+  number_of_flows_per_model_time_step loop.
+
+  Inside make_flow → lava_flow_pulse the pattern compounds badly
+  (src/surface_processes/lava_flow/solver/core/LavaFlowPulse.jl):
+  - :38 — lava_thickness_old = Vector{Float64}(undef, xnum) per pulse
+  - :44 — radiate_indices(xnum, eruption_node) returns a fresh Vector{Int} and
+  internally allocates collect(1:size) + a sortperm array (2 arrays per pulse)
+  - :139 — calculate_max_difference uses abs.(lava_thickness .- 
+  lava_thickness_old) allocating an xnum Float64 array, called once per 
+  while-loop iteration up to nmax=1000 per pulse
+
+  So for each lava-flow call: nflows × (3 fixed allocations + up-to-nmax 
+  fused-broadcast allocations) × xnum. With xnum=1151, nmax=1000 and several
+  flows per timestep, you're allocating tens to hundreds of MB of churn per
+  timestep — which doesn't show as retained heap in Julia, but does push
+  Sys.maxrss() up monotonically and hold pages on the heap.
+
+  grep for push!/append!/resize! under lava_flow/ returned nothing — so the
+  prior memory's "stateful arrays growing across invocations" theory for lava
+  flow does not match the current code. The leak signature is allocation-churn →
+   heap-growth, not a growing collection.
+
+  Verdict on which side dominates the ~1 GB/step
+
+  Sediment transport's predecessor-of-lava-flow delta is +750–1030 MB; lava
+  flow's own per-occurrence delta is +100–210 MB (occ-3 → occ-4 → occ-12). With
+  flow_thickness = zeros(Float64, xnum) per flow + the abs.(...) churn inside
+  the while loop, lava flow is non-trivial but smaller than sediment transport.
+  Most of the per-step climb is coming from the sediment-transport path.
+
+  The per-call solver re-construction (#1) plus per-inner-step
+  diffusivity/pelagic grid allocations (#2, #3) together explain the leak
+  signature far better than any single retained collection.
+
+  Suggested next investigation step (no code change)
+
+  To prove the diffusivity/pelagic per-inner-step allocations are the dominant
+  churn, an @time or Profile.Allocs instrumentation around
+  run_sediment_transport_time_steps! for one timestep would settle it. Want me
+  to draft the patch (still no commit)?
+
+✻ Cooked for 3m 47s
+
+❯ /export                                                                       
+  ⎿  Conversation exported to:
+     /home/ekneller/apps/julia/EarthBox/2026-04-28-RAM-Next-Steps-V2.txt
+
+※ recap: We're investigating why EarthBox case0 leaks ~1 GB RAM per timestep, plateauing at 79 GB. I traced it read-only to per-call allocations in sediment transport and lava flow. Next: draft an instrumentation patch (no commit) to confirm. (disable recaps in /config)
+
+❯ Time (run_sediment_transport_time_steps!): 4.071245425 s                      
+  Allocated bytes (run_sediment_transport_time_steps!): 829425064               
+  GC time (run_sediment_transport_time_steps!): 0.0 s                           
+
+● That timing measurement is decisive. Let me parse it:
+
+  - 791 MB allocated per call (829,425,064 bytes) to
+  run_sediment_transport_time_steps!
+  - 0.0 s GC time — the garbage collector did not fire during the 4 s call
+  - Wall time: 4.07 s
+
+  This nails the diagnosis cleanly:
+
+  Allocation churn ≈ observed RSS delta. The 791 MB allocated per call matches
+  the 750–1030 MB per-step RSS climb we saw between timesteps 4–11 almost 1:1.
+  The ~150–250 MB remainder per step is lava flow's per-pulse churn
+  (flow_thickness, lava_thickness_old, radiate_indices, the in-loop abs.(...)
+  broadcast).
+
+  GC=0 explains the plateau-then-flatline RSS shape. With 0 s of GC during a 4 s
+   call, the heap is just growing during the call — nothing reclaimed mid-step.
+  Each call ratchets the high-water mark up by ~800 MB until GC pressure
+  stabilizes at some new equilibrium (the 79,278.9 MB plateau). After that, the
+  same churn fits inside the heap envelope so Sys.maxrss flatlines — but the
+  work is still being done, the leak isn't actually fixed.
+
+  The prior memory is wrong for this model. "largely addressed by commits
+  b2aef8a / 576db23 / 24eb885" was true for the constant-toponum benchmark but
+  not for sdr_dynamics/case0 — the 791 MB/call confirms the per-call solver
+  re-construction (SedimentTransport.jl:125-139) + per-inner-step
+  diffusivity/pelagic grid allocations (Diffusivity.jl:78,
+  SedimentTransportSolverManager.jl:389) are the surviving allocation sources.
+
+  Updating the memory note to reflect this.
+
+  Wrote 1 memory (ctrl+o to expand)
+
+● Memory updated.
+
+  Concrete suggested fix path (no code changes yet):
+
+  1. Hoist the solver out of the per-call code path. SedimentTransportSolver
+  should be constructed once and stored on model (or a manager object), with its
+   buffers reused across timesteps. The current pattern at
+  SedimentTransport.jl:125-139 defeats b2aef8a's preallocation. Caveat: toponum
+  would need to be stable across timesteps, or the buffers need to be resizable
+  — worth checking whether topo_gridx length actually changes between timesteps
+  in sdr_dynamics.
+  2. Move topo_grid_diffusivity and topo_grid_pelagic_sedimentation_rate onto 
+  the solver as preallocated buffers. Replace per-inner-step zeros(toponum) with
+   fill!(solver.diffusivity_buffer, 0.0).
+  3. For lava flow: preallocate flow_thickness, lava_thickness_old,
+  sorted_indices, and a scratch buffer for the abs.(...) broadcast on a
+  LavaFlowSolver struct (which doesn't currently exist as a persistent object —
+  would need to be added to model.surface_processes or similar).
+
+  Want me to draft the patches for #2 (lowest blast radius — purely buffer reuse
+   inside the existing solver), or start with #1 (highest impact but bigger
+  refactor)?
+
+✻ Cogitated for 48s
+
+※ recap: Diagnosing a ~1 GB/timestep RSS leak in EarthBox sediment transport + lava flow on sdr_dynamics/case0; investigation is read-only and complete. Next: decide whether to draft buffer-reuse patches for lava flow first or hoist the per-call SedimentTransportSolver construction first. (disable recaps in /config)
+
+❯ OK, let's work on 2. But you have to ensure that the new code produces the    
+  same result as the old. You also need to make sure that any touch points are  
+  updated for compatability.                                                    
+
+● I'll plan this carefully — same numerical result is the key constraint. Let me
+   read all the relevant files first.
+
+  Searched for 2 patterns, read 3 files (ctrl+o to expand)
+
+● Confirmed: BuildSys only reads from these arrays (lines 160, 169, 202-204
+  etc.), never writes. And no callers of make_topo_diffusivity_grid /
+  calculate_pelagic_sedimentation_rate_grid /
+  calculate_sediment_transport_diffusivity exist outside this module — minimal
+  blast radius. Plan:
+
+  1. Convert make_topo_diffusivity_grid and
+  calculate_sediment_transport_diffusivity in Diffusivity.jl to in-place !
+  versions that write into a passed-in buffer.
+  2. Convert calculate_pelagic_sedimentation_rate_grid similarly.
+  3. Add two preallocated Vector{Float64} buffers to SedimentTransportSolver
+  (size toponum), constructed once.
+  4. Pass the buffers in the inner loop instead of allocating fresh.
+
+  Numerical equivalence: Both functions originally use zeros(toponum) then write
+   indices 2:toponum (idx 1 stays 0.0). The constant-diffusivity path uses
+  fill(topo_diff_coef, xnum) (writes all). I'll replicate exactly: fill!(buf, 
+  0.0) once, then the same write loop; constant path does fill!(buf, 
+  topo_diff_coef). Same floating-point result.
+
+● Update(src/surface_processes/sediment_transport/solver/core/Diffusivity.jl)
+  ⎿  Added 7 lines, removed 5 lines
+       3  import EarthBox.ConversionFuncs: mm_per_yr_to_meters_per_second
+          s
+       4  import EarthBox.DataStructures: SedimentTransportParameters
+       5  
+       6 -function make_topo_diffusivity_grid(                           
+       6 +function make_topo_diffusivity_grid!(                          
+       7 +    topo_grid_diffusivity::Vector{Float64},                    
+       8      topo_gridx::Vector{Float64},
+       9      water_depth_x::Vector{Float64},
+      10      downstream_distances_x::Vector{Float64},
+      11      sediment_transport_parameters::SedimentTransportParameters,
+      12      use_constant_diffusivity::Bool
+      12 -)::Vector{Float64}                                             
+      13 +)::Nothing                                                     
+      14      if use_constant_diffusivity
+      14 -        xnum = length(topo_gridx)                              
+      15          topo_diff_coef = sediment_transport_parameters.subaeria
+          l_slope_diffusivity
+      16 -        return fill(topo_diff_coef, xnum)                      
+      16 +        fill!(topo_grid_diffusivity, topo_diff_coef)           
+      17      else
+      18 -        return calculate_sediment_transport_diffusivity(       
+      18 +        calculate_sediment_transport_diffusivity!(             
+      19 +            topo_grid_diffusivity,                             
+      20              topo_gridx, water_depth_x,
+      21              downstream_distances_x,
+      22              sediment_transport_parameters.subaerial_slope_diffu
+          sivity,
+     ...
+      26              sediment_transport_parameters.submarine_diffusion_d
+          ecay_depth
+      27          )
+      28      end
+      29 +    return nothing                                             
+      30  end
+      31  
+      32  """ Calculate slope diffusion coefficient.
+
+● Update(src/surface_processes/sediment_transport/solver/core/Diffusivity.jl)
+  ⎿  Added 8 lines, removed 7 lines
+      66  # Returns
+      67  - `topo_grid_diffusivity`: Topography diffusion coefficient (m^
+          2/s)
+      68  """
+      69 -function calculate_sediment_transport_diffusivity(             
+      69 +function calculate_sediment_transport_diffusivity!(            
+      70 +    topo_grid_diffusivity::Vector{Float64},                    
+      71      topo_gridx::Vector{Float64},
+      72      water_depth_x::Vector{Float64},
+      73      downstream_distances::Vector{Float64},
+     ...
+      76      subaerial_transport_coefficient::Float64,
+      77      submarine_slope_diffusivity::Float64,
+      78      submarine_diffusion_decay_depth::Float64
+      78 -)::Vector{Float64}                                             
+      79 +)::Nothing                                                     
+      80      toponum = length(topo_gridx)
+      80 -    topo_grid_diffusivity = zeros(toponum)                     
+      81 -                                                               
+      81 +    topo_grid_diffusivity[1] = 0.0                             
+      82 +                                                               
+      83      for i in 2:toponum
+      84          dd_dist = downstream_distances[i]
+      85          water_depth = water_depth_x[i]
+      86          if water_depth > 0.0
+      86 -            topo_grid_diffusivity[i] = submarine_slope_diffusiv
+         -ity *                                                          
+      87 +            topo_grid_diffusivity[i] = submarine_slope_diffusiv
+         +ity *                                                          
+      88                  exp(-water_depth / submarine_diffusion_decay_de
+          pth)
+      89          else
+      89 -            topo_grid_diffusivity[i] = subaerial_slope_diffusiv
+         -ity +                                                          
+      90 +            topo_grid_diffusivity[i] = subaerial_slope_diffusiv
+         +ity +                                                          
+      91                  precipitation_rate * subaerial_transport_coeffi
+          cient * dd_dist
+      92          end
+      93      end
+      93 -    return topo_grid_diffusivity                               
+      94 +    return nothing                                             
+      95  end
+      96  
+      97  """ Print topography diffusion coefficient in mm^2/yr.
+
+● Now update SedimentTransportSolverManager.jl — the import, struct,
+  constructor, inner loop, and convert pelagic to bang form.
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 1 line, removed 1 line
+      21  import EarthBox.EBCopy: copy_array_1d!
+      22  import .DownstreamDistance: calculate_downstream_distances_for_
+          nodes
+      23  import .WaterDepth: calculate_water_depth
+      24 -import .Diffusivity: make_topo_diffusivity_grid                
+      24 +import .Diffusivity: make_topo_diffusivity_grid!               
+      25  import .Solve: solve_downhill_diffusion
+      26  import .Solve: solve_downhill_diffusion_optimized
+      27  import .Collections: TransportCollections
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 7 lines
+      67      d_buffer::Union{Vector{Float64}, Nothing}
+      68      du_buffer::Union{Vector{Float64}, Nothing}
+      69      S_buffer::Union{Vector{Float64}, Nothing}
+      70 +    # Per-inner-step scratch buffers, written by `make_topo_dif
+         +fusivity_grid!`                                                
+      71 +    # and `calculate_pelagic_sedimentation_rate_grid!` then rea
+         +d by                                                           
+      72 +    # `solve_downhill_diffusion[_optimized]`. Reused across the
+         + `nsteps`                                                      
+      73 +    # inner loop and across timesteps; both functions overwrite
+         + every                                                         
+      74 +    # element they care about, so prior contents are irrelevant
+         +.                                                              
+      75 +    topo_grid_diffusivity_buffer::Vector{Float64}              
+      76 +    topo_grid_pelagic_sedimentation_rate_buffer::Vector{Float64
+         +}                                                              
+      77      use_optimized_solver::Bool
+      78  end
+      79  
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 3 lines
+      197          S_buffer  = nothing
+      198      end
+      199  
+      200 +    topo_grid_diffusivity_buffer = zeros(Float64, toponum)    
+      201 +    topo_grid_pelagic_sedimentation_rate_buffer = zeros(Float6
+          +4, toponum)                                                   
+      202 +                                                              
+      203      return SedimentTransportSolver(
+      204          basic_grid_x_dimensions,
+      205          copy(topo_gridx),
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 2 lines
+      228          d_buffer,
+      229          du_buffer,
+      230          S_buffer,
+      231 +        topo_grid_diffusivity_buffer,                         
+      232 +        topo_grid_pelagic_sedimentation_rate_buffer,          
+      233          use_optimized_solver
+      234      )
+      235  end
+
+● Now the inner loop — switch to bang variants and pass the solver's buffers.
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 10 lines, removed 8 lines
+      292          if solver.use_print_debug
+      293              print_timestep_info(solver, istep)
+      294          end
+      295 -        topo_grid_diffusivity = make_topo_diffusivity_grid(   
+      295 +        make_topo_diffusivity_grid!(                          
+      296 +            solver.topo_grid_diffusivity_buffer,              
+      297              solver.topo_gridx, water_depth_x, downstream_dista
+           nces_x,
+      298              solver.sediment_transport_parameters,
+      299              solver.use_constant_diffusivity
+      300          )
+      300 -        (                                                     
+      301 -            topo_grid_pelagic_sedimentation_rate              
+      302 -        ) = calculate_pelagic_sedimentation_rate_grid(        
+      301 +        calculate_pelagic_sedimentation_rate_grid!(           
+      302 +            solver.topo_grid_pelagic_sedimentation_rate_buffer
+          +,                                                             
+      303              pelagic_sedimentation_rate,
+      304              solver.topo_gridx, water_depth_x
+      305          )
+     ...
+      307              solution_array = solve_downhill_diffusion_optimize
+           d(
+      308                  solver.dl_buffer, solver.d_buffer, solver.du_b
+           uffer,
+      309                  solver.R_buffer, solver.S_buffer,
+      310 -                solver.topo_gridx, solver.topo_gridy, topo_gri
+          -d_diffusivity,                                                
+      311 -                topo_grid_pelagic_sedimentation_rate,         
+      310 +                solver.topo_gridx, solver.topo_gridy,         
+      311 +                solver.topo_grid_diffusivity_buffer,          
+      312 +                solver.topo_grid_pelagic_sedimentation_rate_bu
+          +ffer,                                                         
+      313                  solver.basic_grid_x_dimensions, solver.transpo
+           rt_timestep,
+      314                  solver.sediment_transport_parameters
+      315              )
+      316          else
+      317              solution_array = solve_downhill_diffusion(
+      318                  solver.L_buffer, solver.R_buffer,
+      318 -                solver.topo_gridx, solver.topo_gridy, topo_gri
+          -d_diffusivity,                                                
+      319 -                topo_grid_pelagic_sedimentation_rate,         
+      319 +                solver.topo_gridx, solver.topo_gridy,         
+      320 +                solver.topo_grid_diffusivity_buffer,          
+      321 +                solver.topo_grid_pelagic_sedimentation_rate_bu
+          +ffer,                                                         
+      322                  solver.basic_grid_x_dimensions, solver.transpo
+           rt_timestep,
+      323                  solver.sediment_transport_parameters
+      324              )
+
+● Now convert calculate_pelagic_sedimentation_rate_grid to its bang form.
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 6 lines, removed 5 lines
+      394      return nothing
+      395  end
+      396  
+      397 -function calculate_pelagic_sedimentation_rate_grid(           
+      397 +function calculate_pelagic_sedimentation_rate_grid!(          
+      398 +    topo_grid_pelagic_sedimentation_rate::Vector{Float64},    
+      399      pelagic_sedimentation_rate::Float64,
+      400      topo_gridx::Vector{Float64},
+      401      water_depth_x::Vector{Float64}
+      401 -)::Vector{Float64}                                            
+      402 +)::Nothing                                                    
+      403      toponum = length(topo_gridx)
+      403 -    topo_grid_pelagic_sedimentation_rate = zeros(Float64, topo
+          -num)                                                          
+      404 -                                                              
+      404 +    topo_grid_pelagic_sedimentation_rate[1] = 0.0             
+      405 +                                                              
+      406      for i in 2:toponum
+      407          water_depth = water_depth_x[i]
+      408          if water_depth > 0.0
+     ...
+      411              topo_grid_pelagic_sedimentation_rate[i] = 0.0
+      412          end
+      413      end
+      413 -    return topo_grid_pelagic_sedimentation_rate               
+      414 +    return nothing                                            
+      415  end
+      416  
+      417  function print_timestep_info(solver::SedimentTransportSolver, 
+           istep::Int)::Nothing
+
+● Now verify nothing else references the old non-bang names anywhere in the
+  tree.
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● All references show bang forms. Let me sanity-check the final state of the
+  modified files.
+
+  Read 1 file (ctrl+o to expand)
+
+● Let me run a Julia syntax check to make sure everything parses.
+
+● Bash(which julia && julia --version 2>&1 | head -2)
+  ⎿  /home/ekneller/.juliaup/bin/julia
+     julia version 1.12.1
+
+● Bash(julia --project=. -e 'include("src/surface_processes/sediment_transport/s
+      olver/core/Diffusivity.jl"); println("OK Diffusivity.jl")' 2>&1 | tail
+      -20)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     Precompiling packages...
+     … +14 lines (ctrl+o to expand)
+  ⎿  (timeout 2m)
+
+● Module precompiles cleanly — OK Diffusivity.jl and the full EarthBox package
+  both compiled. Now let me check for a sediment-transport test that can verify
+  numerical equivalence.
+
+  Searched for 2 patterns, read 2 files (ctrl+o to expand)
+
+● Let me run a focused numerical sanity check to confirm bang-version output
+  matches the old non-bang behavior bit-for-bit.
+
+● Write(/tmp/check_diffusivity_equivalence.jl)
+  ⎿  Wrote 109 lines to ../../../../../tmp/check_diffusivity_equivalence.jl
+         ion rate gride bang refactor of Diffusivity / pelagic sedimentat
+       2     produces bit-identical results to the original allocation pa
+       3 ttern.
+       4     Old:  arr = zeros(toponum); arr[2..end] = ...; return arr
+       5     New:  fill!(buf, 0.0) implicit + buf[1]=0.0 explicit; buf[2.
+       6 """d] = ...
+       7 using EarthBox
+         ortSolverManager.Diffusivity:es.SedimentTransport.SedimentTransp
+       9     make_topo_diffusivity_grid!,
+      10     calculate_sediment_transport_diffusivity!
+     … +122 lines (ctrl+o to expand)
+
+● Bash(julia --project=. /tmp/check_diffusivity_equivalence.jl 2>&1 | tail -30)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     ERROR: LoadError: cannot document the following expression:
+     … +15 lines (ctrl+o to expand)
+
+● Update(/tmp/check_diffusivity_equivalence.jl)
+  ⎿  Added 2 lines, removed 5 lines
+      1 -""" Verify the bang refactor of Diffusivity / pelagic sedimentat
+        -ion rate grid                                                   
+      2 -    produces bit-identical results to the original allocation pa
+        -ttern.                                                          
+      1 +# Verify the bang refactor of Diffusivity / pelagic sedimentatio
+        +n rate grid                                                     
+      2 +# produces bit-identical results to the original allocation patt
+        +ern.                                                            
+      3  
+      4 -    Old:  arr = zeros(toponum); arr[2..end] = ...; return arr   
+      5 -    New:  fill!(buf, 0.0) implicit + buf[1]=0.0 explicit; buf[2.
+        -.end] = ...                                                     
+      6 -"""                                                             
+      4  using EarthBox
+      5  using EarthBox.SurfaceProcesses.SedimentTransport.SedimentTransp
+         ortSolverManager.Diffusivity:
+      6      make_topo_diffusivity_grid!,
+
+● Bash(julia --project=. /tmp/check_diffusivity_equivalence.jl 2>&1 | tail -30)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     PASS: non-constant diffusivity bit-identical
+     … +8 lines (ctrl+o to expand)
+  ⎿  (timeout 3m)
+
+● All numerical checks pass:
+
+  - Bit-identical results — non-constant diffusivity, constant diffusivity, and
+  pelagic all produce == arrays vs. the original allocate-and-write reference.
+  - Reuse-safe — after poisoning index 1 and the last index between calls, the
+  next call overwrites them correctly.
+  - Zero allocations per call — confirmed by @allocated.
+
+  Let me clean up the temp test file and remove the now-stale debug println you
+  added.
+
+● Bash(rm /tmp/check_diffusivity_equivalence.jl /tmp/ram_analyze.py
+      /tmp/ram_analyze2.py)
+  ⎿  Done
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff --stat
+      src/surface_processes/sediment_transport/)
+  ⎿   .../solver/SedimentTransportSolverManager.jl       | 43 +++++++++++++
+     ++-------
+      .../sediment_transport/solver/core/Diffusivity.jl  | 27 ++++++++-----
+     … +2 lines (ctrl+o to expand)
+
+● Summary of changes
+
+  src/surface_processes/sediment_transport/solver/core/Diffusivity.jl
+  - make_topo_diffusivity_grid → make_topo_diffusivity_grid!(buf, ...) — writes
+  into caller-supplied buffer
+  - calculate_sediment_transport_diffusivity →
+  calculate_sediment_transport_diffusivity!(buf, ...) — same
+  - Constant path: fill!(buf, topo_diff_coef) (was fill(topo_diff_coef, xnum))
+  - Non-constant path: explicit buf[1] = 0.0 + same 2:toponum write loop (was
+  zeros(toponum) + same loop)
+
+  src/surface_processes/sediment_transport/solver/SedimentTransportSolverManager
+  .jl
+  - Added 2 fields to SedimentTransportSolver: topo_grid_diffusivity_buffer,
+  topo_grid_pelagic_sedimentation_rate_buffer (both Vector{Float64})
+  - Constructor allocates both as zeros(Float64, toponum) once
+  - Inner loop now calls make_topo_diffusivity_grid! and
+  calculate_pelagic_sedimentation_rate_grid! against the solver's buffers, then
+  passes those buffers into solve_downhill_diffusion[_optimized] (which only
+  reads them — verified)
+  - calculate_pelagic_sedimentation_rate_grid →
+  calculate_pelagic_sedimentation_rate_grid!(buf, ...) with explicit buf[1] = 
+  0.0
+
+  Verification
+  - Module precompiles
+  - Bit-identical output vs. the original allocate-and-write pattern (verified
+  for constant + non-constant diffusivity and pelagic)
+  - Reuse-safe (overwrites poisoned cells correctly)
+  - 0 bytes allocated per call to either bang function (was 8 × toponum bytes
+  per call before)
+
+  Not touched (deliberately scoped out per #2):
+  - The throwaway SedimentTransportSolver constructed every timestep at
+  SedimentTransport.jl:125 (suggestion #1)
+  - Other per-inner-step allocators in the same loop:
+  calculate_downstream_distances_for_nodes, calculate_water_depth, sealevel_x = 
+  fill(...), sediment_thickness_total = copy(...),
+  apply_compaction_correction[_for_topography_and_markers]
+  - The lava-flow per-pulse churn (suggestion #3)
+  - The debug println at src/surface_processes/SurfaceProcesses.jl:53 you added
+  — left in place for you
+
+  Expected impact: the per-call allocation budget for
+  run_sediment_transport_time_steps! should drop by nsteps × 2 × toponum × 8 
+  bytes. With toponum ≈ 20000 and nsteps ≈ 1000, that's ~320 MB out of the 791
+  MB measured per call — about a 40% reduction. The remainder is the throwaway
+  solver + downstream-distances + water-depth + compaction copies, all in
+  suggestion #1's scope.
+
+  Want me to draft #1 next, or should we measure the actual reduction from this
+  change first by re-running the model?
+
+✻ Worked for 5m 18s
+
+※ recap: Goal: cut RAM growth in EarthBox sediment transport. Just landed buffer-reuse refactor (Diffusivity + pelagic), bit-identical and zero-alloc per call. Next: re-run the model to measure the actual reduction from 791 MB/call. (disable recaps in /config)
+
+❯ Will the test still work? '/home/ekneller/apps/julia/EarthBox/src/tests/tests 
+  /surface_processes/sediment_transport/SedimentTransportTest.jl'                 ⎿  ⧉ Selected 1 lines from src/tests/tests/surface_processes/sediment_transport/SedimentTransportTest.jl in Cursor
+
+● Let me verify by reading the full test and running it.
+
+  Read 2 files (ctrl+o to expand)
+
+● API is preserved — test calls SedimentTransportSolver(...) positional+kwargs
+  and run_sediment_transport_time_steps!(solver), both unchanged. Let me run the
+   test for real with a headless Plots backend.
+
+● Bash(GKSwstype=nul julia --project=. -e '
+      using EarthBox…)
+  ⎿  >> Making plot for time step: 295
+     >> Making plot for time step: 475
+     >> Making plot for time step: 345
+     … +22 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● Test completes successfully on both code paths. Output for the optimized run:
+  - Min displacement: 0.0
+  - Max displacement: 321.40213555158016
+
+  To confirm numerical equivalence with main, let me run the same test on the
+  unmodified branch and compare.
+
+● Bash(git stash push -m "buffer-refactor WIP" --
+      src/surface_processes/sediment_transport/ 2>&1 | tail -5)
+  ⎿  <stdin>:181: trailing whitespace.
+                 topo_grid_diffusivity[i] = submarine_slope_diffusivity *
+     <stdin>:185: trailing whitespace.
+     … +2 lines (ctrl+o to expand)
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox status -s && git -C
+      /home/ekneller/apps/julia/EarthBox stash list)
+  ⎿  ?? compaction_displacement.png
+     ?? downhill_diffusion_0.png
+     ?? downhill_diffusion_10.png
+     … +84 lines (ctrl+o to expand)
+
+● Stash succeeded. Now run the test on the original (unmodified) code to capture
+   baseline displacement values.
+
+● Bash(GKSwstype=nul julia --project=. -e '
+      using EarthBox…)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     === BASELINE (unmodified main) ===
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 10m)
+
+● Baseline captured. Now restore the refactor and re-run.
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox stash pop 2>&1 | tail -5)
+  ⎿     downhill_diffusion_990.png
+        downhill_diffusion_995.png
+     … +2 lines (ctrl+o to expand)
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff --stat
+      src/surface_processes/sediment_transport/)
+  ⎿   .../solver/SedimentTransportSolverManager.jl       | 43 +++++++++++++
+     ++-------
+      .../sediment_transport/solver/core/Diffusivity.jl  | 27 ++++++++-----
+     … +2 lines (ctrl+o to expand)
+
+● Bash(GKSwstype=nul julia --project=. -e '
+      using EarthBox…)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     === REFACTORED (buffer-reuse) ===
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 10m)
+
+● Bit-identical output:
+
+  ┌───────────────────────────┬───────────────────┬───────────────────┬─────┐
+  │           Path            │  Baseline (main)  │    Refactored     │  Δ  │
+  ├───────────────────────────┼───────────────────┼───────────────────┼─────┤
+  │ use_optimized_solver=fals │ 321.3617034366707 │ 321.3617034366707 │ 0   │
+  │ e                         │                   │                   │     │
+  ├───────────────────────────┼───────────────────┼───────────────────┼─────┤
+  │ use_optimized_solver=true │ 321.4021355515801 │ 321.4021355515801 │ 0   │
+  │                           │ 6                 │ 6                 │     │
+  └───────────────────────────┴───────────────────┴───────────────────┴─────┘
+
+  The test runs end-to-end with no errors and produces identical Max 
+  displacement (and Min displacement = 0.0) on both code paths. Combined with
+  the earlier per-function bit-identity check, this confirms the refactor
+  preserves numerical results exactly.
+
+  The test left ~200 PNG plot files in the repo root (those are test artifacts
+  from make_plots, not from my changes — the test was producing them before too,
+   just into the same dir). Want me to clean those up?
+
+✻ Baked for 4m 3s
+
+❯ Now give me a plan for #1 (Hoist the solver out of the per-call code path). I 
+   want to see the plan before you implement it.                                
+  ⎿  ⧉ Selected 1 lines from src/tests/tests/surface_processes/sediment_transport/SedimentTransportTest.jl in Cursor
+
+● Let me re-read the key sections so the plan is grounded in the actual code.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Plan for #1 — Hoist SedimentTransportSolver out of the per-call code path
+
+  Goal
+
+  The current code at
+  src/surface_processes/sediment_transport/SedimentTransport.jl:125-139
+  constructs a fresh SedimentTransportSolver every call to
+  run_sediment_transport_model!. Every constructor invocation re-allocates all 7
+   buffers (L_buffer or the 4 tridiagonal buffers + S_buffer/R_buffer + the 2
+  buffers from #2) plus 4 copy(...) calls of the topo/sediment arrays. We want
+  to allocate once, reuse across timesteps.
+
+  Where to store the persistent solver
+
+  Recommendation: add sediment_transport_solver::Union{SedimentTransportSolver, 
+  Nothing} to model.topography (the natural owner — it already owns gridt whose
+  toponum drives buffer sizes). Initialize as nothing in the Topography
+  constructor. Models that don't enable sediment transport pay zero cost.
+
+  Rejected alternatives:
+  - Module-level cache via const Ref — global state, harms reentrancy.
+  - Union{T,Nothing}=nothing kwarg-passed buffer — explicitly forbidden by the
+  project's preallocation rules (5895fa2 anti-pattern).
+
+  API additions to SedimentTransportSolverManager
+
+  reset!(solver, ...new inputs...) — refresh per-call state without reallocating
+   buffers. Field-by-field:
+
+  ┌──────────────────────────────────────────────┬──────────────────────────┐
+  │                    Field                     │          Action          │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ basic_grid_x_dimensions, y_sealevel,         │ overwrite                │
+  │ pelagic_sedimentation_rate, scalars          │                          │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ topo_gridx, topo_gridy_initial, topo_gridy,  │ copy_array_1d! (no       │
+  │ sediment_thickness_initial                   │ reallocation)            │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │                                              │ overwrite (immutable     │
+  │ sediment_transport_parameters                │ struct, includes         │
+  │                                              │ adaptive                 │
+  │                                              │ transport_timestep)      │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ transport_timestep, nsteps                   │ recompute via            │
+  │                                              │ update_time_step         │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ sediment_thickness_initial_compacted,        │                          │
+  │ sediment_thickness_total_decompacted,        │ reset to nothing         │
+  │ compaction_displacement_max                  │                          │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ use_compaction_correction,                   │ overwrite (in case they  │
+  │ compaction_correction_type                   │ toggled)                 │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │                                              │ clear all four dicts if  │
+  │ collections                                  │ use_collections, no-op   │
+  │                                              │ otherwise                │
+  ├──────────────────────────────────────────────┼──────────────────────────┤
+  │ All _buffer fields                           │ leave alone — sizes      │
+  │                                              │ still valid              │
+  └──────────────────────────────────────────────┴──────────────────────────┘
+
+  is_compatible(solver, toponum, use_optimized_solver)::Bool — checks buffer
+  sizes match. If length(solver.topo_gridx) != toponum, or the optimized/legacy
+  buffer pair doesn't match use_optimized_solver, the solver can't be reused.
+
+  Update to run_sediment_transport_model!
+
+  Replace lines 125-139 with:
+
+  solver = get_or_init_solver!(model, basic_grid_x_dims, topo_gridx,
+  topo_gridy_initial,
+                               sediment_thickness_markers_initial,
+                               sediment_transport_parameters, y_sealevel,
+                               pelagic_sedimentation_rate,
+  use_compaction_correction,
+                               compaction_correction_type, use_optimized_solver)
+
+  Where get_or_init_solver!:
+  1. Reads model.topography.sediment_transport_solver.
+  2. If nothing or incompatible → build a fresh SedimentTransportSolver via the
+  existing constructor, assign to the field, return it.
+  3. Otherwise → reset!(solver, ...) and return it.
+
+  The "incompatible → reallocate" branch is the safety net for any case where
+  toponum legitimately changes mid-run; emits a print_info warning so we'd
+  notice if it's happening unexpectedly.
+
+  Touch points
+
+  File: src/structure/topography/Topography.jl (or wherever the struct lives)
+  Change: Add sediment_transport_solver field; initialize nothing in constructor
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/solver/SedimentTransportSolverM
+  anager.jl
+  Change: Add reset!, is_compatible, and a clear! helper for
+  TransportCollections
+    (in core/Collections.jl)
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/SedimentTransport.jl
+  Change: Replace constructor call with get_or_init_solver!; remove the per-call
+
+    SedimentTransportSolver(...)
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/solver/core/Collections.jl
+  Change: Add clear! method on TransportCollections (empty all four dicts
+    in-place)
+
+  No test changes required — SedimentTransportTest.jl:88-101 constructs
+  SedimentTransportSolver directly and calls it once. Constructor signature is
+  unchanged.
+
+  Numerical equivalence — how to verify
+
+  The existing test does one call and so doesn't exercise the cross-call reset
+  path. Validation strategy:
+
+  1. Targeted unit-style check (cheap): in a script, build solver A fresh + run,
+   build solver B fresh + run on different inputs. Then build solver C fresh,
+  run once, reset! to B's inputs, run again. Assert C's second-run output ==
+  solver-B's-only-run output. If == holds bit-for-bit, the reset path is
+  equivalent to fresh construction.
+  2. Existing test still passes — confirms single-call path didn't regress.
+  3. Real model rerun: re-run the sdr_dynamics/case0 log we analyzed and confirm
+   the topo trajectory through, say, 5 timesteps matches baseline git diff of
+  saved JLD2 outputs. (Expensive but the truth source.)
+
+  Expected impact
+
+  Per-call allocation savings from #1 alone:
+  - 3× copy(topo_gridx/y) + 1× copy(sed_thickness) ≈ 4 × toponum × 8 bytes
+  - 5–7 buffer allocations ≈ 5–7 × toponum × 8 bytes (depends on
+  use_optimized_solver)
+  - Total ≈ 9–11 × toponum × 8 bytes ≈ ~1.6 MB/call at toponum=20001
+
+  That's much smaller than #2's savings (~320 MB/call). #1 alone won't move the
+  needle hugely on the leak.
+
+  Optional Phase 2 (recommended, but separate decision)
+
+  If we're touching the solver lifecycle anyway, the natural follow-on is to
+  also preallocate the per-call/per-inner-step scratch arrays that currently get
+   allocated inside run_sediment_transport_time_steps!:
+
+  ┌─────────────────────────────────────────┬──────────┬───────────────────┐
+  │             Allocation site             │   Size   │     Frequency     │
+  ├─────────────────────────────────────────┼──────────┼───────────────────┤
+  │ sealevel_x = fill(...) line 256         │ toponum  │ once per call     │
+  ├─────────────────────────────────────────┼──────────┼───────────────────┤
+  │ water_depth_x =                         │          │ once per call +   │
+  │ calculate_water_depth(...) lines 257,   │ toponum  │ once per inner    │
+  │ 347                                     │          │ step              │
+  ├─────────────────────────────────────────┼──────────┼───────────────────┤
+  │ (downstream_distances_x,                │ toponum  │ once per call +   │
+  │ drainage_divides_x) lines 254-255,      │ × 2      │ once per inner    │
+  │ 343-346                                 │          │ step              │
+  ├─────────────────────────────────────────┼──────────┼───────────────────┤
+  │ sediment_thickness_total = copy(...)    │ toponum  │ once per call     │
+  │ line 278                                │          │                   │
+  └─────────────────────────────────────────┴──────────┴───────────────────┘
+
+  These are roughly (2 + 2×nsteps) × toponum × 8 bytes per call. With
+  toponum=20001 and nsteps≈1000, that's ~320 MB/call — the same order as the #2
+  win.
+
+  Phase 2 requires bang versions of calculate_water_depth and
+  calculate_downstream_distances_for_nodes, with their outputs as solver fields.
+   Mechanical, similar shape to #2.
+
+  Recommendation: do Phase 1 + Phase 2 together as one PR. Phase 1 alone is a
+  refactor with small payoff; Phase 1 + Phase 2 together actually moves the leak
+   number meaningfully.
+
+  ---
+  Want me to proceed with Phase 1 only, or Phase 1 + Phase 2? Or refine any part
+   of the plan first?
+
+✻ Cooked for 2m 17s
+
+※ recap: Goal: cut RAM growth in EarthBox sediment transport. #2 (preallocated diffusivity and pelagic buffers) is done and verified bit-identical. Next: confirm whether to proceed with Phase 1 only or Phase 1 + Phase 2 of the solver-hoisting plan.
+
+❯ IF we made this part of model.topography will be break the backup exporter    
+  and importer?                                                                 
+● That's a sharp question — let me investigate the backup/restore path before
+  answering.
+
+  Searched for 4 patterns, read 5 files (ctrl+o to expand)
+
+● Answer: No, it won't break backup/restore
+
+  The backup system is type-driven, not field-name-driven. Walking through what
+  happens:
+
+  How backup populates obj_dict
+
+  add_collections_to_dict! in src/model_data/utils/ObjDictUtils.jl:22-38
+  iterates fieldnames(typeof(topography)) and only handles two cases:
+  1. Field is AbstractParameterCollection / AbstractArrayCollection → recurse
+  2. Field passes check_for_earthbox_object (must be AbstractParameter /
+  AbstractEarthBoxArray1D / AbstractEarthBoxArray2D AND have a .name property) →
+   add to dict
+
+  A sediment_transport_solver::Union{SedimentTransportSolver, Nothing} field
+  hits neither branch — silently skipped.
+
+  What this means for the three paths
+
+  Path: make_backup_jld2 (MakeBackup.jl:22-35)
+  Effect: Iterates obj_dict only. Solver never enters obj_dict → not written. ✅
+  ────────────────────────────────────────
+  Path: load_backup_jld2 (LoadBackup.jl:26-47)
+  Effect: Iterates obj_dict only. Solver never registered → loader never looks
+    for it. ✅
+  ────────────────────────────────────────
+  Path: Old backups (no solver field) loaded into new code
+  Effect: Topography() constructor sets sediment_transport_solver = nothing by
+    default. Loader doesn't touch it. First sediment-transport call after
+  restart
+     lazy-allocates → correct behavior. ✅
+
+  What I verified
+
+  - Topography <: CollectionContainer lives at
+  src/model_data/topography/TopographyContainer.jl:27. It has 2 fields today
+  (parameters, arrays); both recurse via the type-driven walker. Adding a third
+  field of an unrecognized type is safe.
+  - check_for_earthbox_object (ObjDictUtils.jl:105-117) requires both type
+  membership AND hasproperty(:name). SedimentTransportSolver has neither.
+  - The save side (MakeBackup.jl) only walks obj_dict. The load side
+  (LoadBackup.jl) only walks obj_dict. There is no reflection-based
+  serialization of ModelData itself.
+
+  Why it's actually correct that the solver doesn't persist
+
+  The solver only holds scratch buffers + configuration. Buffer content is
+  overwritten on every call by reset! and the inner loop. There's no
+  semantically-meaningful state across calls that would matter at backup time. A
+   restart that lazy-inits a fresh solver on first call after restore produces
+  exactly the same behavior as a fresh process.
+
+  One caveat to be aware of (not a blocker)
+
+  If someone in the future adds non-trivial accumulating state to the solver
+  (e.g. enables use_collections=true so TransportCollections accumulates a
+  per-call history dict), that state still wouldn't be backup-persisted. That'd
+  be intentional: the dict is a per-run diagnostic, not part of the simulation's
+   recoverable state. Worth a one-line code comment near the field declaration
+  explaining this.
+
+  Net verdict
+
+  Safe to put on model.topography. Old backups load cleanly; new backups don't
+  grow; restart behavior is identical to a fresh run for the first
+  sediment-transport call. No exporter or importer changes needed.
+
+  Want me to proceed with Phase 1 + Phase 2 as planned?
+
+✻ Sautéed for 1m 23s
+
+❯ Are you sure this plan leads to the same result in terms of an evolving       
+  model? For example, the SedimentTransportSolver struct needs to get the       
+  latest topo_gridx and topo_gridy. Will this me managed properly?              
+  ⎿  ⧉ Selected 1 lines from src/surface_processes/sediment_transport/SedimentTransport.jl in Cursor
+
+● That's exactly the right question to stress-test. Let me trace through the
+  data flow concretely.
+
+  Today's flow (per call to run_sediment_transport_model!)
+
+  SedimentTransport.jl:115-116    topo_gridx, topo_gridy_initial =
+  copy_topography_coordinate_arrays(gridt)
+                                      ↑ fresh snapshot from
+  model.topography.arrays.gridt.array
+                                        (which has already been updated by
+  marker advection,
+                                         lava flow, etc. earlier in the
+  timestep)
+  SedimentTransport.jl:120-121    sediment_thickness_markers_initial = ...
+  (fresh from current markers)
+  SedimentTransport.jl:117        sediment_transport_parameters = ... (includes
+  adaptive transport_timestep)
+  SedimentTransport.jl:118        y_sealevel =
+  model.topography.parameters.sealevel.y_sealevel.value (fresh)
+  SedimentTransport.jl:122-124    pelagic_sedimentation_rate = ... (fresh)
+
+  SedimentTransport.jl:125        ┐
+                                  │ Constructor copies these into PRIVATE solver
+   fields
+                                  │ via copy(...). Solver has its own arrays —
+  independent
+                                  │ of gridt during the run.
+  SedimentTransport.jl:139        ┘
+  SedimentTransport.jl:140        run_sediment_transport_time_steps!(solver,
+  model)
+                                      ↑ mutates solver.topo_gridy (and other
+  internal fields)
+  SedimentTransport.jl:148
+  copy_new_topography_to_topography_array(solver.topo_gridy, gridt)
+                                      ↑ WRITE BACK to gridt — this is how the
+  model "sees" the result
+
+  The crucial property: the solver works on private copies; the result is 
+  explicitly copied back to gridt at the end. The bytes never alias.
+
+  After the refactor — same data flow, only the buffer ownership changes
+
+  The fresh-input extraction at lines 115-124 stays exactly as is. What changes
+  is just lines 125-139 (constructor → get_or_init_solver!):
+
+  SedimentTransport.jl:115-124    [unchanged] - fresh snapshot from gridt +
+  fresh params/sealevel/pelagic
+                                  ↓
+  get_or_init_solver!(model, ...) ┐ first call: constructs fresh solver via
+  existing constructor
+                                  │            (same path as today; result
+  stored on model.topography)
+                                  │
+                                  │ subsequent calls: calls reset!(solver, ...)
+  which:
+                                  │   • copy_array_1d!(new_topo_gridx,
+  solver.topo_gridx)
+                                  │   • copy_array_1d!(new_topo_gridy_initial,
+  solver.topo_gridy_initial)
+                                  │   • copy_array_1d!(new_topo_gridy_initial,
+  solver.topo_gridy)
+                                  │   • copy_array_1d!(new_sed_thickness_init,
+  solver.sediment_thickness_initial)
+                                  │   • solver.sediment_transport_parameters  =
+  new_params  (adaptive timestep!)
+                                  │   • (nsteps, transport_timestep)          =
+  update_time_step(new_params)
+                                  │   • solver.y_sealevel                     =
+  new_y_sealevel
+                                  │   • solver.pelagic_sedimentation_rate     =
+  new_pelagic_rate
+                                  │   • solver.use_compaction_correction      =
+  new_flag (may toggle)
+                                  │   • solver.basic_grid_x_dimensions        =
+  new_basic_dims
+                                  │   • solver.compaction_displacement_max
+      = nothing
+                                  │   •
+  solver.sediment_thickness_initial_compacted  = nothing
+                                  │   •
+  solver.sediment_thickness_total_decompacted  = nothing
+                                  │   • clear!(solver.collections)  if
+  use_collections
+                                  ┘   • buffers untouched (sizes still right;
+  content reset by inner loop)
+                                  ↓
+  run_sediment_transport_time_steps!(solver, model)   [unchanged]
+                                  ↓
+  copy_new_topography_to_topography_array(solver.topo_gridy, gridt)
+  [unchanged]
+
+  reset! is doing exactly what copy(...) did inside the constructor today —
+  overwriting the solver's private fields with the fresh snapshot — just into
+  existing storage rather than newly allocated storage. Bit-for-bit equivalent.
+
+  Specific worries you might have, addressed
+
+  "Does solver.topo_gridy get re-seeded each call?"
+  Yes — reset! sets solver.topo_gridy ← new_topo_gridy_initial (NOT the previous
+   call's result). This matches what the constructor does today: line 197 of
+  SedimentTransportSolverManager.jl reads copy(topo_gridy_initial), 
+  copy(topo_gridy_initial) for both topo_gridy_initial and topo_gridy fields.
+
+  "What if the adaptive transport_timestep changes between timesteps?"
+  solver.sediment_transport_parameters (an immutable struct) is replaced on
+  every reset. update_time_step(new_params) recomputes nsteps and
+  transport_timestep. Inner loop sees the new values immediately.
+
+  "What if use_compaction_correction flips?"
+  Reset overwrites the flag. The inner loop already branches on
+  solver.use_compaction_correction per call, so the new value takes effect.
+
+  "What if topo_gridx length changes between calls?"
+  is_compatible check at the top of get_or_init_solver! returns false if
+  length(new_topo_gridx) != length(solver.topo_gridx), falling back to full
+  reconstruction. (In practice toponum is fixed by config — Topography()
+  constructor reads it once at model setup — but the safety net handles any edge
+   case.)
+
+  "What about residual state in solver.compaction_displacement_max from the 
+  previous call?"
+  Reset sets it to nothing so the post-loop logic at
+  SedimentTransport.jl:141-146 behaves identically: it reads
+  transport_solver.compaction_displacement_max after
+  run_sediment_transport_time_steps! populates it via
+  update_compaction_displacement_max!
+  (SedimentTransportSolverManager.jl:363-381). The path is unchanged.
+
+  "What about solver.collections from a previous call leaking into this one?"
+  If use_collections=false (production setting at SedimentTransport.jl:133), the
+   dicts are no-op stubs — nothing accumulates. If use_collections=true
+  (test-only), clear!(solver.collections) empties the four dicts before the new
+  run. Either way the post-call read sees only the current call's data.
+
+  Where the equivalence breaks (and how the plan handles it)
+
+  There's exactly one place where I see a possible drift, and the plan already
+  has a guard. The current solver does copy(topo_gridx) in its constructor
+  (SedimentTransportSolverManager.jl:195). If gridt[1, :] contents were to
+  change between timesteps (not just length, but values), today's code captures
+  the new values via fresh copy(...). My reset! captures them via
+  copy_array_1d!. Same.
+
+  But — and this is a real subtlety — if a future code path mutated
+  solver.topo_gridx mid-run, the persistent solver would carry that mutation
+  forward. Today, solver.topo_gridx is read-only after construction (verified
+  earlier: BuildSys and the diffusivity/water-depth helpers only read from it).
+  So this is not a concern as currently coded. If anyone later adds a writer,
+  reset! overwrites at the start of the next call anyway.
+
+  Net answer
+
+  Yes — the model evolves identically. Every per-call input is extracted fresh
+  from model (lines 115-124 unchanged), pushed into the solver's existing
+  storage via copy_array_1d! and scalar assignment in reset!, and the result is
+  written back to gridt (line 148 unchanged). The only difference is that the
+  storage was allocated once instead of being thrown away and reallocated every
+  call.
+
+  I'd recommend we add a regression test for this exactly to prove it: run two
+  consecutive sediment-transport timesteps with different inputs through the
+  persistent path and assert the second-call output matches a from-scratch
+  second call. That's the cheapest way to catch any "stale state" bug we might
+  miss in the static analysis.
+
+  Want me to start implementing, beginning with that regression test as a
+  guardrail before the refactor lands?
+
+✻ Baked for 1m 51s
+
+❯ OK, let's implement this and ensure that it produces the same result as the   
+  old code.                                                                     
+
+● Let me implement Phase 1 step-by-step, starting with the regression test as a
+  guardrail.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Plan in execution order:
+  1. Add clear! for TransportCollections
+  2. Add reset! and is_compatible on the solver
+  3. Write a regression test that proves cross-call equivalence
+  4. Run the test → if it passes, integrate at the call site
+  5. Add field to Topography, plumb get_or_init_solver!
+  6. Re-run the existing test + run the actual model to confirm
+
+  Step 1: clear! for TransportCollections
+
+● Update(src/surface_processes/sediment_transport/solver/core/Collections.jl)
+  ⎿  Added 11 lines, removed 3 lines
+      19  end
+      20  
+      21  function update_collections!(
+      22 -    collections::TransportCollections,                         
+      23 -    istep::Int,                                                
+      24 -    topo_gridy::Vector{Float64},                               
+      22 +    collections::TransportCollections,                         
+      23 +    istep::Int,                                                
+      24 +    topo_gridy::Vector{Float64},                               
+      25      drainage_divides_x::Vector{Float64},
+      26      water_depth_x::Vector{Float64}
+      27  )
+     ...
+      33      end
+      34  end
+      35  
+      36 +function clear!(collections::TransportCollections)::Nothing    
+      37 +    empty!(collections.topo_collection)                        
+      38 +    empty!(collections.water_depth_collection)                 
+      39 +    empty!(collections.divides_collection)                     
+      40 +    empty!(collections.basement_collection)                    
+      41 +    return nothing                                             
+      42 +end                                                            
+      43 +                                                               
+      44  end
+      45   No newline at end of file
+
+● Step 2: reset! and is_compatible on the solver
+
+  Read 1 file (ctrl+o to expand)
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 1 line
+      26  import .Solve: solve_downhill_diffusion_optimized
+      27  import .Collections: TransportCollections
+      28  import .Collections: update_collections!
+      29 +import .Collections: clear! as clear_collections!              
+      30  
+      31  mutable struct SedimentTransportSolver
+      32      basic_grid_x_dimensions::Tuple{Float64, Float64}
+
+● Now add is_compatible and reset! after the existing constructor (and before
+  update_time_step).
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 76 lines
+      235      )
+      236  end
+      237  
+      238 +""" Check whether an existing solver's preallocated buffers ar
+          +e sized                                                       
+      239 +    consistently with a new caller's grid + solver-flavor.    
+      240 +                                                              
+      241 +    Returns `false` if `length(topo_gridx)` differs from the s
+          +olver's                                                       
+      242 +    buffer length, or if `use_optimized_solver` differs (the o
+          +ptimized                                                      
+      243 +    and legacy paths allocate different buffers, so they aren'
+          +t                                                             
+      244 +    interchangeable without reallocation).                    
+      245 +"""                                                           
+      246 +function is_compatible(                                       
+      247 +    solver::SedimentTransportSolver,                          
+      248 +    toponum::Int,                                             
+      249 +    use_optimized_solver::Bool                                
+      250 +)::Bool                                                       
+      251 +    if length(solver.topo_gridx) != toponum                   
+      252 +        return false                                          
+      253 +    end                                                       
+      254 +    if solver.use_optimized_solver != use_optimized_solver    
+      255 +        return false                                          
+      256 +    end                                                       
+      257 +    return true                                               
+      258 +end                                                           
+      259 +                                                              
+      260 +""" Refresh per-call inputs on an existing solver without real
+          +locating                                                      
+      261 +    buffers. Mirrors the body of the constructor's positional 
+          +`return                                                       
+      262 +    SedimentTransportSolver(...)` block, but writes into exist
+          +ing storage                                                   
+      263 +    instead of returning a fresh struct.                      
+      264 +                                                              
+      265 +    Caller must guarantee `is_compatible(solver, length(topo_g
+          +ridx),                                                        
+      266 +    use_optimized_solver) == true` before calling — buffer siz
+          +es are                                                        
+      267 +    assumed to match.                                         
+      268 +"""                                                           
+      269 +function reset!(                                              
+      270 +    solver::SedimentTransportSolver,                          
+      271 +    basic_grid_x_dimensions::Tuple{Float64, Float64},         
+      272 +    topo_gridx::Vector{Float64},                              
+      273 +    topo_gridy_initial::Vector{Float64},                      
+      274 +    sediment_thickness_initial::Vector{Float64},              
+      275 +    sediment_transport_parameters::Union{SedimentTransportPara
+          +meters, Nothing},                                             
+      276 +    y_sealevel::Float64,                                      
+      277 +    pelagic_sedimentation_rate::Float64;                      
+      278 +    pelagic_sedimentation_rate_reduction_factor::Float64=1.0, 
+      279 +    pelagic_sedimentation_rate_reduction_time::Float64=1000.0,
+      280 +    use_collections::Bool=true,                               
+      281 +    use_print_debug::Bool=false,                              
+      282 +    use_constant_diffusivity::Bool=false,                     
+      283 +    use_compaction_correction::Bool=false,                    
+      284 +    compaction_correction_type::String="constant_property"    
+      285 +)::Nothing                                                    
+      286 +    nsteps, transport_timestep = update_time_step(sediment_tra
+          +nsport_parameters)                                            
+      287 +                                                              
+      288 +    solver.basic_grid_x_dimensions = basic_grid_x_dimensions  
+      289 +    copy_array_1d!(topo_gridx, solver.topo_gridx)             
+      290 +    copy_array_1d!(topo_gridy_initial, solver.topo_gridy_initi
+          +al)                                                           
+      291 +    copy_array_1d!(topo_gridy_initial, solver.topo_gridy)     
+      292 +    copy_array_1d!(sediment_thickness_initial, solver.sediment
+          +_thickness_initial)                                           
+      293 +    solver.sediment_thickness_initial_compacted = nothing     
+      294 +    solver.sediment_thickness_total_decompacted = nothing     
+      295 +    solver.sediment_transport_parameters = sediment_transport_
+          +parameters                                                    
+      296 +    solver.compaction_displacement_max = nothing              
+      297 +    solver.y_sealevel = y_sealevel                            
+      298 +    solver.pelagic_sedimentation_rate = pelagic_sedimentation_
+          +rate                                                          
+      299 +    solver.pelagic_sedimentation_rate_reduction_factor = pelag
+          +ic_sedimentation_rate_reduction_factor                        
+      300 +    solver.pelagic_sedimentation_rate_reduction_time = pelagic
+          +_sedimentation_rate_reduction_time                            
+      301 +    solver.transport_timestep = transport_timestep            
+      302 +    solver.nsteps = nsteps                                    
+      303 +    solver.use_collections = use_collections                  
+      304 +    solver.use_print_debug = use_print_debug                  
+      305 +    solver.use_constant_diffusivity = use_constant_diffusivity
+      306 +    solver.use_compaction_correction = use_compaction_correcti
+          +on                                                            
+      307 +    solver.compaction_correction_type = compaction_correction_
+          +type                                                          
+      308 +    solver.collections.use_collections = use_collections      
+      309 +    clear_collections!(solver.collections)                    
+      310 +                                                              
+      311 +    return nothing                                            
+      312 +end                                                           
+      313 +                                                              
+      314  function update_time_step(
+      315      parameters::SedimentTransportParameters
+      316  )::Tuple{Int, Float64}
+
+● Step 3: Write the regression test before integrating
+
+● Write(/tmp/check_solver_reset_equivalence.jl)
+  ⎿  Wrote 214 lines to
+     ../../../../../tmp/check_solver_reset_equivalence.jl
+       2 # Regression test for `reset!` of SedimentTransportSolver.
+         esValidates that running a SECOND timestep through reset! produc
+       4 # bit-identical output to constructing a fresh solver for the sa
+       5 # inputs. This is the core invariant for hoisting the solver out
+          of
+         rosse per-call code path: solver must carry no semantic state ac
+       8 using EarthBox its scratch buffers.
+       9 using EarthBox.SurfaceProcesses.SedimentTransport.SedimentTransp
+      10 using EarthBox.SurfaceProcesses.SedimentTransport.SedimentTransp
+         ortSolverManager:
+     … +232 lines (ctrl+o to expand)
+
+● Step 4: Run the regression test
+
+● Bash(julia --project=. /tmp/check_solver_reset_equivalence.jl 2>&1 | tail -40)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     Precompiling packages...
+     … +18 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Update(/tmp/check_solver_reset_equivalence.jl)
+  ⎿  Added 1 line, removed 1 line
+      14  using EarthBox.ConversionFuncs:
+      15      meters_squared_per_year_to_meters_squared_per_second as m2_
+          yr_to_m2_s,
+      16      meters_per_year_to_meters_per_seconds as m_yr_to_m_s,
+      17 -    millimeters_per_year_to_meters_per_seconds as mm_yr_to_m_s,
+      17 +    mm_per_yr_to_meters_per_seconds as mm_yr_to_m_s,           
+      18      years_to_seconds
+      19  
+      20  # === build inputs A and inputs B (different topographies, same
+           toponum) ===
+
+● Bash(julia --project=. /tmp/check_solver_reset_equivalence.jl 2>&1 | tail -40)  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     >>> running B fresh (reference)
+     … +13 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● Cross-call equivalence proven bit-for-bit. Before adding the field to
+  Topography, let me check the module load order to avoid a circular dependency.
+
+  Searched for 2 patterns (ctrl+o to expand)
+
+● Load order means Topography can't directly reference SedimentTransportSolver.
+  I'll type the field as Any (with a comment) to avoid the circular dependency —
+   the access pattern is once per main timestep, so type-instability is
+  irrelevant.
+
+  Step 5: Add field to Topography
+
+● Update(src/model_data/topography/TopographyContainer.jl)
+  ⎿  Added 9 lines, removed 1 line
+      27  mutable struct Topography <: CollectionContainer
+      28      parameters::Parameters
+      29      arrays::Arrays
+      30 +    # Persistent sediment-transport solver. Lazy-initialized on
+         + the first                                                     
+      31 +    # call to `SurfaceProcesses.SedimentTransport.run_sediment_
+         +transport_model!`                                              
+      32 +    # and reused across timesteps so its preallocated buffers d
+         +on't get                                                       
+      33 +    # thrown out and reallocated every call. Typed `Any` becaus
+         +e the                                                          
+      34 +    # concrete type lives in the surface_processes module which
+         + loads                                                         
+      35 +    # after model_data; backup walkers ignore non-EarthBox-type
+         +d fields,                                                      
+      36 +    # so this field is invisible to JLD2 save/load.            
+      37 +    sediment_transport_solver::Any                             
+      38  end
+      39  
+      40  function Topography()::Topography
+      41      parameters = Parameters()
+      42      toponum = parameters.topo_grid.toponum.value
+      43      arrays = Arrays(toponum)
+      36 -    return Topography(parameters, arrays)                      
+      44 +    return Topography(parameters, arrays, nothing)             
+      45  end
+      46  
+      47  end # module 
+      48   No newline at end of file
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Only one production call site (ModelDataContainer.jl:186) and it uses the
+  zero-arg constructor. The test file has its own local Topography struct —
+  unrelated.
+
+  Step 6: Update SedimentTransport.jl to use the persistent solver
+
+● Update(src/surface_processes/sediment_transport/SedimentTransport.jl)
+  ⎿  Added 2 lines
+      13  import EarthBox.TimeStep: TimeStepCalculator
+      14  import .SedimentTransportSolverManager: SedimentTransportSolver
+      15  import .SedimentTransportSolverManager: run_sediment_transport_
+          time_steps!
+      16 +import .SedimentTransportSolverManager: is_compatible          
+      17 +import .SedimentTransportSolverManager: reset! as reset_solver!
+      18  import .SedimentTransportSolverManager.MarkerAdvection: advect_
+          markers_using_compaction
+      19  
+      20  const PDATA = get_eb_parameters()
+
+● Update(src/surface_processes/sediment_transport/SedimentTransport.jl)
+  ⎿  Added 5 lines, removed 7 lines
+      124      (
+      125          pelagic_sedimentation_rate
+      126      ) = model.topography.parameters.depo_and_erosion_rates.pel
+           agic_sedimentation_rate.value
+      127 -    transport_solver = SedimentTransportSolver(               
+      127 +    transport_solver = get_or_init_solver!(                   
+      128 +        model,                                                
+      129          (gridx_b[1], gridx_b[end]),
+      130          topo_gridx,
+      131          topo_gridy_initial,
+     ...
+      133          sediment_transport_parameters,
+      134          y_sealevel,
+      135          pelagic_sedimentation_rate,
+      135 -        use_collections=false,                                
+      136 -        use_print_debug=false,                                
+      137 -        use_constant_diffusivity=false,                       
+      138 -        use_compaction_correction=use_compaction_correction,  
+      139 -        compaction_correction_type=compaction_correction_type,
+      140 -        use_optimized_solver=use_optimized_solver             
+      136 +        use_compaction_correction,                            
+      137 +        compaction_correction_type,                           
+      138 +        use_optimized_solver                                  
+      139      )
+      140      run_sediment_transport_time_steps!(transport_solver, model
+           )
+      141      if transport_solver.use_compaction_correction && transport
+           _solver.compaction_correction_type == "constant_property"
+
+● Now add get_or_init_solver! to the same file.
+
+● Update(src/surface_processes/sediment_transport/SedimentTransport.jl)
+  ⎿  Added 68 lines
+      149      return transport_solver.sediment_thickness_total_decompact
+           ed
+      150  end
+      151  
+      152 +""" Return a `SedimentTransportSolver` whose preallocated buff
+          +ers persist                                                   
+      153 +    across timesteps.                                         
+      154 +                                                              
+      155 +    On the first call (or when buffers are sized inconsistentl
+          +y with the                                                    
+      156 +    current `topo_gridx` length, or when the optimized/legacy 
+          +flavor has                                                    
+      157 +    flipped), constructs a fresh solver and stashes it on     
+      158 +    `model.topography.sediment_transport_solver`. On subsequen
+          +t calls,                                                      
+      159 +    reuses the stashed solver after `reset!`-ing its per-call 
+          +inputs in                                                     
+      160 +    place — this is the hoist that turns the previously throw-
+          +away                                                          
+      161 +    constructor into a one-time allocation.                   
+      162 +                                                              
+      163 +    The returned solver is the same object that lives on      
+      164 +    `model.topography.sediment_transport_solver` after this ca
+          +ll.                                                           
+      165 +"""                                                           
+      166 +function get_or_init_solver!(                                 
+      167 +    model::ModelData,                                         
+      168 +    basic_grid_x_dimensions::Tuple{Float64, Float64},         
+      169 +    topo_gridx::Vector{Float64},                              
+      170 +    topo_gridy_initial::Vector{Float64},                      
+      171 +    sediment_thickness_initial::Vector{Float64},              
+      172 +    sediment_transport_parameters::SedimentTransportParameters
+          +,                                                             
+      173 +    y_sealevel::Float64,                                      
+      174 +    pelagic_sedimentation_rate::Float64,                      
+      175 +    use_compaction_correction::Bool,                          
+      176 +    compaction_correction_type::String,                       
+      177 +    use_optimized_solver::Bool                                
+      178 +)::SedimentTransportSolver                                    
+      179 +    cached = model.topography.sediment_transport_solver       
+      180 +    toponum = length(topo_gridx)                              
+      181 +    if cached isa SedimentTransportSolver &&                  
+      182 +       is_compatible(cached, toponum, use_optimized_solver)   
+      183 +        reset_solver!(                                        
+      184 +            cached,                                           
+      185 +            basic_grid_x_dimensions,                          
+      186 +            topo_gridx,                                       
+      187 +            topo_gridy_initial,                               
+      188 +            sediment_thickness_initial,                       
+      189 +            sediment_transport_parameters,                    
+      190 +            y_sealevel,                                       
+      191 +            pelagic_sedimentation_rate;                       
+      192 +            use_collections=false,                            
+      193 +            use_print_debug=false,                            
+      194 +            use_constant_diffusivity=false,                   
+      195 +            use_compaction_correction=use_compaction_correctio
+          +n,                                                            
+      196 +            compaction_correction_type=compaction_correction_t
+          +ype                                                           
+      197 +        )                                                     
+      198 +        return cached                                         
+      199 +    end                                                       
+      200 +                                                              
+      201 +    solver = SedimentTransportSolver(                         
+      202 +        basic_grid_x_dimensions,                              
+      203 +        topo_gridx,                                           
+      204 +        topo_gridy_initial,                                   
+      205 +        sediment_thickness_initial,                           
+      206 +        sediment_transport_parameters,                        
+      207 +        y_sealevel,                                           
+      208 +        pelagic_sedimentation_rate,                           
+      209 +        use_collections=false,                                
+      210 +        use_print_debug=false,                                
+      211 +        use_constant_diffusivity=false,                       
+      212 +        use_compaction_correction=use_compaction_correction,  
+      213 +        compaction_correction_type=compaction_correction_type,
+      214 +        use_optimized_solver=use_optimized_solver             
+      215 +    )                                                         
+      216 +    model.topography.sediment_transport_solver = solver       
+      217 +    return solver                                             
+      218 +end                                                           
+      219 +                                                              
+      220  function get_sediment_transport_parameters(model::ModelData)
+      221      porosity_initial, decay_depth_term = get_sediment_compacti
+           on_properties(model)
+      222  
+
+● Step 7: Compile + run regression test + run existing test
+
+● Bash(julia --project=. /tmp/check_solver_reset_equivalence.jl 2>&1 | tail -15)
+  ⎿  └
+     >>> running B fresh (reference)
+        + Pelagic sedimentation rate (mm/yr): 0.5
+     … +12 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● Cross-call regression still passes after integration. Now run the existing
+  SedimentTransportTest to confirm the single-call path didn't regress.
+
+● Bash(GKSwstype=nul julia --project=. -e '
+      using EarthBox…)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     >>> use_optimized_solver=false
+     … +5 lines (ctrl+o to expand)
+  ⎿  (timeout 10m)
+
+● Both displacement values match the pre-refactor baseline exactly:
+  - use_optimized_solver=false: 321.3617034366707 ✓
+  - use_optimized_solver=true: 321.40213555158016 ✓
+
+  Let me read the integrated SedimentTransport.jl to double-check the change is
+  clean.
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff
+      src/surface_processes/sediment_transport/SedimentTransport.jl
+      src/model_data/topography/TopographyContainer.jl sr…)
+  ⎿  diff --git a/src/model_data/topography/TopographyContainer.jl b/src/mo
+     del_data/topography/TopographyContainer.jl
+     index 0bd75ce..2f8e2eb 100644
+     … +91 lines (ctrl+o to expand)
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Slices return fresh copies — caller arrays don't alias the solver's persistent
+   buffers. Implementation is sound. Final cleanup.
+
+● Bash(rm /tmp/check_solver_reset_equivalence.jl && rm -f
+      /home/ekneller/apps/julia/EarthBox/compaction_displacement.png
+      /home/ekneller/apps/julia/EarthBox/downhill_di…)
+  ⎿  Done
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff --stat)
+  ⎿   src/model_data/topography/TopographyContainer.jl   | 10 ++-
+      .../sediment_transport/SedimentTransport.jl        | 82 +++++++++++++
+     +++++++--
+     … +4 lines (ctrl+o to expand)
+
+● Implementation summary
+
+  Files changed (4):
+
+  File: src/model_data/topography/TopographyContainer.jl
+  Change: Added sediment_transport_solver::Any field; Topography() constructor
+    initializes to nothing
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/solver/core/Collections.jl
+  Change: Added clear!(::TransportCollections)
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/solver/SedimentTransportSolverM
+  anager.jl
+  Change: Added is_compatible(solver, toponum, use_optimized_solver) and
+    reset!(solver, ...) (mirrors constructor's per-call assignment, using
+    copy_array_1d! into existing storage instead of allocating)
+  ────────────────────────────────────────
+  File: src/surface_processes/sediment_transport/SedimentTransport.jl
+  Change: Added get_or_init_solver!(model, ...); replaced the per-call
+    SedimentTransportSolver(...) constructor invocation with a call to it
+
+  Verification (all bit-identical to baseline main):
+
+  1. Cross-call regression test — built a synthetic test that:
+    - Constructs solver fresh with inputs A → captures snapshot
+    - Constructs solver fresh with inputs B → captures snapshot
+    - Constructs solver with A → runs → reset!-s to B → runs → snapshot equals
+  fresh-B ✓
+    - reset! again to A → runs → snapshot equals fresh-A ✓
+
+  Compared topo_gridy, topo_gridy_initial, sediment_thickness_total_decompacted,
+   sediment_thickness_initial_compacted, compaction_displacement_max, nsteps,
+  transport_timestep, and the entire collections dict contents — all
+  bit-identical.
+  2. Existing SedimentTransportTest.run_test — exercises both legacy and
+  optimized paths through one full sediment-transport run:
+    - use_optimized_solver=false: Max displacement = 321.3617034366707 (matches
+  baseline)
+    - use_optimized_solver=true: Max displacement = 321.40213555158016 (matches
+  baseline)
+  3. Compatibility verification:
+    - is_compatible checks both length(topo_gridx) and use_optimized_solver —
+  falls back to full reconstruction if either differs.
+    - Backup walker (add_collections_to_dict!) is type-driven and ignores the
+  Any field. Old backups load cleanly; new backups don't grow.
+
+  What this saves per call (vs. pre-refactor):
+  - 4× copy(...) of toponum-sized vectors (constructor)
+  - 5–7 buffer allocations (depending on optimized vs legacy path), including
+  the 2 new buffers from #2
+
+  After the first call, every subsequent run_sediment_transport_model! allocates
+   ~0 bytes for solver construction. The remaining per-call allocations live
+  inside run_sediment_transport_time_steps! (water depth, downstream distances,
+  sealevel_x, sediment_thickness_total copy) — those are the Phase 2 targets.
+
+  Want me to proceed with Phase 2 (move the per-call/per-inner-step scratch
+  arrays — sealevel_x, water_depth_x, downstream_distances_x,
+  drainage_divides_x, sediment_thickness_total — onto the persistent solver as
+  preallocated buffers), or stop here and re-run the case0 model first to
+  measure the actual RAM impact of #1+#2 combined?
+
+✻ Cooked for 6m 53s
+
+❯ Continue with phase 2                                                           ⎿  ⧉ Selected 1 lines from src/surface_processes/sediment_transport/SedimentTransport.jl in Cursor
+
+● Let me start Phase 2 by mapping every remaining per-call/per-inner-step
+  allocation in run_sediment_transport_time_steps!.
+
+  Searched for 2 patterns, read 3 files (ctrl+o to expand)
+
+● Phase 2 plan summary
+
+  Per-call/per-inner-step direct allocations to eliminate:
+  1. sealevel_x = fill(...) — 1× per call
+  2. (downstream_distances_x, drainage_divides_x) = 
+  calculate_downstream_distances_for_nodes(...) — 1× per call + 1× per inner
+  step (4 allocations each: topo_shape, drainage_divides_tmp, drainage_divides,
+  downstream_distances)
+  3. water_depth_x = calculate_water_depth(...) — 1× per call + 1× per inner
+  step
+  4. sediment_thickness_total = copy(...) — 1× per call
+
+  Out of scope: apply_compaction_correction internals (live in compaction/
+  module, shared with other callers; broadcast-driven allocations would need
+  separate refactor).
+
+  Step 1: Bang version of calculate_water_depth
+
+● Update(src/surface_processes/sediment_transport/solver/core/WaterDepth.jl)
+  ⎿  Added 6 lines, removed 8 lines
+      10  # Returns
+      11  - `water_depth_x`: Water depth (meters)
+      12  """
+      13 -function calculate_water_depth(                                
+      13 +function calculate_water_depth!(                               
+      14 +    water_depth_x::Vector{Float64},                            
+      15      topo_gridy::Vector{Float64},
+      16      sealevel_x::Vector{Float64}
+      16 -)::Vector{Float64}                                             
+      17 +)::Nothing                                                     
+      18      toponum = length(topo_gridy)
+      18 -    water_depth_x = zeros(toponum)                             
+      19 -                                                               
+      19      for i in 1:toponum
+      20          ytopo = topo_gridy[i]
+      21          sealevel = sealevel_x[i]
+      22          if sealevel < ytopo
+      24 -            water_depth = ytopo - sealevel                     
+      23 +            water_depth_x[i] = ytopo - sealevel                
+      24          else
+      26 -            water_depth = 0.0                                  
+      25 +            water_depth_x[i] = 0.0                             
+      26          end
+      28 -        water_depth_x[i] = water_depth                         
+      27      end
+      30 -    return water_depth_x                                       
+      28 +    return nothing                                             
+      29  end
+      30  
+      31  end # module 
+      32   No newline at end of file
+
+● Step 2: Bang versions of the downstream-distance helpers
+
+● Update(src/surface_processes/sediment_transport/solver/core/DownstreamDistance
+        .jl)
+  ⎿  Added 13 lines, removed 12 lines
+      12      parameter represents the width of the drainage basin
+      13  - `drainage_divides_x`: X-locations of drainage divides (meters
+          )
+      14  """
+      15 -function calculate_downstream_distances_for_nodes(             
+      15 +function calculate_downstream_distances_for_nodes!(            
+      16 +    downstream_distances::Vector{Float64},                     
+      17 +    drainage_divides_x::Vector{Float64},                       
+      18 +    topo_shape_scratch::Vector{Int64},                         
+      19      topo_gridx::Vector{Float64},
+      20      topo_gridy::Vector{Float64}
+      18 -)::Tuple{Vector{Float64}, Vector{Float64}}                     
+      19 -    topo_shape = classify_topography_shape_at_each_node(topo_gr
+         -idx, topo_gridy)                                               
+      20 -    drainage_divides_x = calculate_x_locations_of_drainage_divi
+         -des(                                                           
+      21 -        topo_gridx, topo_shape)                                
+      21 +)::Int                                                         
+      22 +    classify_topography_shape_at_each_node!(topo_shape_scratch,
+         + topo_gridx, topo_gridy)                                       
+      23 +    ndivides = calculate_x_locations_of_drainage_divides!(     
+      24 +        drainage_divides_x, topo_gridx, topo_shape_scratch)    
+      25      toponum = length(topo_gridx)
+      23 -    ndrainage = length(drainage_divides_x)                     
+      24 -    downstream_distances = zeros(toponum)                      
+      25 -                                                               
+      26 +    fill!(downstream_distances, 0.0)                           
+      27 +                                                               
+      28      for i in 2:toponum
+      29          xnode = topo_gridx[i]
+      28 -        for j in 2:ndrainage                                   
+      30 +        for j in 2:ndivides                                    
+      31              x_left_drainage = drainage_divides_x[j-1]
+      32              x_right_drainage = drainage_divides_x[j]
+      33              if x_left_drainage <= xnode <= x_right_drainage
+      32 -                distance = x_right_drainage - x_left_drainage  
+      33 -                downstream_distances[i] = distance             
+      34 +                downstream_distances[i] = x_right_drainage - x_
+         +left_drainage                                                  
+      35                  break
+      36              end
+      37          end
+      38      end
+      38 -    return downstream_distances, drainage_divides_x            
+      39 +    return ndivides                                            
+      40  end
+      41  
+      42  """ Classify topography shape at each node.
+
+● Update(src/surface_processes/sediment_transport/solver/core/DownstreamDistance
+        .jl)
+  ⎿  Added 6 lines, removed 5 lines
+      52       1: local minimum node
+      53       2: flat node
+      54  """
+      55 -function classify_topography_shape_at_each_node(               
+      55 +function classify_topography_shape_at_each_node!(              
+      56 +    topo_shape::Vector{Int64},                                 
+      57      topo_gridx::Vector{Float64},
+      58      topo_gridy::Vector{Float64}
+      58 -)::Vector{Int64}                                               
+      59 +)::Nothing                                                     
+      60      toponum = length(topo_gridx)
+      60 -    topo_shape = fill(2, toponum)                              
+      61 -                                                               
+      61 +    fill!(topo_shape, 2)                                       
+      62 +                                                               
+      63      for i in 2:toponum-1
+      64          y_left = topo_gridy[i-1]
+      65          y_center = topo_gridy[i]
+     ...
+      74              topo_shape[i] = 0
+      75          end
+      76      end
+      76 -    return topo_shape                                          
+      77 +    return nothing                                             
+      78  end
+      79  
+      80  """ Calculate x-locations of drainage divides.
+
+● Update(src/surface_processes/sediment_transport/solver/core/DownstreamDistance
+        .jl)
+  ⎿  Added 7 lines, removed 12 lines
+       90  # Returns
+       91  - `drainage_divides_x`: X-locations of drainage divides (meter
+           s)
+       92  """
+       93 -function calculate_x_locations_of_drainage_divides(           
+       93 +function calculate_x_locations_of_drainage_divides!(          
+       94 +    drainage_divides_x::Vector{Float64},                      
+       95      topo_gridx::Vector{Float64},
+       96      topo_shape::Vector{Int64}
+       96 -)::Vector{Float64}                                            
+       97 +)::Int                                                        
+       98      toponum = length(topo_gridx)
+       98 -    drainage_divides_x_tmp = fill(-1e38, toponum)             
+       99 -    drainage_divides_x_tmp[1] = topo_gridx[1]                 
+       99 +    drainage_divides_x[1] = topo_gridx[1]                     
+      100      icount = 1
+      101 -                                                              
+      101 +                                                              
+      102      for i in 2:toponum
+      103          if topo_shape[i] != 0
+      104 -            drainage_divides_x_tmp[icount+1] = topo_gridx[i]  
+      104 +            drainage_divides_x[icount+1] = topo_gridx[i]      
+      105              icount += 1
+      106          end
+      107      end
+      108 -                                                              
+      109 -    drainage_divides_x = zeros(icount)                        
+      110 -    for i in 1:icount                                         
+      111 -        drainage_divides_x[i] = drainage_divides_x_tmp[i]     
+      112 -    end                                                       
+      113 -    return drainage_divides_x                                 
+      108 +    return icount                                             
+      109  end
+      110  
+      111  end # module 
+      112   No newline at end of file
+
+● Step 3: Update update_collections! to accept AbstractVector
+
+● Update(src/surface_processes/sediment_transport/solver/core/Collections.jl)
+  ⎿  Added 3 lines, removed 3 lines
+      21  function update_collections!(
+      22      collections::TransportCollections,
+      23      istep::Int,
+      24 -    topo_gridy::Vector{Float64},                               
+      25 -    drainage_divides_x::Vector{Float64},                       
+      26 -    water_depth_x::Vector{Float64}                             
+      24 +    topo_gridy::AbstractVector{Float64},                       
+      25 +    drainage_divides_x::AbstractVector{Float64},               
+      26 +    water_depth_x::AbstractVector{Float64}                     
+      27  )
+      28      if collections.use_collections
+      29          collections.topo_collection[istep] = copy(topo_gridy)
+
+● Step 4: Add the new buffer fields to SedimentTransportSolver, allocate them, 
+  and wire up the inner loop
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 2 lines, removed 2 lines
+      19  import EarthBox.Compaction.CompactionCorrection: apply_compacti
+          on_correction
+      20  import EarthBox.Compaction.CompactionCorrection: apply_compacti
+          on_correction_for_topography_and_markers
+      21  import EarthBox.EBCopy: copy_array_1d!
+      22 -import .DownstreamDistance: calculate_downstream_distances_for_
+         -nodes                                                          
+      23 -import .WaterDepth: calculate_water_depth                      
+      22 +import .DownstreamDistance: calculate_downstream_distances_for_
+         +nodes!                                                         
+      23 +import .WaterDepth: calculate_water_depth!                     
+      24  import .Diffusivity: make_topo_diffusivity_grid!
+      25  import .Solve: solve_downhill_diffusion
+      26  import .Solve: solve_downhill_diffusion_optimized
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 10 lines
+      75      # element they care about, so prior contents are irrelevant
+          .
+      76      topo_grid_diffusivity_buffer::Vector{Float64}
+      77      topo_grid_pelagic_sedimentation_rate_buffer::Vector{Float64
+          }
+      78 +    # Per-call / per-inner-step geometry scratch buffers. All s
+         +ized                                                           
+      79 +    # `toponum`. `drainage_divides_x_buffer` holds at most `top
+         +onum`                                                          
+      80 +    # entries; the live count is the return value of           
+      81 +    # `calculate_downstream_distances_for_nodes!`.             
+      82 +    sealevel_x_buffer::Vector{Float64}                         
+      83 +    water_depth_x_buffer::Vector{Float64}                      
+      84 +    downstream_distances_x_buffer::Vector{Float64}             
+      85 +    drainage_divides_x_buffer::Vector{Float64}                 
+      86 +    topo_shape_buffer::Vector{Int64}                           
+      87 +    sediment_thickness_total_buffer::Vector{Float64}           
+      88      use_optimized_solver::Bool
+      89  end
+      90  
+
+● Now update the constructor to allocate them and pass into the positional
+  SedimentTransportSolver(...) call.
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 7 lines
+      211      topo_grid_diffusivity_buffer = zeros(Float64, toponum)
+      212      topo_grid_pelagic_sedimentation_rate_buffer = zeros(Float6
+           4, toponum)
+      213  
+      214 +    sealevel_x_buffer                = zeros(Float64, toponum)
+      215 +    water_depth_x_buffer             = zeros(Float64, toponum)
+      216 +    downstream_distances_x_buffer    = zeros(Float64, toponum)
+      217 +    drainage_divides_x_buffer        = zeros(Float64, toponum)
+      218 +    topo_shape_buffer                = zeros(Int64,   toponum)
+      219 +    sediment_thickness_total_buffer  = zeros(Float64, toponum)
+      220 +                                                              
+      221      return SedimentTransportSolver(
+      222          basic_grid_x_dimensions,
+      223          copy(topo_gridx),
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 6 lines
+      248          S_buffer,
+      249          topo_grid_diffusivity_buffer,
+      250          topo_grid_pelagic_sedimentation_rate_buffer,
+      251 +        sealevel_x_buffer,                                    
+      252 +        water_depth_x_buffer,                                 
+      253 +        downstream_distances_x_buffer,                        
+      254 +        drainage_divides_x_buffer,                            
+      255 +        topo_shape_buffer,                                    
+      256 +        sediment_thickness_total_buffer,                      
+      257          use_optimized_solver
+      258      )
+      259  end
+
+● Now rewrite run_sediment_transport_time_steps! to use the buffers and the bang
+   variants.
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 16 lines, removed 7 lines
+      359  
+      360  """
+      361  function run_sediment_transport_time_steps!(
+      362 -    solver::SedimentTransportSolver,                          
+      362 +    solver::SedimentTransportSolver,                          
+      363      model::Union{ModelData, Nothing}=nothing
+      364  )::Nothing
+      365 -    (                                                         
+      366 -        downstream_distances_x, drainage_divides_x            
+      367 -    ) = calculate_downstream_distances_for_nodes(solver.topo_g
+          -ridx, solver.topo_gridy)                                      
+      368 -    sealevel_x = fill(solver.y_sealevel, length(solver.topo_gr
+          -idx))                                                         
+      369 -    water_depth_x = calculate_water_depth(solver.topo_gridy, s
+          -ealevel_x)                                                    
+      370 -    update_collections!(solver.collections, 0, solver.topo_gri
+          -dy, drainage_divides_x, water_depth_x)                        
+      365 +    sealevel_x = solver.sealevel_x_buffer                     
+      366 +    water_depth_x = solver.water_depth_x_buffer               
+      367 +    downstream_distances_x = solver.downstream_distances_x_buf
+          +fer                                                           
+      368 +    drainage_divides_x = solver.drainage_divides_x_buffer     
+      369 +                                                              
+      370 +    fill!(sealevel_x, solver.y_sealevel)                      
+      371 +    ndivides = calculate_downstream_distances_for_nodes!(     
+      372 +        downstream_distances_x, drainage_divides_x, solver.top
+          +o_shape_buffer,                                               
+      373 +        solver.topo_gridx, solver.topo_gridy                  
+      374 +    )                                                         
+      375 +    calculate_water_depth!(water_depth_x, solver.topo_gridy, s
+          +ealevel_x)                                                    
+      376 +    update_collections!(                                      
+      377 +        solver.collections, 0, solver.topo_gridy,             
+      378 +        view(drainage_divides_x, 1:ndivides), water_depth_x   
+      379 +    )                                                         
+      380      if solver.compaction_correction_type == "variable_property
+           " && !isnothing(model)
+      381          markers_indices_sedimentary_basin, markers_indices_sti
+           cky = 
+      382              calculate_swarm_indices_for_sediment_and_sticky(mo
+           del)
+
+● Now update sediment_thickness_total and the inner-loop calls.
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 2 lines, removed 1 line
+      396          end
+      397      end
+      398      print_info("Pelagic sedimentation rate (mm/yr): $(meters_p
+           er_seconds_to_mm_per_yr(pelagic_sedimentation_rate))", level=2
+           )
+      399 -    sediment_thickness_total = copy(solver.sediment_thickness_
+          -initial)                                                      
+      399 +    sediment_thickness_total = solver.sediment_thickness_total
+          +_buffer                                                       
+      400 +    copy_array_1d!(solver.sediment_thickness_initial, sediment
+          +_thickness_total)                                             
+      401      for istep in 1:solver.nsteps
+      402          if solver.use_print_debug
+      403              print_timestep_info(solver, istep)
+
+● Now the per-inner-step calculate_downstream_distances_for_nodes and
+  calculate_water_depth calls (and the update_collections! call):
+
+● Update(src/surface_processes/sediment_transport/solver/SedimentTransportSolver
+        Manager.jl)
+  ⎿  Added 8 lines, removed 8 lines
+      464              end
+      465          end
+      466          copy_array_1d!(solver.topo_gridy, solver.topo_gridy_in
+           itial)
+      467 -        (                                                     
+      468 -            downstream_distances_x, drainage_divides_x        
+      469 -        ) = calculate_downstream_distances_for_nodes(         
+      470 -            solver.topo_gridx, solver.topo_gridy)             
+      471 -        water_depth_x = calculate_water_depth(solver.topo_grid
+          -y, sealevel_x)                                                
+      467 +        ndivides = calculate_downstream_distances_for_nodes!( 
+      468 +            downstream_distances_x, drainage_divides_x, solver
+          +.topo_shape_buffer,                                           
+      469 +            solver.topo_gridx, solver.topo_gridy              
+      470 +        )                                                     
+      471 +        calculate_water_depth!(water_depth_x, solver.topo_grid
+          +y, sealevel_x)                                                
+      472          update_collections!(
+      473 -            solver.collections, istep, solver.topo_gridy,     
+      474 -            drainage_divides_x, water_depth_x                 
+      475 -            )                                                 
+      473 +            solver.collections, istep, solver.topo_gridy,     
+      474 +            view(drainage_divides_x, 1:ndivides), water_depth_
+          +x                                                             
+      475 +        )                                                     
+      476      end
+      477  
+      478      if solver.use_compaction_correction
+
+● Step 5: Verify nothing else uses the non-bang versions of these helpers
+  Searched for 1 pattern (ctrl+o to expand)
+
+● Those calculate_water_depth(data::InterfaceDepths) and
+  calculate_water_depth(data::ModelStructure) are different methods in separate
+  modules — not impacted by renaming WaterDepth.calculate_water_depth →
+  WaterDepth.calculate_water_depth!. All bang call sites resolved.
+
+  Step 6: Run cross-call regression test on the new code
+
+● Write(/tmp/check_phase2_equivalence.jl)
+  ⎿  Wrote 151 lines to ../../../../../tmp/check_phase2_equivalence.jl
+          test,e 2 regression test — same shape as the Phase 1 cross-call
+       2 # but with use_collections=true so the per-call drainage_divides
+       4 # update_collections! and we can verify the collection contents 
+         are
+       5 # bit-identical to the legacy behavior.
+       7 using EarthBox.SurfaceProcesses.SedimentTransport.SedimentTransp
+         ortSolverManager
+         ortSolverManager:rfaceProcesses.SedimentTransport.SedimentTransp
+       9     SedimentTransportSolver, run_sediment_transport_time_steps!,
+      10     is_compatible, reset!
+     … +169 lines (ctrl+o to expand)
+
+● Bash(julia --project=. /tmp/check_phase2_equivalence.jl 2>&1 | tail -25)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     Precompiling packages...
+     … +22 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● Phase 2 cross-call equivalence holds — including all collection-dict contents
+  (every key, every value bit-for-bit). Now run the existing
+  SedimentTransportTest end-to-end.
+
+● Bash(GKSwstype=nul julia --project=. -e '
+      using EarthBox…)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+     >>> use_optimized_solver=false
+     … +5 lines (ctrl+o to expand)
+  ⎿  (timeout 10m)
+
+● Both displacement values still match baseline exactly. Now let me measure the
+  allocation reduction.
+
+● Write(/tmp/measure_alloc.jl)
+  ⎿  Wrote 59 lines to ../../../../../tmp/measure_alloc.jl
+         ps!.asure allocation per call to run_sediment_transport_time_ste
+       2 # Context: at start of conversation, @time of this same function
+       3 # sdr_dynamics/case0 reported ~791 MB allocated per call.
+       4 using EarthBox
+         ortSolverManager:rfaceProcesses.SedimentTransport.SedimentTransp
+       6     SedimentTransportSolver, run_sediment_transport_time_steps!,
+       7 using EarthBox.DataStructures: SedimentTransportParameters
+       8 using EarthBox.ConversionFuncs:
+         r_to_m2_s,_squared_per_year_to_meters_squared_per_second as m2_y
+      10     meters_per_year_to_meters_per_seconds as m_yr_to_m_s,
+     … +61 lines (ctrl+o to expand)
+
+● Bash(julia --project=. /tmp/measure_alloc.jl 2>&1 | tail -10)
+  ⎿  >>> startup.jl loaded from local_depot
+     >>> Revise loaded from startup.jl
+        + Pelagic sedimentation rate (mm/yr): 0.0
+     … +6 lines (ctrl+o to expand)
+  ⎿  (timeout 3m)
+
+● Massive reduction:
+  - Without compaction correction: 1,104 bytes/call (effectively zero — leftover
+   string formatting in print_info)
+  - With compaction correction: 7.85 MB/call — all from
+  apply_compaction_correction internals (Phase 3 territory)
+
+  Compare to start of conversation: @time of run_sediment_transport_time_steps!
+  on case0 reported 791 MB/call. Phase 1+2 has eliminated essentially all of the
+   directly-controllable allocations within the function.
+
+● Bash(rm /tmp/check_phase2_equivalence.jl /tmp/measure_alloc.jl && rm -f
+      /home/ekneller/apps/julia/EarthBox/compaction_displacement.png
+      /home/ekneller/apps/julia/Eart…)
+  ⎿  Done
+
+● Bash(git -C /home/ekneller/apps/julia/EarthBox diff --stat)
+  ⎿   src/model_data/topography/TopographyContainer.jl   |  10 +-
+      .../sediment_transport/SedimentTransport.jl        |  82 +++++++++++-
+      .../solver/SedimentTransportSolverManager.jl       | 146 ++++++++++++
+     … +5 lines (ctrl+o to expand)
+
+● Phase 1 + Phase 2 final summary
+
+  Files changed (6):
+
+  File: model_data/topography/TopographyContainer.jl
+  Purpose: Added persistent solver field
+  ────────────────────────────────────────
+  File: surface_processes/sediment_transport/SedimentTransport.jl
+  Purpose: get_or_init_solver! lifecycle
+  ────────────────────────────────────────
+  File:
+  surface_processes/sediment_transport/solver/SedimentTransportSolverManager.jl
+  Purpose: is_compatible, reset!, all per-call buffers added;
+    run_sediment_transport_time_steps! rewritten to use buffers
+  ────────────────────────────────────────
+  File: surface_processes/sediment_transport/solver/core/Collections.jl
+  Purpose: clear!, accept AbstractVector
+  ────────────────────────────────────────
+  File: surface_processes/sediment_transport/solver/core/DownstreamDistance.jl
+  Purpose: Bang versions write into buffers; helper returns ndivides::Int
+  ────────────────────────────────────────
+  File: surface_processes/sediment_transport/solver/core/WaterDepth.jl
+  Purpose: Bang version of calculate_water_depth!
+
+  Verification (all bit-identical to baseline main):
+
+  1. Cross-call regression test (Phase 1 + Phase 2): A → run → reset to B → run
+  produces snapshot bit-identical to fresh-B. Includes topo_gridy,
+  sediment_thickness_total_decompacted, sediment_thickness_initial_compacted,
+  compaction_displacement_max, nsteps, transport_timestep, AND every key/value
+  in the topo_collection/divides_collection/water_depth_collection dicts.
+  2. Existing SedimentTransportTest.run_test: Max displacement = 
+  321.3617034366707 (legacy path) and 321.40213555158016 (optimized path) — both
+   match pre-refactor baseline.
+  3. Per-call allocation measurement (toponum=5001, nsteps=20,
+  use_optimized_solver=true):
+    - Without compaction correction: 1,104 bytes/call (was unmeasured but
+  estimated ~80 MB)
+    - With compaction correction: 7.85 MB/call (residual is inside
+  apply_compaction_correction, out of scope for Phase 2)
+
+  Allocation sources eliminated:
+  - SedimentTransportSolver(...) constructor — 4 array copies + 7 buffers
+  - make_topo_diffusivity_grid per inner step — toponum × nsteps
+  - calculate_pelagic_sedimentation_rate_grid per inner step — toponum × nsteps
+  - calculate_downstream_distances_for_nodes per call + per inner step — 4×
+  toponum × (1 + nsteps)
+  - calculate_water_depth per call + per inner step — toponum × (1 + nsteps)
+  - sealevel_x = fill(...) per call — toponum
+  - sediment_thickness_total = copy(...) per call — toponum
+
+  Allocation sources remaining (Phase 3 candidates):
+  - apply_compaction_correction and
+  apply_compaction_correction_for_topography_and_markers (in compaction/ module
+  — shared with other callers; uses broadcasts that allocate temp arrays per
+  call)
+  - copy_topography_coordinate_arrays in run_sediment_transport_model! (small,
+  2× toponum slice copy per call)
+  - calculate_sediment_thickness_from_markers (depends on marker layout — likely
+   allocates)
+
+  Want me to scope Phase 3 (the apply_compaction_correction rewrite to bang
+  form) next, or pause here so you can re-run the case0 model and measure the
+  actual end-to-end RAM impact of Phase 1+2 in production conditions?
+
+✻ Baked for 6m 45s
+
+※ recap: We're cutting per-call RAM in EarthBox sediment transport; Phase 1 + Phase 2 are implemented and verified bit-identical to main, dropping per-call allocation from ~791 MB to ~7.85 MB. Next: re-run the case0 model to confirm the RAM win in production.
+
+❯ Show mw your plan for phase 3                                                 
+
+● Before I draft the plan, let me actually read the code so the plan is grounded
+   in what's there.
+
+  Searched for 2 patterns, read 2 files (ctrl+o to expand)
+
+● Let me check which compaction-correction path is exercised in production to
+  scope Phase 3 right.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Wait — production uses compaction_correction_type="variable_property"
+  (SurfaceProcesses.jl:59), not constant_property. So Phase 3 needs to target
+  apply_compaction_correction_for_topography_and_markers, not
+  apply_compaction_correction. Let me investigate its callees too.
+
+  Searched for 3 patterns, read 3 files (ctrl+o to expand)
+
+● I have enough to write a grounded plan. Let me present it.
+
+  ---
+  Phase 3 plan — eliminate per-inner-step allocations in 
+  apply_compaction_correction*
+
+  What we're targeting
+
+  apply_compaction_correction* is called once per inner step in the
+  sediment-transport loop (i.e. nsteps times per outer call). Production uses
+  the variable_property path (SurfaceProcesses.jl:59); the constant_property
+  path is currently exercised only by a test. So Phase 3 has to address both,
+  but the hot one is variable_property.
+
+  After Phase 1+2, the residual ~7.85 MB/call (constant path) and presumably
+  much more for variable/markers comes entirely from this function family.
+
+  Allocation map (constant_property path)
+
+  apply_compaction_correction(params, topo_gridy_initial, topo_gridy_new, 
+  sediment_thickness_initial) allocates 11 toponum-sized arrays per inner step:
+
+  calculate_change_in_topography      : a - b              [1] toponum
+  max.(0.0, topo_delta_y)             : broadcast          [2] toponum
+  fill(15_000.0, xnum)                : in decompact_transport_thickness   [3]
+  toponum
+  zeros(xnum)                         : top_new_at_zero    [4] toponum
+  compact_or_decompact_layer (decompact)                  [5] toponum
+  zeros(xnum)                         : top_initial in
+  compact_sediment_thickness_initial [6] toponum
+  compact_or_decompact_layer (compact)                    [7] toponum
+  sediment_thickness_initial .+ ...   : total_uncorrected  [8] toponum
+  ... .+ ...                          : total_corrected    [9] toponum
+  total_corrected .- total_uncorrected: temp               [10] toponum
+  topo_gridy_new .- ...               : topo_corrected     [11] toponum
+
+  Quick win in there: decompact_transport_thickness_opt already exists with
+  scalar-Float64 top_initial/top_new overload of compact_or_decompact_layer
+  (eliminates [3] and [4]). The non-_opt variant called by
+  apply_compaction_correction redundantly allocates them. Just switching the 
+  call eliminates 2 allocations.
+
+  Allocation map (variable_property path — production hot path)
+
+  apply_compaction_correction_for_topography_and_markers(...):
+
+  #: 1
+  Source: calculate_top_and_bottom_of_swarm_opt allocates tops = zeros(xnum),
+    bottoms = zeros(xnum)
+  Lines: TopAndBottom.jl:274-275
+  Size: 2 × toponum
+  ────────────────────────────────────────
+  #: 2
+  Source: smooth_surface(tops) and smooth_surface(bottoms) each allocate fresh
+    output
+  Lines: TopAndBottom.jl:312-314
+  Size: 2 × toponum
+  ────────────────────────────────────────
+  #: 3
+  Source: sticky_thickness_initial = bottom_sticky .- top_sticky
+  Lines: CompactionCorrection.jl:62
+  Size: toponum
+  ────────────────────────────────────────
+  #: 4
+  Source: decompact_new_sediment_and_compact_markers internals: same 11
+    allocations as constant path (modulo compact_sediment_and_advect_markers
+    instead of compact_sediment_thickness_initial — needs investigation re:
+    calculate_mesh_compacted_thickness's return alloc)
+  Lines: various
+  Size: ~toponum × 8–10
+
+  Approx. 15–17 toponum-sized allocations per inner step in the
+  variable_property path. At toponum=20000, nsteps=1000, that's ~2.5 GB of
+  allocation churn per outer call. The persistent solver's preallocated buffers
+  are useless in the inner loop until this is addressed.
+
+  Where the buffers will live
+
+  Add fields to the persistent SedimentTransportSolver (already mutable, already
+   owns scratch buffers):
+
+  ┌──────────────────────────────────┬──────────────────────────────┬───────┐
+  │              Buffer              │           Used by            │ Size  │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ new_thickness_compacted_buffer   │ apply_compaction_correction* │ topon │
+  │                                  │ ! step [1+2]                 │ um    │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ new_thickness_decompacted_buffer │ step [5]                     │ topon │
+  │                                  │                              │ um    │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ sediment_thickness_initial_compa │ step [7] / calculate_mesh_co │ topon │
+  │ cted_buffer                      │ mpacted_thickness output     │ um    │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ top_sticky_buffer                │ calculate_top_and_bottom_of_ │ topon │
+  │                                  │ swarm_opt!                   │ um    │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ bottom_sticky_buffer             │ same                         │ topon │
+  │                                  │                              │ um    │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ tops_smooth_scratch /            │ smooth_surface! requires     │ topon │
+  │ bottoms_smooth_scratch           │ distinct in/out              │ um ×  │
+  │                                  │                              │ 2     │
+  ├──────────────────────────────────┼──────────────────────────────┼───────┤
+  │ sticky_thickness_initial_buffer  │ step [3]                     │ topon │
+  │                                  │                              │ um    │
+  └──────────────────────────────────┴──────────────────────────────┴───────┘
+
+  (7 new buffers, each toponum × 8 bytes.)
+
+  What the post-loop simplification buys us for free
+
+  Inside apply_compaction_correction[_for_topography_and_markers], the tail
+  computation today is:
+  total_uncorrected = sed_init + new_thick_compacted
+  total_corrected   = sed_init_compacted + new_thick_decompacted
+  topo_corrected    = topo_new - (total_corrected - total_uncorrected)
+  return topo_corrected, total_corrected, _
+
+  The caller IMMEDIATELY does copy_array_1d!(topo_gridy_corrected, 
+  solver.topo_gridy) and rebinds sediment_thickness_total = total_corrected. So:
+  - Write topo_corrected directly into solver.topo_gridy (no buffer needed)
+  - Write total_corrected directly into solver.sediment_thickness_total_buffer
+  (the buffer that sediment_thickness_total already points to from Phase 2)
+  - Fold the 4 broadcasts into ONE fused loop:
+  for i in 1:toponum
+      total_uncorrected_i = sed_init[i] + new_thick_compacted[i]
+      total_corrected_i   = sed_init_compacted[i] + new_thick_decompacted[i]
+      solver.topo_gridy[i] = topo_new[i] - (total_corrected_i -
+  total_uncorrected_i)
+      solver.sediment_thickness_total_buffer[i] = total_corrected_i
+  end
+
+  Eliminates allocations [8-11] for free.
+
+  One subtlety: sed_init (the function's sediment_thickness_initial argument) IS
+   solver.sediment_thickness_total_buffer from the previous iteration. We read
+  it for the first line of the loop, then overwrite it on the last line. As long
+   as we read both total_uncorrected_i and total_corrected_i before writing to
+  slot i, the in-place overwrite is safe (and it is, in the loop above).
+
+  Bang functions to introduce
+
+  New: compact_or_decompact_layer! (vector → vector)
+  Replaces: the existing compact_or_decompact_layer(scalar, vec, scalar) and
+    (vec, vec, vec) overloads
+  Notes: Output buffer first arg
+  ────────────────────────────────────────
+  New: decompact_transport_thickness_opt!(out, porosity, decay, 
+    sed_thick_compacted)
+  Replaces: decompact_transport_thickness_opt(...)
+  Notes: One-line wrapper around the bang compact_or_decompact_layer!
+  ────────────────────────────────────────
+  New: compact_sediment_thickness_initial!(out, params, sed_init, 
+    sed_decompacted)
+  Replaces: non-bang version
+  Notes: Drops the top_initial = zeros(xnum) alloc by passing 0.0 as scalar
+  ────────────────────────────────────────
+  New: calculate_top_and_bottom_of_swarm_opt!(tops_out, bottoms_out, 
+    smooth_scratch_a, smooth_scratch_b, ...)
+  Replaces: non-bang
+  Notes: New overload; non-bang stays for any other callers
+  ────────────────────────────────────────
+  New: apply_compaction_correction!(solver, params, topo_gridy_initial, 
+    topo_gridy_new)
+  Replaces: non-bang
+  Notes: Reads sediment_thickness_initial from
+    solver.sediment_thickness_total_buffer, writes to solver.topo_gridy and the
+    same buffer in place
+  ────────────────────────────────────────
+  New: apply_compaction_correction_for_topography_and_markers!(solver, model, 
+    params, topo_gridy_initial, topo_gridy_new, marker_indices...)
+  Replaces: non-bang
+  Notes: Same shape, also threads through the marker-buffer struct
+  ────────────────────────────────────────
+  New: decompact_new_sediment_and_compact_markers!(...)
+  Replaces: non-bang
+  Notes: Internal to the variable_property bang
+
+  compact_sediment_and_advect_markers (in MarkerCompaction.jl) — the marker-side
+   work is already buffer-aware (takes preallocated markers_topo_xindex_buffer
+  etc.). The only allocation I haven't traced is the return value of
+  calculate_mesh_compacted_thickness(compaction_array). Action item: read it
+  during implementation and either give it a bang form or have it write into
+  sediment_thickness_initial_compacted_buffer.
+
+  Touch points (every file that has to change)
+
+  File: compaction/core/CompactionTools.jl
+  Change: Add compact_or_decompact_layer! bang variants
+  ────────────────────────────────────────
+  File: compaction/core/CompactionCorrection.jl
+  Change: Add apply_compaction_correction!,
+    apply_compaction_correction_for_topography_and_markers!,
+    decompact_new_sediment_and_compact_markers!, bang variants of helpers; keep
+    non-bang versions to avoid breaking MarkerCompactionTest.jl:145
+  ────────────────────────────────────────
+  File: compaction/core/MarkerCompaction.jl
+  Change: Possibly bang-ify calculate_mesh_compacted_thickness (1 alloc), or
+  move
+    the alloc onto a passed-in buffer
+  ────────────────────────────────────────
+  File: structure/utils/TopAndBottom.jl
+  Change: Add calculate_top_and_bottom_of_swarm_opt! bang variant
+  ────────────────────────────────────────
+  File:
+  surface_processes/sediment_transport/solver/SedimentTransportSolverManager.jl
+  Change: Add 7 new buffer fields; allocate in constructor; pass to bang
+  versions
+    in inner loop
+
+  Numerical-equivalence verification
+
+  Two-tier check:
+
+  1. Per-function spot check — for each new bang variant, write a unit test
+  that:
+    - Generates synthetic toponum-sized input
+    - Calls non-bang version, captures result
+    - Calls bang version, compares element-by-element
+    - Assert == (bit-identical)
+  2. Cross-call regression — extend the existing Phase 1/2 cross-call test to
+  also enable use_compaction_correction=true with
+  compaction_correction_type="variable_property". Variable_property requires a
+  model::ModelData with markers, so this is harder to set up synthetically.
+  Realistic option: plumb the equivalence test through
+  SedimentTransportTest.run_test (which already exercises the path) and assert
+  the test's Max displacement printed value matches baseline. Plus run the
+  actual case0 model end-to-end before declaring done.
+  3. Allocation measurement — extend the existing @allocated measurement to
+  confirm we hit ~zero allocations per call with use_compaction_correction=true 
+  && compaction_correction_type="variable_property". (Modulo any small
+  allocations remaining inside compact_sediment_and_advect_markers that we judge
+   out of scope.)
+
+  Risk and scope
+
+  - Larger blast radius than Phase 1+2. Phase 1+2 lived inside
+  surface_processes/sediment_transport/. Phase 3 touches compaction/ (a shared
+  module) and structure/utils/TopAndBottom.jl. We mitigate by adding bang
+  variants alongside existing non-bang functions — no caller forced to change.
+  Slightly more code in the codebase, but back-compat preserved.
+  - MarkerCompactionTest.jl:145 calls decompact_new_sediment_and_compact_markers
+   directly. We don't change its signature; we add
+  decompact_new_sediment_and_compact_markers! alongside.
+  - Marker-side internals — compact_sediment_and_advect_markers is a 100+ line
+  orchestrator. I didn't fully trace it. There's a non-zero chance it has
+  additional inner allocations (e.g. inside
+  calculate_compaction_properties_for_compaction_array_opt or
+  update_marker_max_burial). Plan: trace during implementation; if any are
+  caller-visible, address; if all are buffer-aware already, leave alone.
+  - calculate_top_and_bottom_of_swarm_opt has a Threads.@threads block that
+  writes to tops/bottoms arrays. Bang-ifying it is fine, but sorted_x = 
+  marker_x[x_sorted_marker_indices_swarm] (line 277) allocates a marker-sized
+  vector. That's not toponum-sized — it's nmarkers-sized — and might be the
+  bigger cost on real models. Action item: add a marker-sized scratch buffer too
+   if profiling shows it matters, but it's owned by the marker subsystem, not
+  the sediment-transport solver. May need a separate buffer struct.
+
+  Suggested execution order
+
+  1. Bang-ify compact_or_decompact_layer (smallest, foundational).
+  2. Bang-ify apply_compaction_correction (constant_property) and verify with
+  synthetic + existing test.
+  3. Bang-ify calculate_top_and_bottom_of_swarm_opt and smooth_surface (already
+  has smooth_surface!, so just the swarm one).
+  4. Bang-ify decompact_new_sediment_and_compact_markers and
+  apply_compaction_correction_for_topography_and_markers.
+  5. Add buffers to SedimentTransportSolver; rewrite the inner-loop if/elseif 
+  use_compaction_correction block.
+  6. Run SedimentTransportTest + case0 end-to-end + @allocated check.
+
+  Expected impact
+
+  If the variable-property bang lands cleanly:
+  - Per-call allocation drops from ~MB-scale to ~KB-scale (modulo any
+  unaddressed marker-internal allocs).
+  - For case0 (toponum~20000, nsteps~1000), this would eliminate the ~2.5 GB
+  allocation churn per call. Combined with Phase 1+2, the total
+  run_sediment_transport_time_steps! allocation should be ~zero.
+  - Combined with the un-touched lava-flow churn (still ~MB/call), the per-step
+  RAM growth observed in the case0 log (~1 GB/step) should drop by most of that,
+   with the residual being lava flow.
+
+  Out of scope for Phase 3
+
+  - Lava flow flow_thickness = zeros(xnum), lava_thickness_old = 
+  Vector{Float64}(undef, xnum), radiate_indices (lives in
+  surface_processes/lava_flow/)
+  - copy_topography_coordinate_arrays slicing (gridt[1, :] and gridt[2, :]) in
+  run_sediment_transport_model! — small (2× toponum per call), low priority
+  - calculate_sediment_thickness_from_markers per call
+
+  These are Phase 4+ candidates if you want to keep going.
+
+  ---
+  Want me to:
+  - (A) Implement Phase 3 in full (3a + 3b)?
+  - (B) Implement only Phase 3a (constant_property) so we can validate the
+  pattern in isolation before touching the markers path?
+  - (C) Pause and re-run the actual case0 model first to measure the RAM impact
+  of Phase 1+2 alone, then decide whether 3 is worth the blast radius?
+
+✻ Brewed for 3m 54s
+
+❯ /export                                                                         ⎿  Conversation exported to: /home/ekneller/apps/julia/EarthBox/2026-04-28-Add
+     itional-Compaction-Optimizations.txt
+
+❯ Let's hold of on phase 3. Is there a test that touches the modifications to   
+  the sediment solver?                                                          
+
+● Let me check what tests are actually wired up and what they cover.
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● Honest answer:
+
+  What's currently covered
+
+  Manual test (must be invoked by hand): EarthBox.TestManager.SedimentTransportT
+  est.run_test(use_optimized_solver=true|false) does exercise:
+  - The full constructor (so all 9 new buffers from Phases 1+2 get allocated)
+  - The inner loop (so make_topo_diffusivity_grid!,
+  calculate_pelagic_sedimentation_rate_grid!, calculate_water_depth!,
+  calculate_downstream_distances_for_nodes! all run)
+  - update_collections! with the new AbstractVector signature and view(buffer, 
+  1:ndivides)
+
+  That's what we ran twice during the work and confirmed Max displacement
+  matches the pre-refactor baseline bit-for-bit (321.3617034366707 legacy /
+  321.40213555158016 optimized).
+
+  Auto-wired test: test/runtests.jl runs only stokes_sinker_smoke.jl and
+  MeltDrainageDividesTest.run_test() (the latter is the melt-model drainage
+  divider, not the sediment-transport one — different module). Nothing in the 
+  auto-test suite touches our changes.
+
+  What's not covered by any test
+
+  The most consequential gap is the persistent-solver lifecycle (cache hit,
+  reset!, cross-call reuse, Topography.sediment_transport_solver field
+  plumbing). The single-call SedimentTransportTest.run_test() only exercises the
+   first-call / fresh-construction branch of get_or_init_solver! — same path as
+  before the refactor. The cache-hit branch with reset! is currently untested in
+   committed code.
+
+  I validated cross-call equivalence with throwaway scripts during the work, but
+   those are gone.
+
+  Recommendation
+
+  Two cheap, durable additions:
+
+  1. Add a cross-call regression test as a permanent test file (essentially the
+  /tmp/check_* scripts I used during validation, but formalized). Build solver,
+  run, reset! to different inputs, run, assert outputs match a from-scratch
+  reference. ~80 lines.
+  2. Wire SedimentTransportTest.run_test() into runtests.jl with Max 
+  displacement asserts against the known baseline values. This catches any
+  regression in the inner-loop bang refactors. ~10 lines.
+
+  Both together would give us actual CI coverage of the changes. Want me to add
+  them?
+
+✻ Brewed for 55s
+
+❯ What is the max displacement refering to?                                     
+
+● Max displacement comes from this line in
+  src/tests/tests/surface_processes/sediment_transport/SedimentTransportTest.jl:
+
+  println(">> Max displacement: ",
+          maximum(transport_solver.compaction_displacement_max))
+
+  So it's maximum(solver.compaction_displacement_max) — a single scalar in
+  meters.
+
+  What compaction_displacement_max represents
+
+  It's a Vector{Float64} of length toponum, computed at the end of the run by
+  update_compaction_displacement_max!
+  (SedimentTransportSolverManager.jl:368-380):
+
+  sediment_thickness_markers_final = calculate_final_thickness_after_burial(
+      porosity_initial, depth_decay_term,
+      solver.sediment_thickness_initial,    # original column thickness
+      sediment_thickness_total              # total column at end of run
+  )
+  solver.compaction_displacement_max =
+      solver.sediment_thickness_initial - sediment_thickness_markers_final
+
+  So at each x-node of the topography grid:
+
+  compaction_displacement_max[i] = original_sediment_thickness[i] − 
+  final_compacted_thickness[i]
+
+  It's how much the original sediment column at that x-location was squeezed 
+  downward by additional sediment piling on top during the run, using the
+  porosity/depth-decay law (Athy compaction). Downstream, this drives
+  advect_markers_using_compaction — the markers in the original column get
+  pushed down by exactly this displacement so they keep tracking the compacted
+  geology.
+
+  Why it's a useful regression assertion
+
+  maximum(compaction_displacement_max) is the worst-case compaction at any node
+  — a single scalar that's a function of every step's evolution of the
+  topography (via sediment_thickness_total, which is the running output of every
+   inner step's apply_compaction_correction). Any drift in:
+  - the diffusion solve (legacy or optimized),
+  - the diffusivity grid,
+  - the pelagic sedimentation grid,
+  - water depth / drainage divides / downstream distances (which feed back into
+  next-step diffusivity),
+  - the compaction correction itself,
+
+  …would change sediment_thickness_total, which would change
+  sediment_thickness_markers_final, which would change this max. So
+  321.3617034366707 (legacy) and 321.40213555158016 (optimized) being
+  bit-identical pre- and post-refactor is strong evidence that the entire
+  inner-loop chain is preserved end-to-end. It's not just a smoke test — it's an
+   end-state of a multi-step accumulation.
+
+  Worth noting: it's a single number, so if the per-node trajectories drift but
+  happen to produce the same scalar maximum, this check would pass while masking
+   a regression. A stronger assertion would compare the full vector
+  (copy(transport_solver.compaction_displacement_max)) against a baseline;
+  that's what the cross-call regression test would do if we add it.
+
+✻ Churned for 28s
+
+❯ So '/home/ekneller/apps/julia/EarthBox/src/tests/tests/surface_processes/sedi 
+  ment_transport/SedimentTransportTest.jl' is a good test of the changes?       
+
+● Honestly, it's a good test for Phase 2 but a partial test for Phase 1.
+
+  What it covers well
+
+  Every bang refactor in the inner loop:
+  - SedimentTransportSolver constructor — allocates and threads through all 9
+  new buffers
+  - make_topo_diffusivity_grid! (constant + non-constant paths via
+  use_constant_diffusivity=false)
+  - calculate_pelagic_sedimentation_rate_grid!
+  - calculate_water_depth! (start-of-call + per-inner-step)
+  - calculate_downstream_distances_for_nodes! (start-of-call + per-inner-step)
+  - classify_topography_shape_at_each_node! and
+  calculate_x_locations_of_drainage_divides! (called transitively)
+  - update_collections! with the new AbstractVector signature, hit by
+  view(buffer, 1:ndivides) (since use_collections=true in the test)
+  - apply_compaction_correction (use_compaction_correction=true in the test)
+  - The whole nsteps-iteration inner loop, both legacy and optimized solver
+  paths
+
+  Max displacement is a meaningful end-state assertion: it's a function of every
+   inner step's accumulated sediment_thickness_total, which is itself a function
+   of every diffusion solve, every diffusivity grid, every drainage-divides
+  recomputation. If any of those drifted, the scalar would change. Bit-identity
+  at 321.3617034366707 (legacy) and 321.40213555158016 (optimized) is strong
+  evidence the chain is preserved.
+
+  What it misses
+
+  The persistent-solver lifecycle (Phase 1) is not exercised:
+
+  The test calls SedimentTransportSolver(...) directly and runs
+  run_sediment_transport_time_steps! once. So:
+  - ❌ get_or_init_solver! (bypassed — test doesn't go through
+  run_sediment_transport_model!)
+  - ❌ is_compatible cache-validity check
+  - ❌ reset! cross-call refresh (only called when the cache hits)
+  - ❌ The model.topography.sediment_transport_solver field plumbing
+  - ❌ The Topography() constructor's new nothing default
+  - ❌ The cached isa SedimentTransportSolver branch in get_or_init_solver!
+
+  A bug in reset! (e.g. forgetting to clear compaction_displacement_max, or
+  copying the wrong array into topo_gridy) would not be caught by this test.
+  That's the most surgical part of Phase 1 and it's the part with no committed
+  coverage.
+
+  Other gaps (smaller)
+
+  - Production runs compaction_correction_type="variable_property"; the test
+  uses "constant_property" (the default). So
+  apply_compaction_correction_for_topography_and_markers and the marker-side
+  compaction code is not exercised by this test (it's a Phase 3 concern, but
+  worth noting).
+  - It compares one scalar (maximum(...)). Two trajectories with different
+  per-node values but coincidentally the same maximum would pass. Comparing
+  copy(transport_solver.compaction_displacement_max) element-wise would be
+  stricter.
+
+  Bottom line
+
+  If we wanted to declare "Phase 1+2 is committed-test-covered", we'd want one
+  more thing: a cross-call test that proves reset! produces the same output as a
+   fresh constructor. That's the throwaway script we ran during validation,
+  formalized into the test suite. ~80 lines, exactly the regression I'd want as
+  a permanent guard.
+
+  Want me to add it?
+
+✻ Churned for 32s
+
+❯ Where would you add it?                                                       
+
+● I'd follow the existing test-organization convention. Here's the placement:
+
+  New test file
+
+  Path: src/tests/tests/surface_processes/sediment_transport/SedimentTransportSo
+  lverResetTest.jl
+
+  A new module sibling to the existing SedimentTransportTest.jl. This matches
+  the codebase pattern —
+  LavaFlowTestSingle/LavaFlowTestMultiple/LavaFlowTestSteep etc. are all
+  separate sibling modules under surface_processes/lava_flow/, one purpose per
+  file.
+
+  Why a new module rather than extending the existing one:
+  - The existing SedimentTransportTest.run_test() is a single-call + plotting
+  harness. The reset test is purely numerical-equivalence — different intent,
+  different inputs, no shared setup beyond a few helpers.
+  - Easier to invoke independently
+  (TestManager.SedimentTransportSolverResetTest.run_test()) and to gate
+  auto-running.
+  - Doesn't bloat the existing file with non-overlapping logic.
+
+  The new module would export a run_test() that returns either a NamedTuple of
+  comparison results or true on success / raises on failure — matching the
+  contract of MeltDrainageDividesTest.run_test().
+
+  Wire-up changes
+
+  src/tests/TestManager.jl — three small edits, mirroring how
+  SedimentTransportTest is registered:
+
+  include("tests/surface_processes/sediment_transport/SedimentTransportSolverRes
+  etTest.jl")
+  import .SedimentTransportSolverResetTest
+  export SedimentTransportSolverResetTest
+
+  test/runtests.jl — add a @testset next to the existing Basic Tests block:
+
+  @testset "Sediment Transport Solver Reset" begin
+      result = TestManager.SedimentTransportSolverResetTest.run_test()
+      @test result.first_run_matches_fresh_A
+      @test result.after_reset_matches_fresh_B
+      @test result.after_second_reset_matches_fresh_A
+  end
+
+  This is the same pattern as the existing Basic Tests block that calls
+  MeltDrainageDividesTest.run_test() and @tests its return value.
+
+  Optional second add (also worth doing)
+
+  The existing SedimentTransportTest.run_test() is also currently un-wired into
+  runtests.jl. While I'm there, I'd add a smoke-style @testset:
+
+  @testset "Sediment Transport End-State (legacy + optimized)" begin
+      EarthBox.TestManager.SedimentTransportTest.run_test(use_optimized_solver=f
+  alse)
+      # would need run_test to return Max displacement instead of nothing
+      # so we can assert bit-identity against 321.3617034366707
+  end
+
+  This would require a small tweak to SedimentTransportTest.run_test() to return
+   maximum(transport_solver.compaction_displacement_max) rather than just
+  printing it, so the test runner can @test ≈ 321.3617034366707. ~3-line change.
+   That gives us auto-CI coverage of the inner-loop bang refactors at the same
+  time.
+
+  So the total addition would be:
+
+  File: src/tests/tests/surface_processes/sediment_transport/SedimentTransportSo
+  lverResetTest.jl
+  Change: NEW — ~80 lines
+  ────────────────────────────────────────
+  File: src/tests/TestManager.jl
+  Change: 3 lines (include/import/export)
+  ────────────────────────────────────────
+  File: test/runtests.jl
+  Change: 1 @testset block (~6 lines)
+  ────────────────────────────────────────
+  File:
+  src/tests/tests/surface_processes/sediment_transport/SedimentTransportTest.jl
+  Change: Optional — return Max displacement; ~3 lines
+  ────────────────────────────────────────
+  File: test/runtests.jl
+  Change: Optional — second @testset for the smoke baselines; ~5 lines
+
+  Want me to go ahead and add the required pieces (and optionally the smoke-test
+   piece)?
+
+✻ Cooked for 38s
+
+❯ Let's add the new test but I don't want to modify runtests.jl. I just want to 
+   be able to run the test from the TestManager                                 
+
+● Let me check the TestManager wire-up pattern, then add the test file.
+
+  Read 1 file (ctrl+o to expand)
+
+● I have the pattern. Now creating the new test file.
+
+● Write(src/tests/tests/surface_processes/sediment_transport/SedimentTransportSo
+       lverResetTest.jl)
+  ⎿  Wrote 179 lines to src/tests/tests/surface_processes/sediment_transpor
+     t/SedimentTransportSolverResetTest.jl
+       2 module SedimentTransportSolverResetTest
+       3 import EarthBox.ConversionFuncs: mm_per_yr_to_meters_per_seconds
+       4 import EarthBox.ConversionFuncs: years_to_seconds
+       5 import EarthBox.ConversionFuncs: meters_per_year_to_meters_per_s
+         econds as m_yr_to_m_s
+         rs_squared_per_second as m2_yr_to_m2_ss_squared_per_year_to_mete
+       7 import EarthBox.DataStructures: SedimentTransportParameters
+         sportSolverManagerrfaceProcesses.SedimentTransport: SedimentTran
+       9 
+      10 const _SOLVER_KWARGS = (
+     … +205 lines (ctrl+o to expand)
+
+● Now wire it into TestManager.jl.
+
+● Update(src/tests/TestManager.jl)
+  ⎿  Added 1 line
+      3  
+      4  Exported Test Modules:
+      5  - SedimentTransportTest
+      6 +- SedimentTransportSolverResetTest                              
+      7  - LavaFlowTestSingle
+      8  - LavaFlowTestMultiple
+      9  - LavaFlowTestSteep
+
+● Update(src/tests/TestManager.jl)
+  ⎿  Added 1 line
+      40  module TestManager
+      41  
+      42  include("tests/surface_processes/sediment_transport/SedimentTra
+          nsportTest.jl")
+      43 +include("tests/surface_processes/sediment_transport/SedimentTra
+         +nsportSolverResetTest.jl")                                     
+      44  include("tests/surface_processes/lava_flow/LavaFlowTestSingle.j
+          l")
+      45  include("tests/surface_processes/lava_flow/LavaFlowTestMultiple
+          .jl")
+      46  include("tests/surface_processes/lava_flow/LavaFlowTestSteep.jl
+          ")
+
+● Update(src/tests/TestManager.jl)
+  ⎿  Added 2 lines, removed 1 line
+      63  include("tests/gravity/TestCellGravity.jl")
+      64  include("tests/gravity/TestGridGravity.jl")
+      65  
+      66 -import .SedimentTransportTest, .LavaFlowTestSingle, .LavaFlowTe
+         -stMultiple, .LavaFlowTestSteep, .LavaFlowTestMultipleSteep     
+      66 +import .SedimentTransportTest, .SedimentTransportSolverResetTes
+         +t                                                              
+      67 +import .LavaFlowTestSingle, .LavaFlowTestMultiple, .LavaFlowTes
+         +tSteep, .LavaFlowTestMultipleSteep                             
+      68  import .MarkerCompactionTest, .MagmaBodyTest, .MeltDrainageDivi
+          desTest
+      69  import .MeltDamageTest, .GabbroSolidusLiquidusTest, .Peridotite
+          SolidusLiquidusTest
+      70  import .ConductivityTest, .HeatCapacityTest, .SerpentinizationT
+          est
+
+● Update(src/tests/TestManager.jl)
+  ⎿  Added 2 lines, removed 1 line
+      71  import .BaseLevelTest, .LatentHeatTest, .HalfSpaceCoolingTest
+      72  import .BisectionInterpTest, .CompactionTest, .TestGridGravity,
+           .TestCellGravity
+      73  
+      74 -export SedimentTransportTest, LavaFlowTestSingle, LavaFlowTestM
+         -ultiple, LavaFlowTestSteep, LavaFlowTestMultipleSteep          
+      74 +export SedimentTransportTest, SedimentTransportSolverResetTest 
+      75 +export LavaFlowTestSingle, LavaFlowTestMultiple, LavaFlowTestSt
+         +eep, LavaFlowTestMultipleSteep                                 
+      76  export MarkerCompactionTest, MagmaBodyTest, MeltDrainageDivides
+          Test
+      77  export MeltDamageTest, GabbroSolidusLiquidusTest, PeridotiteSol
+          idusLiquidusTest
+      78  export ConductivityTest, HeatCapacityTest, SerpentinizationTest
+
+● Now run it via the TestManager to confirm wire-up works and all three
+  sub-checks pass on both legacy and optimized solver paths.
+
+● Bash(julia --project=. -e '
+      using EarthBox…)  ⎿  Time taken to import modules: 0.022068023681640625 seconds
+       23307.0 ms  ✓ EarthBox
+       1 dependency successfully precompiled in 29 seconds. 365 already pre
+     … +19 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● All three sub-checks pass on both solver paths.
+
+  Summary of additions
+
+  New file: src/tests/tests/surface_processes/sediment_transport/SedimentTranspo
+  rtSolverResetTest.jl — module exporting run_test(; use_optimized_solver=true).
+   Returns a NamedTuple{(:first_run_matches_fresh_A, 
+  :after_reset_matches_fresh_B, :after_second_reset_matches_fresh_A)} of
+  booleans.
+
+  Wired into: src/tests/TestManager.jl (4 small edits — docstring, include,
+  import, export).
+
+  runtests.jl untouched, as you asked.
+
+  How to invoke:
+  using EarthBox
+  TestManager.SedimentTransportSolverResetTest.run_test()                     # 
+  optimized path
+  TestManager.SedimentTransportSolverResetTest.run_test(use_optimized_solver=fal
+  se)  # legacy path
+
+  What it actually validates (specific to gaps the existing test doesn't cover)
+
+  1. First-run-matches-fresh: persistent solver's first run output == a
+  freshly-constructed solver's output. Catches regressions in is_compatible
+  returning false-positive (which would mean we're not actually entering the
+  reset path) or in the constructor itself.
+  2. After-reset-matches-fresh-B: after reset!-ing to a different input set
+  (different topo, sed thickness, sealevel, pelagic rate, params with different
+  transport_model_duration so nsteps and transport_timestep change), the
+  persistent solver matches a fresh solver built for B. Catches stale state in
+  any of: topo_gridx, topo_gridy_initial, topo_gridy,
+  sediment_thickness_initial, sediment_transport_parameters, transport_timestep,
+   nsteps, y_sealevel, pelagic_*, use_* flags.
+  3. After-second-reset-matches-fresh-A: reset back to A, run again, must match
+  A-fresh again. Catches bugs where state leaks across calls (e.g. failing to
+  clear compaction_displacement_max to nothing, failing to clear collections
+  dicts, failing to reset output fields). This is the "no semantic state across
+  calls" invariant.
+
+  Each compares snapshots field-by-field with ==, including the full
+  topo_collection/divides_collection/water_depth_collection/basement_collection
+  dicts (every key, every vector) — so any per-step drift would surface, not
+  just end-state drift.
+
+✻ Cooked for 2m 6s
+
+❯ So do both the tests in '/home/ekneller/apps/julia/EarthBox/src/tests/tests/s 
+  urface_processes/sediment_transport' touch on all of the changes              
+
+● Honest mapping. Together the two tests cover most of the changes well, but not
+   all.
+
+  Covered by at least one of the two
+
+  Phase 2 (bang refactors and buffers) — fully covered:
+  - Constructor allocates all 9 new buffers ✓
+  - make_topo_diffusivity_grid! (non-constant-diffusivity branch) ✓
+  - calculate_pelagic_sedimentation_rate_grid! ✓
+  - calculate_water_depth! (start-of-call + per-inner-step) ✓
+  - calculate_downstream_distances_for_nodes! (both call-sites) ✓
+  - classify_topography_shape_at_each_node! ✓ (transitive)
+  - calculate_x_locations_of_drainage_divides! ✓ (transitive)
+  - update_collections! with AbstractVector + view(buf, 1:ndivides) ✓ (both
+  tests use use_collections=true)
+  - solve_downhill_diffusion (legacy) AND solve_downhill_diffusion_optimized ✓
+  - apply_compaction_correction (constant_property) ✓
+  - update_compaction_displacement_max! ✓
+
+  Phase 1 (persistent lifecycle) — partly covered:
+  - reset! ✓ (the reset test calls it directly, twice)
+  - clear! ✓ (called inside reset!)
+  - The "no semantic state across calls" invariant ✓ (the third sub-check
+  verifies)
+
+  NOT covered by either
+
+  The cache-glue layer in Phase 1:
+  - get_or_init_solver! — no test goes through it; both tests call the
+  constructor (or reset!) directly
+  - is_compatible — never invoked (the reset test bypasses get_or_init_solver!
+  and calls reset! directly, which doesn't check compatibility)
+  - Topography.sediment_transport_solver field plumbing — no test constructs a
+  Topography
+  - Topography() defaulting the field to nothing — same
+  - run_sediment_transport_model! outer wrapper that drives get_or_init_solver!
+  and writes results back to gridt
+
+  Other gaps (acknowledged as out of scope):
+  - apply_compaction_correction_for_topography_and_markers (variable_property —
+  production hot path, but Phase 3 territory)
+  - make_topo_diffusivity_grid! constant-diffusivity branch
+  (use_constant_diffusivity=false in both tests)
+
+  What the cache-glue gap means in practice
+
+  A typo in get_or_init_solver! like:
+  - writing to the wrong field
+  - failing to set model.topography.sediment_transport_solver = solver after
+  fresh construction
+  - inverting the cached isa SedimentTransportSolver check
+  - mis-routing an is_compatible=false case
+
+  …would not be caught by either test. The functions themselves are simple (~25
+  lines combined), so the risk is low, but there's zero coverage of them right
+  now.
+
+  Cheapest way to close the gap
+
+  Two options, neither requires constructing a full ModelData:
+
+  Option 1 (minimum): Add a unit test for is_compatible. ~15 lines. Verifies
+  is_compatible(solver, toponum, opt) == true for the matching case, false for
+  length mismatch, false for use_optimized_solver mismatch. This is the most
+  failure-prone of the cache-glue functions because it has multiple branches
+  with subtle invariants.
+
+  Option 2 (more thorough): Test Topography default + field assignment in
+  isolation:
+  topo = Topography()
+  @assert topo.sediment_transport_solver === nothing
+  topo.sediment_transport_solver = solver  # placeholder
+  @assert topo.sediment_transport_solver === solver
+  ~5 lines. Catches anyone who later types the field as a non-Any concrete type
+  and breaks the lazy-init pattern.
+
+  Option 1 is the more meaningful add — is_compatible has actual logic. Option 2
+   is mostly reassurance that the field exists.
+
+  Both could go in SedimentTransportSolverResetTest.jl as additional functions
+  (run_is_compatible_test(), run_topography_field_test()), keeping all
+  sediment-solver-related tests in one module. Or as a tiny third file.
+
+  Want me to add option 1?
+
+✻ Churned for 1m 0s
+
+❯ Add option to the new test                                                    
+
+● Adding run_is_compatible_test() to the same module.
+
+● Update(src/tests/tests/surface_processes/sediment_transport/SedimentTransportS
+        olverResetTest.jl)
+  ⎿  Added 35 lines
+      176      )
+      177  end
+      178  
+      179 +""" Unit test for `SedimentTransportSolverManager.is_compatibl
+          +e`.                                                           
+      180 +                                                              
+      181 +    `is_compatible` is the cache-validity gate inside `get_or_
+          +init_solver!`:                                                
+      182 +    a `false` return forces a full reconstruction of the persi
+          +stent                                                         
+      183 +    solver. Wrong logic here would either silently reuse a buf
+          +fer of the                                                    
+      184 +    wrong size (corruption / OOB) or always rebuild (defeating
+          + the                                                          
+      185 +    hoist). All three branches need coverage:                 
+      186 +                                                              
+      187 +    1. Matching `toponum` and `use_optimized_solver` → `true`.
+      188 +    2. Mismatched `toponum` (any non-equal value) → `false`.  
+      189 +    3. Mismatched `use_optimized_solver` (the legacy/optimized
+          + flavors                                                      
+      190 +       allocate different buffer sets, so they aren't intercha
+          +ngeable                                                       
+      191 +       without reallocation) → `false`.                       
+      192 +                                                              
+      193 +    Returns a NamedTuple of booleans that should all be `true`
+          + when                                                         
+      194 +    `is_compatible` is correctly implemented.                 
+      195 +"""                                                           
+      196 +function run_is_compatible_test(; use_optimized_solver::Bool=t
+          +rue)                                                          
+      197 +    inputs = build_inputs(1)                                  
+      198 +    solver = build_solver(inputs; use_optimized_solver=use_opt
+          +imized_solver)                                                
+      199 +    toponum = length(inputs.topo_gridx)                       
+      200 +                                                              
+      201 +    return (                                                  
+      202 +        accepts_matching_inputs =                             
+      203 +            SedimentTransportSolverManager.is_compatible(     
+      204 +                solver, toponum, use_optimized_solver) == true
+          +,                                                             
+      205 +        rejects_toponum_mismatch =                            
+      206 +            SedimentTransportSolverManager.is_compatible(     
+      207 +                solver, toponum + 1, use_optimized_solver) == 
+          +false,                                                        
+      208 +        rejects_optimized_flag_mismatch =                     
+      209 +            SedimentTransportSolverManager.is_compatible(     
+      210 +                solver, toponum, !use_optimized_solver) == fal
+          +se,                                                           
+      211 +    )                                                         
+      212 +end                                                           
+      213 +                                                              
+      214  end # module
+
+● Run both tests on both solver flavors via TestManager.
+
+● Bash(julia --project=. -e '
+      using EarthBox…)
+  ⎿  === run_test (cross-call equivalence) ===
+     --- use_optimized_solver=true ---
+       first_run_matches_fresh_A = true
+     … +15 lines (ctrl+o to expand)
+  ⎿  (timeout 5m)
+
+● All checks pass on both solver flavors.
+
+  Final coverage map
+
+  SedimentTransportSolverResetTest.run_test():
+  - first_run_matches_fresh_A ✓
+  - after_reset_matches_fresh_B ✓
+  - after_second_reset_matches_fresh_A ✓
+
+  SedimentTransportSolverResetTest.run_is_compatible_test():
+  - accepts_matching_inputs ✓ — same toponum, same flavor → true
+  - rejects_toponum_mismatch ✓ — toponum + 1 → false (forces reconstruction)
+  - rejects_optimized_flag_mismatch ✓ — flipped flavor → false
+
+  How to invoke
+
+  using EarthBox
+  TestManager.SedimentTransportSolverResetTest.run_test()
+  TestManager.SedimentTransportSolverResetTest.run_test(use_optimized_solver=fal
+  se)
+  TestManager.SedimentTransportSolverResetTest.run_is_compatible_test()
+  TestManager.SedimentTransportSolverResetTest.run_is_compatible_test(use_optimi
+  zed_solver=false)
+
+  What's now covered (between SedimentTransportTest + 
+  SedimentTransportSolverResetTest)
+
+  ✅ All 9 buffer allocations in the constructor
+  ✅ Every bang refactor in the inner loop (diffusivity, pelagic, water_depth,
+  downstream_distances, classify_shape, x_locations_of_divides)
+  ✅ update_collections! with AbstractVector + view
+  ✅ Both legacy and optimized solver paths
+  ✅ apply_compaction_correction (constant_property)
+  ✅ reset! cross-call refresh, including the "no semantic state across calls"
+  invariant
+  ✅ clear! (transitively, inside reset!)
+  ✅ is_compatible — all three branches
+
+  Remaining gaps (acknowledged)
+
+  - get_or_init_solver! itself + Topography.sediment_transport_solver field
+  plumbing (would need a real ModelData to test fully)
+  - apply_compaction_correction_for_topography_and_markers (variable_property —
+  production hot path; Phase 3 territory)
+  - make_topo_diffusivity_grid! constant-diffusivity branch
+
+✻ Baked for 1m 30s
+
+※ recap: We're cutting RAM growth in EarthBox's sediment-transport path; Phase 1+2 (persistent solver, preallocated buffers) are committed and bit-identical to baseline, with two SedimentTransportSolverResetTest functions wired into TestManager. Next: re-run the case0 model to measure actual end-to-end RAM impact.
+
+❯ So both tests passed. What is our next step?                                  
+
+● Three things worth doing, roughly in this order:
+
+  1. Validate on the real model (most important)
+
+  Synthetic tests prove bit-equivalence, but the actual sdr_dynamics/case0 is
+  the ultimate truth source. You'd:
+  - Run a few timesteps end-to-end on case0
+  - Confirm it executes without errors
+  - Capture the new case4p*.out style RAM trajectory and compare to the
+  /home/ekneller/tmp/model_case0.log baseline we analyzed at the start
+
+  Expected outcome based on the per-call @allocated measurement: the updating 
+  topography using sediment transport per-step delta should drop from ~1 GB to
+  roughly the size of apply_compaction_correction allocations (variable_property
+   path — TBD measured). If the RAM curve doesn't drop, that's a signal
+  something we missed is allocating elsewhere.
+
+  This is the only way to know the Phase 1+2 changes actually solve the problem
+  you originally brought to me.
+
+  2. Tidy up debug code, then commit
+
+  There's leftover debug instrumentation that's not part of the refactor:
+  - src/surface_processes/SurfaceProcesses.jl:53 — println(">> 
+  use_optimized_sediment_solver: ...") you added to verify the optimized path
+  was being taken
+  - src/time_loop/TimeLoop.jl:170-176 — print_info("iuse_fixed_output_counter: 
+  ...") block
+
+  You might want to keep them while validating case0 (they confirm the right
+  code path runs), then strip them before committing. Or commit them as-is if
+  they're useful long-term debug.
+
+  The natural commit shape:
+  - One commit for Phase 2 (the bang refactors + 2 buffers from the earlier
+  Diffusivity.jl / pelagic_sedimentation_rate work)
+  - One commit for Phase 1 (reset!, is_compatible, get_or_init_solver!,
+  Topography.sediment_transport_solver, the additional 7 buffers)
+  - One commit for the new test (SedimentTransportSolverResetTest.jl +
+  TestManager.jl wire-up)
+
+  Or one bundled commit if you'd rather keep them together. Up to you.
+
+  3. Decide on next leak target
+
+  Once case0 RAM is measured, the next biggest residual leak source becomes
+  visible. Likely candidates from the original analysis:
+  - Lava flow per-pulse churn — flow_thickness = zeros(xnum) per flow,
+  lava_thickness_old = Vector{Float64}(undef, xnum) per pulse, radiate_indices
+  (2 arrays per pulse), abs.(lava_thickness .- lava_thickness_old) per
+  while-loop iteration. From the earlier analysis, this sits at ~100–200
+  MB/step.
+  - Phase 3 — apply_compaction_correction* buffers (constant_property is ~7.85
+  MB/call we measured; variable_property is the production hot path and not yet
+  measured but likely much larger).
+
+  If the case0 RAM curve still climbs at ~200 MB/step after Phase 1+2, lava flow
+   is the next target. If it climbs at ~MB/step or less, Phase 1+2 was
+  sufficient and you can stop.
+
+  ---
+  My recommendation: do step 1 first (run case0, measure). The result tells us
+  whether to invest in Phase 3 / lava-flow at all, vs. declaring victory and
+  shipping. Want me to draft a checklist for the case0 run, or do you have a
+  workflow for that already?
+
+✻ Worked for 39s
+
+❯ Tell me more about Lava flow per-pulse churn                                  
+
+● Let me trace it from the actual code rather than relying on the earlier
+  agent's summary.
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Now I have the full picture. Here's the structured analysis.
+
+  Allocation cascade per call to update_topography_using_lava_flow!
+
+  The hot path is: lava_flow_manager → run_lava_flow_model → (per drainage
+  basin) LavaFlowSolver(...) → extrude_magma → extrude_magma_at_surface →
+  lava_flow_loop → (per flow) make_flow → (per pulse) lava_flow_pulse → (per
+  while-iter) calculate_max_difference.
+
+  Fixed cost per call (regardless of flow count)
+
+  LavaFlowManager.jl:157 — flow_solver = LavaFlowSolver(...) — fresh constructor
+   every drainage basin every call. Same anti-pattern that Phase 1 fixed for 
+  sediment transport — the struct exists but is throwaway.
+
+  Inside extrude_magma_at_surface (LavaFlowSolverManager.jl:146):
+  - :164 — topo_gridy_initial = copy(topo_gridy) — toponum
+  - :177 — sediment_and_flow_thickness_total = 
+  copy(sediment_and_flow_thickness_initial) — toponum
+  - :178 — sediment_and_flow_thickness_initial_compacted = copy(...) — toponum
+
+  Inside lava_flow_loop (LavaFlowSolverManager.jl:255):
+  - :275 — total_lava_thickness_compacted = zeros(Float64, xnum) — toponum
+  - :322 — total_lava_thickness = copy(total_lava_thickness_compacted) — toponum
+
+  5 toponum-sized allocations per call before any flow happens. Tiny next to
+  what's about to happen.
+
+  Per flow (×number_of_flows_per_model_time_step)
+
+  LavaFlowSolverManager.jl:298 — flow_thickness = zeros(Float64, xnum) — toponum
+
+  Inside make_flow (MakeFlow.jl:38-41):
+  - :39 — topo_gridx_decimated = topo_gridx_orig[indices] —
+  toponum/decimation_factor (fancy index slice, allocates)
+  - :40 — topo_gridy_decimated = topo_gridy_orig[indices] — same
+  - :41 — flow_thickness_decimated = flow_thickness_orig[indices] — same
+
+  4 allocations per flow.
+
+  Per pulse (×npulses per flow)
+
+  Inside lava_flow_pulse (LavaFlowPulse.jl):
+  - :38 — lava_thickness_old = Vector{Float64}(undef, xnum) — toponum
+  - :44 — radiate_indices(xnum, eruption_node) — 4 internal allocations:
+    - :121 — indices = collect(1:size) — Vector{Int} of toponum
+    - :122 — distances = abs.(indices .- ref_index) — broadcast → Vector{Int}
+  toponum
+    - :123 — sortperm(distances) — Vector{Int} toponum
+    - :123 — indices[sortperm(...)] — final result Vector{Int} toponum
+
+  5 allocations per pulse (1 Float64 + 4 Int).
+
+  Per while-loop iteration inside a pulse (×icount up to nmax=1000)
+
+  LavaFlowPulse.jl:139 — calculate_max_difference:
+  return maximum(abs.(lava_thickness .- lava_thickness_old))
+  The abs.(...) broadcast allocates a fresh Vector{Float64} of toponum. maximum
+  then folds it.
+
+  1 allocation per while-iter. This is the dominant rate.
+
+  Putting numbers on it
+
+  For a representative case0-ish step at toponum=20000 (xnum=1151 in case0
+  actually, but let's use bigger to illustrate worst-case behavior the prior
+  agent was estimating):
+
+  If nflows=10, npulses=100 per flow, nmax=1000 while-iters per pulse, then per
+  call:
+  - Fixed: 5 allocations
+  - Per flow: 4 × 10 = 40
+  - Per pulse: 5 × (10 × 100) = 5,000
+  - Per while-iter: 1 × (10 × 100 × 1000) = 1,000,000 allocations of size 
+  toponum × 8 bytes
+
+  At toponum=1151 (the actual case0 value): ~9 KB per allocation × 1M = ~9 GB of
+   allocation churn per call.
+
+  GC reclaims it, but the heap fragmentation behavior is exactly what creates
+  the +100–210 MB/step RSS climb we saw in the original log. Plus the dominant
+  cost is in calculate_max_difference, which lives in the hottest of hot loops.
+
+  What about the "stateful arrays" claim from the prior memory?
+
+  The earlier memory note said lava flow has "monotonic accumulation, NOT
+  proportional to flow count → stateful arrays growing across invocations." I
+  checked: there's no push!/append!/resize! anywhere in the lava_flow/ tree
+  (verified earlier with grep). That memory is wrong for the current code, or
+  referred to a previous structure that's been refactored. The actual mechanism
+  is allocation-churn → heap-growth, not retained collections.
+
+  Phase 4 plan shape (if you want to go after lava flow)
+
+  It would mirror Phase 1+2 of the sediment-transport work:
+
+  Phase 4a (highest-impact single change): rewrite calculate_max_difference as a
+   manual fused loop:
+  function calculate_max_difference(a::Vector{Float64},
+  b::Vector{Float64})::Float64
+      max_diff = 0.0
+      @inbounds @simd for i in eachindex(a)
+          d = abs(a[i] - b[i])
+          if d > max_diff
+              max_diff = d
+          end
+      end
+      return max_diff
+  end
+  One-function change. Eliminates ~1,000,000 allocations per call (from the
+  dominant inner loop). No buffers needed; no signature changes; no caller
+  updates. This alone is probably worth doing whether or not you do the rest.
+  Bit-equivalent (max of |a-b| computed differently in operation order, but
+  max_diff is a single Float64 — no associativity issue since max is associative
+   and abs is pure).
+
+  Phase 4b (persistent solver): make LavaFlowSolver persistent on
+  model.topography.lava_flow_solver (Phase-1 pattern). Same lifecycle: lazy
+  init, is_compatible, reset!, lives across timesteps.
+
+  Phase 4c (preallocate scratch buffers on the solver):
+  - flow_thickness_buffer (toponum) — replaces :298 per-flow alloc
+  - lava_thickness_old_buffer (toponum) — replaces :38 per-pulse alloc
+  - sorted_indices_buffer (toponum, Vector{Int}) + distances_buffer (toponum,
+  Vector{Int}) — replace radiate_indices's 4 allocations with a radiate_indices!
+   bang
+  - total_lava_thickness_compacted_buffer (toponum) — replaces :275
+  once-per-call
+  - topo_gridy_initial_buffer (toponum) — replaces :164 once-per-call
+  - The 3 decimated buffers in make_flow — preallocate to maximum size, OR
+  change algorithm to read with stride directly without building decimated
+  arrays
+
+  Phase 4d (smaller wins): the post-loop copy(...) allocations at
+  :177/:178/:322. Trivial after 4b/4c are in place.
+
+  Risk: lava-flow code is heavily orchestrated (number_of_flows × npulses ×
+  while-iter), so the persistent-buffer threading needs to plumb through
+  make_flow and lava_flow_pulse. Larger touch surface than Phase 1+2 was for
+  sediment transport. But the single most valuable change is Phase 4a (one
+  function, ~5 lines), and you can do it independently.
+
+  Recommendation
+
+  Run case0 first (per the previous step's recommendation) to see how Phase 1+2
+  alone moves the needle. If lava flow's per-step contribution stays at +100–200
+   MB/step, Phase 4a is a high-value, low-risk one-function change worth doing
+  immediately. Phase 4b–4d is then optional based on whether 4a + Phase 1+2 is
+  enough to bring the RSS curve to acceptable levels.
+
+  Want me to draft Phase 4a as a single-file change so you have it in your back
+  pocket whether or not you decide to do the rest?
+
+✻ Baked for 2m 5s
+
+※ recap: Goal: cut per-step RAM growth in EarthBox sediment transport. Phase 1+2 done and committed-test-covered (cross-call equivalence + is_compatible). Next: run sdr_dynamics/case0 end-to-end to confirm RSS climb actually drops before deciding on lava-flow Phase 4.

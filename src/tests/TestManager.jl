@@ -3,6 +3,7 @@ TestManager module contains all the tests for the EarthBox model.
 
 Exported Test Modules:
 - SedimentTransportTest
+- SedimentTransportSolverResetTest
 - LavaFlowTestSingle
 - LavaFlowTestMultiple
 - LavaFlowTestSteep
@@ -39,6 +40,7 @@ TestManager.SedimentTransportTest.run_test()
 module TestManager
 
 include("tests/surface_processes/sediment_transport/SedimentTransportTest.jl")
+include("tests/surface_processes/sediment_transport/SedimentTransportSolverResetTest.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestSingle.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestMultiple.jl")
 include("tests/surface_processes/lava_flow/LavaFlowTestSteep.jl")
@@ -61,14 +63,16 @@ include("tests/plot_tools/ScatterTest.jl")
 include("tests/gravity/TestCellGravity.jl")
 include("tests/gravity/TestGridGravity.jl")
 
-import .SedimentTransportTest, .LavaFlowTestSingle, .LavaFlowTestMultiple, .LavaFlowTestSteep, .LavaFlowTestMultipleSteep
+import .SedimentTransportTest, .SedimentTransportSolverResetTest
+import .LavaFlowTestSingle, .LavaFlowTestMultiple, .LavaFlowTestSteep, .LavaFlowTestMultipleSteep
 import .MarkerCompactionTest, .MagmaBodyTest, .MeltDrainageDividesTest
 import .MeltDamageTest, .GabbroSolidusLiquidusTest, .PeridotiteSolidusLiquidusTest
 import .ConductivityTest, .HeatCapacityTest, .SerpentinizationTest
 import .BaseLevelTest, .LatentHeatTest, .HalfSpaceCoolingTest
 import .BisectionInterpTest, .CompactionTest, .TestGridGravity, .TestCellGravity
 
-export SedimentTransportTest, LavaFlowTestSingle, LavaFlowTestMultiple, LavaFlowTestSteep, LavaFlowTestMultipleSteep
+export SedimentTransportTest, SedimentTransportSolverResetTest
+export LavaFlowTestSingle, LavaFlowTestMultiple, LavaFlowTestSteep, LavaFlowTestMultipleSteep
 export MarkerCompactionTest, MagmaBodyTest, MeltDrainageDividesTest
 export MeltDamageTest, GabbroSolidusLiquidusTest, PeridotiteSolidusLiquidusTest
 export ConductivityTest, HeatCapacityTest, SerpentinizationTest
