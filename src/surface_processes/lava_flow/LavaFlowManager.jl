@@ -20,6 +20,7 @@ import .PlotLavaFlow: plot_lava_thickness
 import .PrintLavaFlowInfo: print_lava_model_info
 import .LavaFlowSolverManager: LavaFlowSolver
 import .LavaFlowSolverManager: extrude_magma
+import .LavaFlowSolverManager: reset!
 
 function lava_flow_manager(
     model::ModelData,
@@ -101,7 +102,30 @@ function run_lava_flow_model(
     )
     
     extrusion_volumes = model.melting.arrays.extraction.extrusion_volumes.array
-    
+
+    use_compaction_correction = get_boolean_options_for_compaction(model)
+
+    # Hoisted out of the basin loop: per-timestep buffers and constants live on
+    # one solver, refreshed per active basin via reset!. Per-basin scalars start
+    # as placeholders (overwritten by the first reset!).
+    flow_solver = LavaFlowSolver(
+        topo_gridx,
+        topo_gridy,
+        sediment_and_flow_thickness_initial,
+        0.0,
+        0.0,
+        0.0,
+        1,
+        residual_lava_thickness_subaerial,
+        residual_laval_thickness_submarine,
+        y_sealevel,
+        lava_flow_decompaction_parameters;
+        use_random_eruption_location=use_random_eruption_location,
+        use_normal_eruption_location=use_normal_eruption_location,
+        use_compaction_correction=use_compaction_correction,
+        decimation_factor=decimation_factor
+    )
+
     ndrainage_basin = model.melting.parameters.extraction.ndrainage_basin.value
     for idrainage_basin in 1:ndrainage_basin
         (
@@ -152,30 +176,19 @@ function run_lava_flow_model(
         end
 
         if total_extrusion_volume > 0.0
-            use_compaction_correction = get_boolean_options_for_compaction(model)
-
-            flow_solver = LavaFlowSolver(
-                topo_gridx,
-                topo_gridy,
-                sediment_and_flow_thickness_initial,
+            reset!(
+                flow_solver,
                 eruption_location_x_min,
                 width_eruption_domain,
                 total_extrusion_volume,
                 number_of_flows_per_model_time_step,
-                residual_lava_thickness_subaerial,
-                residual_laval_thickness_submarine,
-                y_sealevel,
-                lava_flow_decompaction_parameters;
-                use_random_eruption_location=use_random_eruption_location,
-                use_normal_eruption_location=use_normal_eruption_location,
-                use_compaction_correction=use_compaction_correction,
-                decimation_factor=decimation_factor
+                use_compaction_correction
             )
 
             extrude_magma(flow_solver, model)
 
             copy_new_topography_to_topography_array(topo_gridy, gridt)
-            
+
             update_extrusion_thickness(flow_solver.total_lava_thickness, gridt)
 
             plot_thickness = false
