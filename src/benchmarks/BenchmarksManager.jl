@@ -74,17 +74,23 @@ function get_keyword_args_string()::String
 end
 
 """
-    run_benchmark(benchmark_name::Symbol; kwargs...)::Nothing
+    run_benchmark(benchmark_name::Symbol; delete_output::Bool = false, kwargs...)::Nothing
 
 Run the benchmark specified by the benchmark_name.
 
 $(get_keyword_args_string())
 
+# Additional Keyword Arguments:
+- `delete_output::Bool = false`:
+    - Set to true to delete the benchmark output directory after the result tuple has been
+       computed from the in-memory results. Useful for CI/test runs where the on-disk artifacts
+       are not needed. Default is false.
+
 $(get_mumps_args_string())
 
 # Example:
 
-To run the `:couette_flow_viscous_heating` benchmark with output being sent to the present working 
+To run the `:couette_flow_viscous_heating` benchmark with output being sent to the present working
 directory:
 
 ```julia
@@ -94,7 +100,11 @@ BenchmarksManager.run_benchmark(:couette_flow_viscous_heating);
 
 $(get_benchmark_descriptions_string())
 """
-function run_benchmark(benchmark_name::Symbol; kwargs...)::Tuple{String, Float64, Float64}
+function run_benchmark(
+    benchmark_name::Symbol;
+    delete_output::Bool = false,
+    kwargs...
+)::Tuple{String, Float64, Float64}
     valid_options = [v for v in option_names]
     if !(benchmark_name in valid_options)
         error("Invalid benchmark name: $benchmark_name. Valid benchmark names are: $(valid_options)")
@@ -110,6 +120,16 @@ function run_benchmark(benchmark_name::Symbol; kwargs...)::Tuple{String, Float64
     status_str = result_dict["result"] # "Success" or "Failure"
     max_relative_error_percentage = result_dict["max relative error percentage"]
     relative_error_limit_percentage = result_dict["relative error limit %"]
+
+    if delete_output
+        output_dir = bench.output_dir_root
+        if !isnothing(output_dir) &&
+           isdir(output_dir) &&
+           startswith(basename(output_dir), "earthbox_benchmark_results_")
+            rm(output_dir; recursive=true, force=true)
+            println("Output directory deleted: $output_dir")
+        end
+    end
 
     return status_str, max_relative_error_percentage, relative_error_limit_percentage
 end
@@ -428,6 +448,7 @@ struct ValidInputNames
     restart_from_backup::Symbol
     nprocs::Symbol
     use_mumps::Symbol
+    delete_output::Symbol
 end
 
 function validate_input_names(kwargs::Dict{Symbol, Any})::Nothing
