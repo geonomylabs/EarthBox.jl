@@ -50,7 +50,6 @@ function update_topography_using_sediment_transport!(
         return sediment_and_flow_thickness_total_decompacted
     end
     if iuse_downhill_diffusion == 1 || use_magma_flush
-        println(">> use_optimized_sediment_solver: $(use_optimized_sediment_solver)")
         @timeit_memit "Finished updating topography using sediment transport" begin
             (
                 sediment_and_flow_thickness_total_decompacted
