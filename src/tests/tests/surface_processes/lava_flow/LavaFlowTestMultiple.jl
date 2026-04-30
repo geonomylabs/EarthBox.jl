@@ -11,7 +11,6 @@ import EarthBox.SurfaceProcesses.LavaFlowManager: calculate_number_of_flows
 import EarthBox.SurfaceProcesses.LavaFlowManager: calculate_characteristic_volume_per_flow
 import EarthBox.SurfaceProcesses.LavaFlowManager: forecast_eruption_location
 import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager: LavaFlowSolver
-import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager.MakeFlow.LavaFlowPulse: radiate_indices
 import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager: extrude_magma
 import EarthBox.TestManager.SedimentTransportTest: TopoGeometry, TopoGrids
 

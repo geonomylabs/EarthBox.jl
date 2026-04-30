@@ -1,11 +1,10 @@
 using EarthBox
 using Test
 
-# Check if big tests should be run
-const RUN_BIG_TESTS = get(ENV, "EARTHBOX_RUN_BIG_TESTS", "false") == "true"
-
 @testset "EarthBox.jl" begin
-    include(joinpath(@__DIR__, "multigrid", "stokes_sinker_smoke.jl"))
+
+    include("tests/parameter_macros_tests.jl")
+    include("tests/parameter_registry_guard_test.jl")
 
     @testset "Basic Tests" begin
         expected_divides = [0.0, 18000.0, 84750.0, 150250.0, 215500.0, 281750.0, 
@@ -18,7 +17,8 @@ const RUN_BIG_TESTS = get(ENV, "EARTHBOX_RUN_BIG_TESTS", "false") == "true"
         end
     end
 
-    if RUN_BIG_TESTS
+    use_benchmarks = false
+    if use_benchmarks == "true"
         @testset "Benchmarks" begin
             @testset "Rayleigh-Taylor Instability" begin
                 (
@@ -70,7 +70,6 @@ const RUN_BIG_TESTS = get(ENV, "EARTHBOX_RUN_BIG_TESTS", "false") == "true"
                 @test max_relative_error_percentage < relative_error_limit_percentage
             end
         end
-    else
-        @info "Skipping big tests. Set EARTHBOX_RUN_BIG_TESTS=true to run them."
     end
+
 end

@@ -2,12 +2,6 @@ module LavaFlowTestSingle
 
 import Plots
 import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager.MakeFlow: make_flow
-import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager.MakeFlow.LavaFlowPulse: radiate_indices
-
-function test_radiate_indices()
-    sorted_indices = radiate_indices(11, 5)
-    println("sorted_indices: ", sorted_indices)
-end
 
 function run_test()
     xnum = 5001 # Number of grid points in the x direction for topography grid
