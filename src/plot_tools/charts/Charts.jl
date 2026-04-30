@@ -1,45 +1,68 @@
 module Charts
 
-import Plots
+using CairoMakie
+
+const LEGEND_POSITION_MAP = Dict{Symbol, Symbol}(
+    :topleft     => :lt,
+    :topright    => :rt,
+    :bottomleft  => :lb,
+    :bottomright => :rb,
+    :bottom      => :cb,
+    :top         => :ct,
+    :left        => :lc,
+    :right       => :rc,
+)
 
 function plot_ncurves(chart_input::Dict{String, Any})::Nothing
     plot_dir = dirname(chart_input["plot_file_path"])
     check_output_directory(plot_dir)
-  
+
     dpi = get(chart_input, "figure_dpi", 150)
     figsize = get(chart_input, "figsize", (5, 5))
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-   
+
     axis_labels = get(chart_input, "axis_labels", ["X Axis", "Y Axis"])
-    
-    p = Plots.plot(
-        title=get(chart_input, "title", "Plot Title"),
-        xlabel=axis_labels[1],
-        ylabel=axis_labels[2],
-        legend=get(chart_input, "legend_location", :topleft),
-        aspect_ratio=get(chart_input, "aspect_ratio", :auto),
-        #fontfamily=fontfamily,
-        titlefontsize=get(chart_input, "titlefontsize", 15),
-        legendfontsize=get(chart_input, "legendfontsize", 12),
-        guidefontsize=get(chart_input, "guidefontsize", 12),
-        tickfontsize=get(chart_input, "tickfontsize", 10),
-        annotationfontsize=get(chart_input, "annotationfontsize", 12),
-        size=figsize_pixels,
-        margin=10Plots.mm
+
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        title           = get(chart_input, "title", "Plot Title"),
+        xlabel          = axis_labels[1],
+        ylabel          = axis_labels[2],
+        titlesize       = get(chart_input, "titlefontsize", 15),
+        xlabelsize      = get(chart_input, "guidefontsize", 12),
+        ylabelsize      = get(chart_input, "guidefontsize", 12),
+        xticklabelsize  = get(chart_input, "tickfontsize", 10),
+        yticklabelsize  = get(chart_input, "tickfontsize", 10),
     )
-    set_plot_axes!(p, chart_input)
-    plot_all_curves!(p, chart_input)
-    
-    if chart_input["iuse_inversion"] == 1
-        Plots.yflip!(p)
+
+    aspect = _aspect_for(get(chart_input, "aspect_ratio", :auto))
+    if aspect !== nothing
+        ax.aspect = aspect
     end
-    
-    xtext = chart_input["boxtext_info"][1]
-    ytext = chart_input["boxtext_info"][2]
-    text = chart_input["boxtext_info"][3]
-    Plots.annotate!(p, xtext, ytext, text)
-   
-    Plots.savefig(p, chart_input["plot_file_path"])
+
+    set_plot_axes!(ax, chart_input)
+    plot_all_curves!(ax, chart_input)
+
+    if chart_input["iuse_inversion"] == 1
+        ax.yreversed = true
+    end
+
+    has_label = any(!isempty, chart_input["data_xy"]["labels"])
+    if has_label
+        position = get(LEGEND_POSITION_MAP, get(chart_input, "legend_location", :topleft), :lt)
+        axislegend(ax; position = position,
+                   labelsize = get(chart_input, "legendfontsize", 12))
+    end
+
+    xtext, ytext, text = chart_input["boxtext_info"]
+    if !isempty(text)
+        text!(ax, xtext, ytext;
+              text = text,
+              fontsize = get(chart_input, "annotationfontsize", 12))
+    end
+
+    save(chart_input["plot_file_path"], fig)
     return nothing
 end
 
@@ -51,55 +74,83 @@ function check_output_directory(output_path::String)::Nothing
     nothing
 end
 
-function set_plot_axes!(p::Plots.Plot, chart_input::Dict{String, Any})::Nothing
+function set_plot_axes!(ax::Axis, chart_input::Dict{String, Any})::Nothing
     xmin = chart_input["plot_dimensions_xy"][1]
     xmax = chart_input["plot_dimensions_xy"][2]
     ymin = chart_input["plot_dimensions_xy"][3]
     ymax = chart_input["plot_dimensions_xy"][4]
     xtick_size = chart_input["xtick_size"]
     ytick_size = chart_input["ytick_size"]
-    Plots.xlims!(p, (xmin, xmax))
-    Plots.ylims!(p, (ymin, ymax))
-    Plots.xticks!(p, xmin:xtick_size:xmax)
-    Plots.yticks!(p, ymin:ytick_size:ymax)
+    xlims!(ax, xmin, xmax)
+    ylims!(ax, ymin, ymax)
+    ax.xticks = collect(xmin:xtick_size:xmax)
+    ax.yticks = collect(ymin:ytick_size:ymax)
     nothing
 end
 
-function plot_all_curves!(
-    p::Plots.Plot,
-    chart_input::Dict{String, Any}
-)::Nothing
-    x_arrays = chart_input["data_xy"]["x_arrays"]
-    y_arrays = chart_input["data_xy"]["y_arrays"]
-    labels = chart_input["data_xy"]["labels"]
-    line_styles = chart_input["data_xy"]["line_styles"]
-    colors = chart_input["data_xy"]["colors"]
-    line_widths = chart_input["data_xy"]["line_widths"]
-    marker_sizes = chart_input["data_xy"]["marker_sizes"]
-    marker_edge_colors = chart_input["data_xy"]["marker_edge_colors"]
-    marker_edge_widths = chart_input["data_xy"]["marker_edge_widths"]
-    fill_styles = chart_input["data_xy"]["fill_styles"]
-    line_colors = chart_input["data_xy"]["line_colors"]
+function plot_all_curves!(ax::Axis, chart_input::Dict{String, Any})::Nothing
+    d = chart_input["data_xy"]
+    x_arrays            = d["x_arrays"]
+    y_arrays            = d["y_arrays"]
+    labels              = d["labels"]
+    line_styles         = d["line_styles"]
+    colors              = d["colors"]
+    line_widths         = d["line_widths"]
+    marker_sizes        = d["marker_sizes"]
+    marker_edge_colors  = d["marker_edge_colors"]
+    marker_edge_widths  = d["marker_edge_widths"]
+    fill_styles         = d["fill_styles"]
+    line_colors         = d["line_colors"]
 
-    ncurves = length(x_arrays)
-    for i in 1:ncurves
-        Plots.plot!(
-            p,
-            x_arrays[i],
-            y_arrays[i],
-            label=labels[i],
-            linecolor=line_colors[i],
-            linestyle=line_styles[i],
-            linewidth=line_widths[i],
-            markersize=marker_sizes[i],
-            markercolor=colors[i],
-            markerstrokecolor=marker_edge_colors[i],
-            markerstrokewidth=marker_edge_widths[i],
-            marker=fill_styles[i]
-        )
+    for i in eachindex(x_arrays)
+        line_visible   = line_colors[i] !== :transparent
+        marker_visible = fill_styles[i] !== :none
+        label = isempty(labels[i]) ? nothing : labels[i]
+        # Convention: transparent fill = open marker. The codebase often
+        # leaves marker_edge_widths at 0.0 in that case (Plots rendered an
+        # outline anyway); ensure the outline is visible under Makie too.
+        stroke_w = (marker_visible && colors[i] === :transparent && marker_edge_widths[i] == 0.0) ?
+                   1.0 : marker_edge_widths[i]
+
+        if line_visible && marker_visible
+            scatterlines!(
+                ax, x_arrays[i], y_arrays[i];
+                color       = line_colors[i],
+                linestyle   = line_styles[i],
+                linewidth   = line_widths[i],
+                marker      = fill_styles[i],
+                markercolor = colors[i],
+                markersize  = marker_sizes[i],
+                strokecolor = marker_edge_colors[i],
+                strokewidth = stroke_w,
+                label       = label,
+            )
+        elseif line_visible
+            lines!(
+                ax, x_arrays[i], y_arrays[i];
+                color     = line_colors[i],
+                linestyle = line_styles[i],
+                linewidth = line_widths[i],
+                label     = label,
+            )
+        elseif marker_visible
+            scatter!(
+                ax, x_arrays[i], y_arrays[i];
+                marker      = fill_styles[i],
+                color       = colors[i],
+                markersize  = marker_sizes[i],
+                strokecolor = marker_edge_colors[i],
+                strokewidth = stroke_w,
+                label       = label,
+            )
+        end
     end
     nothing
 end
+
+_aspect_for(value::Symbol) = value === :equal ? DataAspect() : nothing
+_aspect_for(value::Real)   = AxisAspect(Float64(value))
+_aspect_for(::Nothing)     = nothing
 
 function make_plot_name(
     plot_base_name::String,
@@ -109,4 +160,4 @@ function make_plot_name(
     return plot_base_name * "_" * string(itime_step) * extension
 end
 
-end # module 
+end # module

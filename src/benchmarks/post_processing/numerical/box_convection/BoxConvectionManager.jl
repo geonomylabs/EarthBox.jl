@@ -242,7 +242,7 @@ function make_benchmark_plot(data::BoxConvectionIsoviscous1a)::Nothing
         "figure_dpi" => 150,
         "legend_location" => :bottomright,
         "legendfontsize" => 12,
-        "figsize" => (10, 5),
+        "figsize" => (5, 4),
         "guidefontsize" => 12,
         "titlefontsize" => 15,
         "tickfontsize" => 10,

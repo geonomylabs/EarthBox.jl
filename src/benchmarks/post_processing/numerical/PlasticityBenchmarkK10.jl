@@ -1,7 +1,6 @@
 module PlasticityBenchmarkK10
 
-import Plots
-import Plots: gr
+using CairoMakie
 import Printf: @sprintf
 import EarthBox.InputTools.Reader: make_parameters_dict
 import EarthBox.PlotToolsManager.Charts: plot_ncurves
@@ -246,88 +245,71 @@ function calculate_fault_geometry(data::PlasticityBenchmarkKaus10)
 end
 
 function make_benchmark_plot(data::PlasticityBenchmarkKaus10)::Nothing
-    # Turn off interactive plotting
-    gr()
-    # Create figure and axes
-    p = Plots.plot(
-        xlims=(0, data.input_dict["xsize"]),
-        ylims=(0.0, data.input_dict["ysize"]),
-        xticks=[0, 10000, 20000, 30000, 40000],
-        yticks=[0, 2000, 4000, 6000, 8000, 10000, 12000],
-        yflip=true,
-        aspect_ratio=:equal,
-        legendfontsize=8,
-        titlefontsize=8,
-        guidefontsize=8,
-        tickfontsize=6,
-        size=(1200, 360) # Equivalent to figsize=(40,12)
+    fig = Figure(size = (1200, 360))
+    ax = Axis(
+        fig[1, 1];
+        title = "Plasticity Benchmark Kaus (2010)",
+        xlabel = "X (m)",
+        ylabel = "Y (m)",
+        titlesize = 8,
+        xlabelsize = 8,
+        ylabelsize = 8,
+        xticklabelsize = 6,
+        yticklabelsize = 6,
+        aspect = DataAspect(),
+        xticks = [0, 10000, 20000, 30000, 40000],
+        yticks = [0, 2000, 4000, 6000, 8000, 10000, 12000],
     )
-    # Create heatmap
-    Plots.heatmap!(
-        p,
+    xlims!(ax, 0, data.input_dict["xsize"])
+    ylims!(ax, 0.0, data.input_dict["ysize"])
+    ax.yreversed = true
+
+    # JLD stores eii_log as (ny, nx); Makie's heatmap! expects (nx, ny).
+    hm = heatmap!(
+        ax,
         data.input_dict["pr_gridx"],
-        data.input_dict["pr_gridy"], 
-        data.input_dict["eii_log"],
-        c=:bwr,
-        clims=(-18, -13),
-        colorbar=:horizontal,
-        colorbar_ticks=[-18, -17, -16, -15, -14, -13],
-        colorbar_title="",
-        colorbar_titlefontsize=8,
-        colorbar_tickfontsize=6
+        data.input_dict["pr_gridy"],
+        permutedims(data.input_dict["eii_log"]);
+        colormap = :bwr,
+        colorrange = (-18, -13),
     )
-    # Plot fault lines and inclusion
-    Plots.plot!(
-        p,
-        data.left_fault_stick_x,
-        data.left_fault_stick_y,
-        label="Left Shear Zone",
-        color=:black,
-        linestyle=:solid,
-        marker=:circle,
-        markersize=4,
-        markerstrokecolor=:black,
-        markerstrokewidth=0.5,
-        markerfillcolor=nothing
+
+    Colorbar(
+        fig[2, 1], hm;
+        vertical = false,
+        ticks = [-18, -17, -16, -15, -14, -13],
+        ticklabelsize = 6,
     )
-    
-    Plots.plot!(
-        p,
-        data.right_fault_stick_x,
-        data.right_fault_stick_y,
-        label="Right Shear Zone", 
-        color=:black,
-        linestyle=:solid,
-        marker=:circle,
-        markersize=4,
-        markerstrokecolor=:black,
-        markerstrokewidth=0.5,
-        markerfillcolor=nothing
+
+    scatterlines!(
+        ax, data.left_fault_stick_x, data.left_fault_stick_y;
+        color = :black, linestyle = :solid, linewidth = 1,
+        marker = :circle, markersize = 8, markercolor = :transparent,
+        strokecolor = :black, strokewidth = 0.5,
+        label = "Left Shear Zone",
     )
-    Plots.plot!(
-        p,
-        data.inclusion_x,
-        data.inclusion_y,
-        label="Inclusion",
-        color=:black,
-        linestyle=:solid,
-        marker=:circle,
-        markersize=1,
-        markerstrokecolor=:black,
-        markerstrokewidth=0.5,
-        markerfillcolor=nothing
+    scatterlines!(
+        ax, data.right_fault_stick_x, data.right_fault_stick_y;
+        color = :black, linestyle = :solid, linewidth = 1,
+        marker = :circle, markersize = 8, markercolor = :transparent,
+        strokecolor = :black, strokewidth = 0.5,
+        label = "Right Shear Zone",
     )
-    
-    # Set title and labels
-    Plots.title!("Plasticity Benchmark Kaus (2010)")
-    Plots.xlabel!("X (m)")
-    Plots.ylabel!("Y (m)")
-    
+    scatterlines!(
+        ax, data.inclusion_x, data.inclusion_y;
+        color = :black, linestyle = :solid, linewidth = 1,
+        marker = :circle, markersize = 2, markercolor = :transparent,
+        strokecolor = :black, strokewidth = 0.5,
+        label = "Inclusion",
+    )
+
+    axislegend(ax; labelsize = 8)
+
     plot_name = "plasticity_benchmark_kaus10.$(PLOT_SETTINGS.plot_extension)"
     plot_file_path = joinpath(data.main_paths["post_proc_output_path"], plot_name)
     println("plot_file_path : ", plot_file_path)
     check_output_directory(dirname(plot_file_path))
-    Plots.savefig(p, plot_file_path)
+    save(plot_file_path, fig)
     return nothing
 end
 
