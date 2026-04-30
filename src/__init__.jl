@@ -15,7 +15,7 @@ include("data_types/parameters/Parameters.jl")
 include("data_types/parameters/ParamMacros.jl")
 include("data_types/parameters/SetParameters.jl")
 include("data_types/parameters/ParameterGroupTools.jl")
-include("data_types/parameters/ParameterRegistry.jl")
+include("data_types/parameters/registry/ParameterRegistry.jl")
 # Configuration
 include("config/ConfigurationManager.jl")
 # Material Library
