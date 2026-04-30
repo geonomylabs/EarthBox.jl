@@ -5,6 +5,8 @@ using Test
 
     include("tests/parameter_macros_tests.jl")
     include("tests/parameter_registry_guard_test.jl")
+    include("tests/array_macros_tests.jl")
+    include("tests/array_registry_guard_test.jl")
 
     @testset "Basic Tests" begin
         expected_divides = [0.0, 18000.0, 84750.0, 150250.0, 215500.0, 281750.0, 
