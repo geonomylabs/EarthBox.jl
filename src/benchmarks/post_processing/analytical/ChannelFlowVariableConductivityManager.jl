@@ -144,7 +144,7 @@ function make_benchmark_plot(data::ChannelFlowVariableConductivity)::Nothing
         "figure_dpi" => 150,
         "legend_location" => :topleft,
         "legendfontsize" => 12,
-        "figsize" => (8, 5),
+        "figsize" => (4, 4),
         "guidefontsize" => 12,
         "titlefontsize" => 15,
         "tickfontsize" => 10,

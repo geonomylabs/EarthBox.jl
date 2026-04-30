@@ -1,7 +1,7 @@
 module ElasticSlabManager
 
 import Printf
-import Plots
+using CairoMakie
 import EarthBox.InputTools.Reader: make_parameters_dict
 import EarthBox.PlotToolsManager.Charts: plot_ncurves
 import EarthBox.PlotToolsManager.Charts: make_plot_name
@@ -82,44 +82,45 @@ function ElasticSlab(bench::Benchmarks)
 end
 
 function make_benchmark_plot(data::ElasticSlab)::Nothing
-    figsize = (10, 10)
-    figsize_pixels = (figsize[1] * 100, figsize[2] * 100)
-   
+    figsize_pixels = (1000, 1000)
     axis_labels = ["X Axis (km)", "Y Axis (km)"]
-
-    scatter_plot_obj = Plots.scatter(
-        data.markers_x_slab_m ./ 1000.0,
-        data.markers_y_slab_m ./ 1000.0,
-        marker_z=data.difference,
-        clims=(0.0, 2000.0),
-        color=:viridis,
-        xlabel=axis_labels[1],
-        ylabel=axis_labels[2],
-        size=figsize_pixels,
-        dpi=150,
-        markershape=:rect,
-        markersize=4.0,
-        aspect_ratio=1.0,
-        markerstrokewidth=0.0,
-        markerstrokecolor=:transparent,
-        legend=false
+    title = string(
+        "Marker Distance From Initial Position: ",
+        "Time $(Printf.@sprintf("%.2f", data.tmyr)) Myr"
     )
-    Plots.plot!(
-        scatter_plot_obj, colorbar=true, 
-        colorbar_title="Difference between initial and final location (meters)"
-        )
-    Plots.yflip!(scatter_plot_obj)
+
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        title = title,
+        xlabel = axis_labels[1],
+        ylabel = axis_labels[2],
+        aspect = DataAspect(),
+        yreversed = true,
+    )
+
+    sc = scatter!(
+        ax,
+        data.markers_x_slab_m ./ 1000.0,
+        data.markers_y_slab_m ./ 1000.0;
+        color = data.difference,
+        colormap = :viridis,
+        colorrange = (0.0, 2000.0),
+        marker = :rect,
+        markersize = 8,
+        strokewidth = 0.0,
+    )
+
+    Colorbar(
+        fig[1, 2], sc;
+        label = "Difference between initial and final location (meters)",
+    )
 
     plot_name = "elastic_slab_distance_from_initial_$(data.itime_step).png"
     plot_file_path = joinpath(
         data.main_paths["post_proc_output_path"], plot_name)
-    title = string(
-        "Marker Distance From Initial Position: ",
-        "Time $(Printf.@sprintf("%.2f", data.tmyr)) Myr"
-        )
-    Plots.title!(scatter_plot_obj, title)
     check_output_directory(dirname(plot_file_path))
-    Plots.savefig(scatter_plot_obj, plot_file_path)
+    save(plot_file_path, fig)
     return nothing
 end
 

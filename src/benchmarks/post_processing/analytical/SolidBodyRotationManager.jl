@@ -145,7 +145,7 @@ function make_benchmark_plot(data::SolidBodyRotation)::Nothing
         "figure_dpi" => 150,
         "legend_location" => :topleft,
         "legendfontsize" => 12,
-        "figsize" => (8, 8),
+        "figsize" => (6, 6),
         "guidefontsize" => 12,
         "titlefontsize" => 15,
         "tickfontsize" => 10,

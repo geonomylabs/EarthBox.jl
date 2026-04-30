@@ -173,7 +173,7 @@ function make_benchmark_plot(data::CouetteFlowViscousHeating)::Nothing
         "figure_dpi" => 150,
         "legend_location" => :bottomleft,
         "legendfontsize" => 12,
-        "figsize" => (10, 5),
+        "figsize" => (4, 4),
         "guidefontsize" => 12,
         "titlefontsize" => 15,
         "tickfontsize" => 10,

@@ -187,7 +187,7 @@ function make_benchmark_plot(data::SimpleSedimentation)::Nothing
         "figure_dpi" => 150,
         "legend_location" => :bottomleft,
         "legendfontsize" => 12,
-        "figsize" => (10, 5),
+        "figsize" => (6, 4),
         "guidefontsize" => 12,
         "titlefontsize" => 15,
         "tickfontsize" => 10,
