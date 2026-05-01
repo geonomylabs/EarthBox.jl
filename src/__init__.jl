@@ -96,5 +96,3 @@ include("plot_tools/PlotToolsManager.jl")
 include("benchmarks/BenchmarksManager.jl")
 # Test tools
 include("utils/TestTools.jl")
-# Integrated tests
-include("tests/TestManager.jl")
