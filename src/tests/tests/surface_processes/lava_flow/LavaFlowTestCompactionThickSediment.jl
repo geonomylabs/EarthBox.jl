@@ -19,7 +19,7 @@ Outputs:
 """
 module LavaFlowTestCompactionThickSediment
 
-import Plots
+using CairoMakie
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.SurfaceProcesses.LavaFlowManager: run_lava_flow_model
 
@@ -343,37 +343,39 @@ function print_diagnostics(pre::State, post::State)::Nothing
 end
 
 function plot_topography(pre::State, post::State)::Nothing
-    p = Plots.plot(
-        pre.topo_gridx ./ 1_000.0, pre.topo_gridy,
-        label="Topography (pre)", color=:blue, linewidth=2.0,
-        size=(1500, 500), legend=:bottomright, dpi=150,
-        margin=10Plots.mm,
-        xlims=(0.0, XSIZE / 1_000.0)
+    fig = Figure(size = (1500, 500))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (km)",
+        ylabel = "y (m, depth-positive)",
+        title = "Topography: pre vs post run_lava_flow_model",
     )
-    Plots.plot!(p, post.topo_gridx ./ 1_000.0, post.topo_gridy,
-        label="Topography (post)", color=:red, linewidth=2.0, linestyle=:dash)
-    Plots.hline!(p, [Y_SEALEVEL], label="Sea level", color=:cyan, linestyle=:dot)
-    Plots.xlabel!(p, "x (km)")
-    Plots.ylabel!(p, "y (m, depth-positive)")
-    Plots.title!(p, "Topography: pre vs post run_lava_flow_model")
-    Plots.yaxis!(p, :flip)
-    Plots.savefig(p, "compaction_thick_sediment_topography.png")
+    lines!(ax, pre.topo_gridx ./ 1_000.0, pre.topo_gridy;
+           color = :blue, linewidth = 2.0, label = "Topography (pre)")
+    lines!(ax, post.topo_gridx ./ 1_000.0, post.topo_gridy;
+           color = :red, linewidth = 2.0, linestyle = :dash, label = "Topography (post)")
+    hlines!(ax, [Y_SEALEVEL]; color = :cyan, linestyle = :dot, label = "Sea level")
+    xlims!(ax, 0.0, XSIZE / 1_000.0)
+    ax.yreversed = true
+    axislegend(ax; position = :rb)
+    save("compaction_thick_sediment_topography.png", fig)
     return nothing
 end
 
 function plot_lava_thickness(post::State)::Nothing
-    p = Plots.plot(
-        post.topo_gridx ./ 1_000.0, post.extrusion_thickness,
-        label="Total lava thickness (gridt[7,:])",
-        color=:darkorange, linewidth=2.0,
-        size=(1500, 400), legend=:topright, dpi=150,
-        margin=10Plots.mm,
-        xlims=(0.0, XSIZE / 1_000.0)
+    fig = Figure(size = (1500, 400))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (km)",
+        ylabel = "lava thickness (m)",
+        title = "Total lava thickness deposited this timestep",
     )
-    Plots.xlabel!(p, "x (km)")
-    Plots.ylabel!(p, "lava thickness (m)")
-    Plots.title!(p, "Total lava thickness deposited this timestep")
-    Plots.savefig(p, "compaction_thick_sediment_lava.png")
+    lines!(ax, post.topo_gridx ./ 1_000.0, post.extrusion_thickness;
+           color = :darkorange, linewidth = 2.0,
+           label = "Total lava thickness (gridt[7,:])")
+    xlims!(ax, 0.0, XSIZE / 1_000.0)
+    axislegend(ax; position = :rt)
+    save("compaction_thick_sediment_lava.png", fig)
     return nothing
 end
 
@@ -381,36 +383,37 @@ function plot_markers(model::ModelData, pre::State, post::State)::Nothing
     matid_types = model.materials.dicts.matid_types
     matid_sediment = matid_types["Sediment"][1]
 
-    p = Plots.plot(
-        size=(1500, 800), legend=:bottomright, dpi=150,
-        margin=10Plots.mm,
-        xlims=(0.0, XSIZE / 1_000.0),
-        ylims=(0.0, YSIZE / 1_000.0)
+    fig = Figure(size = (1500, 800))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (km)",
+        ylabel = "y (km, depth-positive)",
+        title = "Sediment markers: pre vs post compaction-corrected extrusion",
     )
 
     pre_sed = pre.marker_matid .== matid_sediment
     post_sed = post.marker_matid .== matid_sediment
 
-    Plots.scatter!(p,
-        pre.marker_x[pre_sed] ./ 1_000.0, pre.marker_y[pre_sed] ./ 1_000.0,
-        markersize=1.0, markercolor=:blue, markerstrokewidth=0,
-        label="Sediment markers (pre)"
+    scatter!(ax,
+        pre.marker_x[pre_sed] ./ 1_000.0, pre.marker_y[pre_sed] ./ 1_000.0;
+        markersize = 2.0, color = :blue, strokewidth = 0,
+        label = "Sediment markers (pre)",
     )
-    Plots.scatter!(p,
-        post.marker_x[post_sed] ./ 1_000.0, post.marker_y[post_sed] ./ 1_000.0,
-        markersize=1.0, markercolor=:red, markerstrokewidth=0,
-        label="Sediment markers (post)"
+    scatter!(ax,
+        post.marker_x[post_sed] ./ 1_000.0, post.marker_y[post_sed] ./ 1_000.0;
+        markersize = 2.0, color = :red, strokewidth = 0,
+        label = "Sediment markers (post)",
     )
-    Plots.plot!(p,
-        post.topo_gridx ./ 1_000.0, post.topo_gridy ./ 1_000.0,
-        label="Topography (post)", color=:black, linewidth=2.0
+    lines!(ax,
+        post.topo_gridx ./ 1_000.0, post.topo_gridy ./ 1_000.0;
+        color = :black, linewidth = 2.0, label = "Topography (post)",
     )
-    Plots.hline!(p, [Y_SEALEVEL ./ 1_000.0], label="Sea level", color=:cyan, linestyle=:dot)
-    Plots.xlabel!(p, "x (km)")
-    Plots.ylabel!(p, "y (km, depth-positive)")
-    Plots.title!(p, "Sediment markers: pre vs post compaction-corrected extrusion")
-    Plots.yaxis!(p, :flip)
-    Plots.savefig(p, "compaction_thick_sediment_markers.png")
+    hlines!(ax, [Y_SEALEVEL ./ 1_000.0]; color = :cyan, linestyle = :dot, label = "Sea level")
+    xlims!(ax, 0.0, XSIZE / 1_000.0)
+    ylims!(ax, 0.0, YSIZE / 1_000.0)
+    ax.yreversed = true
+    axislegend(ax; position = :rb)
+    save("compaction_thick_sediment_markers.png", fig)
     return nothing
 end
 

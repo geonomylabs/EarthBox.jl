@@ -1,6 +1,6 @@
 module ConductivityTest
 
-using Plots
+using CairoMakie
 import EarthBox.RockProperties.ThermalConductivityModel.UpdateManager.
     Liao14: thermal_conductivity_liao14
 import EarthBox.RockProperties.ThermalConductivityModel.UpdateManager.SekiguchiWaples: 
@@ -86,40 +86,41 @@ function make_pressure_temperature_plots(
     temperature_array::Vector{Float64},
     model_name::String
 )::Nothing
-    # Create the main plot with pressure
-    p1 = plot(
-        pressure_array, depth_array,
-        label="Pressure",
-        color=:red,
-        xlabel="Pressure (GPa)",
-        ylabel="Depth (km)",
-        xlims=(0, 4.0),
-        xticks=0:0.5:4,
-        ylims=(0, 100.0),
-        yticks=0:10:100,
-        yaxis=:flip,
-        size=(800, 600),
-        legend=:bottomleft
+    fig = Figure(size = (800, 600))
+    ax_p = Axis(
+        fig[1, 1];
+        xlabel = "Pressure (GPa)",
+        ylabel = "Depth (km)",
+        xticks = 0:0.5:4,
+        yticks = 0:10:100,
+        xaxisposition = :bottom,
     )
-    
-    # Add temperature on secondary x-axis
-    plot!(
-        twiny(),
-        temperature_array, depth_array,
-        label="Temperature",
-        color=:blue,
-        linestyle=:dot,
-        xlabel="Temperature (C)",
-        xlims=(0.0, 1400.0),
-        xticks=0:100:1400,
-        ylims=(0, 100.0),
-        yticks=0:10:100,
-        yaxis=:flip,
-        legend=:topright
+    ax_t = Axis(
+        fig[1, 1];
+        xlabel = "Temperature (C)",
+        xticks = 0:100:1400,
+        xaxisposition = :top,
     )
+    hidespines!(ax_t)
+    hideydecorations!(ax_t)
 
-    savefig(p1, "pressure_temperature_plot_$(model_name).png")
-    
+    lines!(ax_p, pressure_array, depth_array;
+           color = :red, label = "Pressure")
+    lines!(ax_t, temperature_array, depth_array;
+           color = :blue, linestyle = :dot, label = "Temperature")
+
+    xlims!(ax_p, 0, 4.0)
+    xlims!(ax_t, 0.0, 1400.0)
+    ylims!(ax_p, 0, 100.0)
+    ylims!(ax_t, 0, 100.0)
+    ax_p.yreversed = true
+    ax_t.yreversed = true
+
+    axislegend(ax_p; position = :lb)
+    axislegend(ax_t; position = :rt)
+
+    save("pressure_temperature_plot_$(model_name).png", fig)
+
     return nothing
 end
 
@@ -129,19 +130,19 @@ function make_conductivity_plot(
     model_name::String
 )::Nothing
 
-    p = plot(
-        conductivity_array, depth_array,
-        color=:black,
-        label="Thermal Conductivity",
-        xlabel="Thermal Conductivity (W/m/K)",
-        ylabel="Depth (km)",
-        xlims=(1.5, 5.0),
-        yaxis=:flip,
-        yticks=0:10:100,
-        size=(800, 600),
-        legend=:bottomright
+    fig = Figure(size = (800, 600))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Thermal Conductivity (W/m/K)",
+        ylabel = "Depth (km)",
+        yticks = 0:10:100,
     )
-    savefig(p, "conductivity_plot_$(model_name).png")
+    lines!(ax, conductivity_array, depth_array;
+           color = :black, label = "Thermal Conductivity")
+    xlims!(ax, 1.5, 5.0)
+    ax.yreversed = true
+    axislegend(ax; position = :rb)
+    save("conductivity_plot_$(model_name).png", fig)
 
     return nothing
 end

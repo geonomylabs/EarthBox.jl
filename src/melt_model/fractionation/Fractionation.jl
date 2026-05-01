@@ -1,6 +1,6 @@
 module Fractionation
 
-using Plots
+using CairoMakie
 import Printf: @sprintf
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ConversionFuncs: seconds_to_years
@@ -250,30 +250,22 @@ function plot_topo_moho_and_partial_melting_surface(
     timesum_myr = timesum_yr/1e6
     timesum_str = @sprintf("%.2fMyr", timesum_myr)
     
-    dpi = 150
-    figsize = (5, 5)
-    figsize_pixels = figsize .* dpi
-    p = plot(
-        topo_gridx, topo_gridy, label="Topography", 
-        color=:black, linewidth=2, linestyle=:solid,
-        size=figsize_pixels
-    )
-    plot!(
-        p, topo_gridx, moho_gridy, label="Moho", color=:red,
-        linewidth=2, linestyle=:solid
-        )
-    plot!(
-        p, topo_gridx, partial_melt_gridy, label="Partial melt", color=:blue,
-        linewidth=2, linestyle=:solid
-    )
-    xlabel!("Distance (m)")
-    ylabel!("Depth (m)")
-    ylims!(0, 50_000)
-    yflip!(true)
-    
+    figsize_pixels = (750, 750)
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(fig[1, 1]; xlabel = "Distance (m)", ylabel = "Depth (m)")
+    lines!(ax, topo_gridx, topo_gridy;
+           color = :black, linewidth = 2, linestyle = :solid, label = "Topography")
+    lines!(ax, topo_gridx, moho_gridy;
+           color = :red, linewidth = 2, linestyle = :solid, label = "Moho")
+    lines!(ax, topo_gridx, partial_melt_gridy;
+           color = :blue, linewidth = 2, linestyle = :solid, label = "Partial melt")
+    ylims!(ax, 0, 50_000)
+    ax.yreversed = true
+    axislegend(ax)
+
     filepath = joinpath(output_dir, "crust_$(ntimestep)_$(timesum_str).png")
     println(">> Saving crust plot to $(filepath)")
-    savefig(p, filepath)
+    save(filepath, fig)
     return nothing
 end
 

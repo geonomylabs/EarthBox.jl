@@ -1,6 +1,6 @@
 module LavaFlowTestMultiple
 
-import Plots
+using CairoMakie
 import EarthBox.ConversionFuncs: mm_per_yr_to_meters_per_seconds as mm_yr_to_m_s
 import EarthBox.ConversionFuncs: years_to_seconds
 import EarthBox.ConversionFuncs: meters_per_year_to_meters_per_seconds as m_yr_to_m_s
@@ -169,31 +169,25 @@ function make_plot(
 )::Nothing
     dpi = 150
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    p = Plots.plot(
-        topo_gridx, topo_gridy,
-        label="Topography",
-        color=:blue,
-        size=figsize_pixels,
-        margin=10Plots.mm,
-        aspect_ratio=:auto,
-        dpi=dpi,
-        linestyle=:solid,
-        linewidth=2.0,
-        legend=:bottomright
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Topography",
+        title = "Multiple Eruptions",
     )
-    Plots.plot!(
-        p, topo_gridx, top_sediment, label="Top Sediment", color=:green,
-        linestyle=:solid, linewidth=2.0
-    )
-    Plots.plot!(
-        p, topo_gridx, bsmt_gridy, label="Initial Basement", color=:red,
-        linestyle=:solid, linewidth=2.0
-    )
-    Plots.xlabel!("x (m)")
-    Plots.ylabel!("Topography")
-    Plots.title!("Multiple Eruptions")
-    Plots.yaxis!(:flip)
-    Plots.savefig(p, "multiple_eruptions.png")
+    lines!(ax, topo_gridx, topo_gridy;
+           color = :blue, linestyle = :solid, linewidth = 2.0,
+           label = "Topography")
+    lines!(ax, topo_gridx, top_sediment;
+           color = :green, linestyle = :solid, linewidth = 2.0,
+           label = "Top Sediment")
+    lines!(ax, topo_gridx, bsmt_gridy;
+           color = :red, linestyle = :solid, linewidth = 2.0,
+           label = "Initial Basement")
+    ax.yreversed = true
+    axislegend(ax; position = :rb)
+    save("multiple_eruptions.png", fig)
     return nothing
 end
 

@@ -1,7 +1,7 @@
 module Profiles
 
 import ..Reader
-using Plots
+using CairoMakie
 
 """ Get a profile of scalar values at x-index icol.
 """
@@ -114,11 +114,13 @@ function plot_temperature_profile(input_path::String, ioutput::Int, jcheck::Int)
 
     println(" >> Plotting temperature profile ")
 
-    p = plot(gridy, temp_profile, seriestype=:scatter, color=:red)
-    
+    fig = Figure()
+    ax = Axis(fig[1, 1])
+    scatter!(ax, gridy, temp_profile; color = :red)
+
     base_name = "TempC_profile"
     plot_name = base_name * "_" * string(tMyr) * "_" * string(ioutput) * ".png"
-    savefig(p, plot_name)
+    save(plot_name, fig)
 end
 
 """ Plot conductivity profile at specified x-index.
@@ -159,11 +161,13 @@ function plot_conductivity_profile(input_path::String, ioutput::Int, jcheck::Int
 
     println(" >> Plotting conductivity profile ")
 
-    p = plot(gridy, k_profile, seriestype=:scatter, color=:red)
-    
+    fig = Figure()
+    ax = Axis(fig[1, 1])
+    scatter!(ax, gridy, k_profile; color = :red)
+
     base_name = "k_profile"
     plot_name = base_name * "_" * string(tMyr) * "_" * string(ioutput) * ".png"
-    savefig(p, plot_name)
+    save(plot_name, fig)
 end
 
 end  # end of module

@@ -1,6 +1,6 @@
 module GabbroSolidusLiquidusTest
 
-using Plots
+using CairoMakie
 import EarthBox.MeltModel.MeltFraction: get_melting_model_parameters
 import EarthBox.ConversionFuncs: kelvin_to_celsius
 
@@ -39,23 +39,24 @@ function plot_gabbro_solidus_liquidus()::Nothing
     end
 
     use_pressure = false
-    p = plot()
-    
+    fig = Figure()
+    ax = Axis(fig[1, 1]; xlabel = "Temperature (C)")
+
     if use_pressure
-        plot!(p, temperature_liquidus_list, pressure_list, label="Liquidus (Gerya 2010)")
-        plot!(p, temperature_solidus_list, pressure_list, label="Solidus (Gerya 2010)")
-        ylabel!("Pressure_GPa")
+        lines!(ax, temperature_liquidus_list, pressure_list; label = "Liquidus (Gerya 2010)")
+        lines!(ax, temperature_solidus_list, pressure_list; label = "Solidus (Gerya 2010)")
+        ax.ylabel = "Pressure_GPa"
     else
-        plot!(p, temperature_liquidus_list, depth_km_list, label="Liquidus (Gerya 2010)")
-        plot!(p, temperature_solidus_list, depth_km_list, label="Solidus (Gerya 2010)")
-        ylabel!("Depth (km)")
-        ylims!(0, 12)
+        lines!(ax, temperature_liquidus_list, depth_km_list; label = "Liquidus (Gerya 2010)")
+        lines!(ax, temperature_solidus_list, depth_km_list; label = "Solidus (Gerya 2010)")
+        ax.ylabel = "Depth (km)"
+        ylims!(ax, 0, 12)
     end
-    
-    xlims!(950, 1500)
-    xlabel!("Temperature (C)")
-    yaxis!(:flip)
-    savefig(p, "gabbro_solidus_liquidus.png")
+
+    xlims!(ax, 950, 1500)
+    ax.yreversed = true
+    axislegend(ax)
+    save("gabbro_solidus_liquidus.png", fig)
     return nothing
 end
 

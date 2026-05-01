@@ -1,6 +1,6 @@
 module LatentHeatTest
 
-using Plots
+using CairoMakie
 import EarthBox.MeltModel.MeltPropertiesOpt: calculate_delta_meltfrac_times_latent_heat_for_temperature
 import EarthBox.MeltModel.MeltPropertiesOpt: calculate_delta_meltfrac_times_latent_heat_for_pressure
 
@@ -90,43 +90,18 @@ function make_plot(
     pressure_pascals_list::Vector{Float64}
 )::Nothing
     
-    # Plot delta heat capacity
-    p1 = plot(
-        delta_heat_capacity_list, depth_km_list,
-        xlabel="Delta Heat Capacity (J/kg/K)",
-        ylabel="Depth (km)",
-        yaxis=:flip
+    for (xdata, xlabel_str, filename) in (
+        (delta_heat_capacity_list, "Delta Heat Capacity (J/kg/K)", "delta_heat_capacity.png"),
+        (delta_expansivity_list,   "Delta Expansivity (1/K) * 1e5", "delta_expansivity.png"),
+        (temperature_kelvin_list .- 273.15, "Temperature (C)", "temperature.png"),
+        (pressure_pascals_list ./ 1e9, "Pressure (GPa)", "pressure.png"),
     )
-    savefig(p1, "delta_heat_capacity.png")
-
-    # Plot delta expansivity
-    p2 = plot(
-        delta_expansivity_list, depth_km_list,
-        xlabel="Delta Expansivity (1/K) * 1e5",
-        ylabel="Depth (km)",
-        yaxis=:flip
-    )
-    savefig(p2, "delta_expansivity.png")
-
-    # Plot temperature
-    temperature_celsius_list = temperature_kelvin_list .- 273.15
-    p3 = plot(
-        temperature_celsius_list, depth_km_list,
-        xlabel="Temperature (C)",
-        ylabel="Depth (km)",
-        yaxis=:flip
-    )
-    savefig(p3, "temperature.png")
-
-    # Plot pressure
-    pressure_gpa_list = pressure_pascals_list ./ 1e9
-    p4 = plot(
-        pressure_gpa_list, depth_km_list,
-        xlabel="Pressure (GPa)",
-        ylabel="Depth (km)",
-        yaxis=:flip
-    )
-    savefig(p4, "pressure.png")
+        fig = Figure()
+        ax = Axis(fig[1, 1]; xlabel = xlabel_str, ylabel = "Depth (km)")
+        lines!(ax, xdata, depth_km_list)
+        ax.yreversed = true
+        save(filename, fig)
+    end
 
     return nothing
 end

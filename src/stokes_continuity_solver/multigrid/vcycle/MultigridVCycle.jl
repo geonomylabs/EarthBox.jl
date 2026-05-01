@@ -1,6 +1,5 @@
 module MultigridVCycle
 
-using Plots
 using Printf
 import EarthBox.ModelDataContainer.MultiGrids2dContainer: MultigridData
 import ..MultigridDataManager: MultigridData2d, MultigridData3d
@@ -8,7 +7,6 @@ import ..MultigridDataManager.MultigridStructures: MeanResiduals, VcycleParamete
 import ..LevelManager: LevelData, LevelData2d
 import ..LevelManager: reset_solution_grids_to_zero!
 import ..ViscosityScaling
-import ..ResidualPlotting
 import ..ResidualPlottingCM
 import ..ArrayStats
 import ..CalculateMeanResiduals: calculate_scaled_and_mean_residuals!

@@ -7,7 +7,7 @@ damage.
 """
 module MeltDamageTest
 
-using Plots
+using CairoMakie
 import EarthBox.MeltModel.MeltDamage: calculate_damage_factor_cos
 import EarthBox.MeltModel.MeltDamage: calculate_damage_factor_probabilistic
 import EarthBox.MeltModel.MeltDamage: calculate_damage_probability
@@ -52,20 +52,19 @@ function run_test()::Nothing
         end
     end
 
-    p1 = scatter(
-        xcoors/1000.0,
-        damage_array,
-        xlims=(xo_plot/1000.0, xf_plot/1000.0),
-        ylims=(0.0, 11.0),
-        yticks=0:1:11,
-        label = "",
-        legend = false,
-        markersize = 2
-    )
-    savefig(p1, "melt_damage.pdf")
+    fig1 = Figure()
+    ax1 = Axis(fig1[1, 1]; yticks = 0:1:11)
+    scatter!(ax1, xcoors / 1000.0, damage_array; markersize = 4)
+    xlims!(ax1, xo_plot / 1000.0, xf_plot / 1000.0)
+    ylims!(ax1, 0.0, 11.0)
+    save("melt_damage.pdf", fig1)
 
-    p2 = plot(xcoors/1000.0, prob_array, xlims=(xo_plot/1000.0, xf_plot/1000.0), ylims=(0.0, 1.0))
-    savefig(p2, "melt_damage_prob.pdf")
+    fig2 = Figure()
+    ax2 = Axis(fig2[1, 1])
+    lines!(ax2, xcoors / 1000.0, prob_array)
+    xlims!(ax2, xo_plot / 1000.0, xf_plot / 1000.0)
+    ylims!(ax2, 0.0, 1.0)
+    save("melt_damage_prob.pdf", fig2)
 
     magmatic_crust_height_threshold = 500.0
     magmatic_crust_height_minimum = 750.0
@@ -94,8 +93,12 @@ function run_test()::Nothing
         prob_array[i] = prob
     end
     
-    p3 = plot(xth_pts, prob_array, xlims=(xtho, xthf), ylims=(0.0, 1.0))
-    savefig(p3, "melt_damage_prob_linear.pdf")
+    fig3 = Figure()
+    ax3 = Axis(fig3[1, 1])
+    lines!(ax3, xth_pts, prob_array)
+    xlims!(ax3, xtho, xthf)
+    ylims!(ax3, 0.0, 1.0)
+    save("melt_damage_prob_linear.pdf", fig3)
     
     return nothing
 end

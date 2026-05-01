@@ -1,6 +1,6 @@
 module HalfSpaceCoolingTest
 
-using Plots
+using CairoMakie
 import EarthBox.Markers.MarkerTemperature.InitManager.HalfSpaceCooling: calculate_temperature
 import EarthBox.ConversionFuncs: kelvin_to_celsius, celsius_to_kelvin,
     cm_per_yr_to_meters_per_seconds, seconds_to_years
@@ -47,15 +47,16 @@ function plot_profile(
     age::Float64
 )::Nothing
     
-    p = plot(
-        temperature_profile_celsius, profile_y ./ 1.0e3,
-        xlabel="T (C)",
-        ylabel="Depth (km)", 
-        yaxis=:flip,
-        title="Half-space cooling model at $(round(age, digits=2)) Myr",
-        legend=:bottomleft
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "T (C)",
+        ylabel = "Depth (km)",
+        title = "Half-space cooling model at $(round(age, digits=2)) Myr",
     )
-    savefig(p, "half_space_profile.png")
+    lines!(ax, temperature_profile_celsius, profile_y ./ 1.0e3)
+    ax.yreversed = true
+    save("half_space_profile.png", fig)
     
     return nothing
 end

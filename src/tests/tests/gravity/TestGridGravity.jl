@@ -1,7 +1,7 @@
 module TestGridGravity
 
 import EarthBox.Gravity: gravity_anomaly_loop_left_edge, calculate_free_air_gravity
-import Plots
+using CairoMakie
 
 mutable struct GridGeometry
     xsize::Float64
@@ -170,25 +170,36 @@ function make_plots(
     println(">> Plotting....")
     plot_curve = true
     if plot_curve
-        p1 = Plots.plot(topo_gridx, gravity_anomaly_mgal, label="Bouguer")
-        Plots.plot!(p1, topo_gridx, gravity_anomaly_free_air_mgal, 
-            label="Free Air")
-        Plots.xlabel!(p1, "x (m)")
-        Plots.ylabel!(p1, "Gravity Anomaly (mgal)")
-        Plots.title!(p1, "Test gravity grid loop.")
-        #Plots.legend!(p1)
-        Plots.savefig(p1, "gravity_anomaly_mgal.png")
-        Plots.display(p1)
+        fig = Figure()
+        ax = Axis(
+            fig[1, 1];
+            xlabel = "x (m)",
+            ylabel = "Gravity Anomaly (mgal)",
+            title = "Test gravity grid loop.",
+        )
+        lines!(ax, topo_gridx, gravity_anomaly_mgal; label = "Bouguer")
+        lines!(ax, topo_gridx, gravity_anomaly_free_air_mgal; label = "Free Air")
+        axislegend(ax)
+        save("gravity_anomaly_mgal.png", fig)
+        display(fig)
     end
 
     plot_grid = true
     if plot_grid
-        p2 = Plots.heatmap(rho_grid, color=:viridis, aspect_ratio=:equal, yflip=true)
-        Plots.xlabel!(p2, "X")
-        Plots.ylabel!(p2, "Y")
-        Plots.title!(p2, "2D Density Grid")
-        Plots.savefig(p2, "density_grid.png")
-        Plots.display(p2)
+        # rho_grid is stored as (ny, nx); Makie's heatmap! expects (nx, ny).
+        fig2 = Figure()
+        ax2 = Axis(
+            fig2[1, 1];
+            xlabel = "X",
+            ylabel = "Y",
+            title = "2D Density Grid",
+            aspect = DataAspect(),
+        )
+        ax2.yreversed = true
+        hm = heatmap!(ax2, permutedims(rho_grid); colormap = :viridis)
+        Colorbar(fig2[1, 2], hm)
+        save("density_grid.png", fig2)
+        display(fig2)
     end
 
     println(">> Done.")
