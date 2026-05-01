@@ -3,7 +3,6 @@ module ViscosityScaling
 import ..MultigridDataManager: MultigridData3d, MultigridData2d
 import ..MultigridDataManager.MultigridStructures: Counters, ViscosityScalingParameters
 import ..LevelManager: LevelData, LevelData2d
-import ..ResidualPlotting
 import ..ResidualPlottingCM
 import ..ArrayStats
 import ..Smoother: update_rhs_parts_on_level1_using_global_level0_residuals

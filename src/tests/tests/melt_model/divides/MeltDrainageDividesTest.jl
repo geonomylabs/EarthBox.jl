@@ -1,6 +1,6 @@
 module MeltDrainageDividesTest
 
-using Plots
+using CairoMakie
 import EarthBox.MeltModel.Drainage: calculate_drainage_divides
 
 struct TopoGeometry
@@ -69,27 +69,21 @@ function make_plots(
     topo_gridy::Vector{Float64},
     divides_x::Vector{Float64}
 )::Nothing
-    p = plot(
-        topo_gridx, topo_gridy,
-        label="Topography",
-        color=:blue,
-        xlabel="x (m)",
-        ylabel="Topography",
-        title="Melt drainage divides test",
-        ylims=(-10000, 10000),
-        yflip=true
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Topography",
+        title = "Melt drainage divides test",
     )
-    
-    scatter!(
-        p,
-        divides_x,
-        zeros(length(divides_x)),
-        label="Drainage Divides",
-        color=:green,
-        marker=:circle
-    )
-    
-    savefig(p, "melt_drainage_divides_test.png")
+    lines!(ax, topo_gridx, topo_gridy; color = :blue, label = "Topography")
+    scatter!(ax, divides_x, zeros(length(divides_x));
+             color = :green, marker = :circle, label = "Drainage Divides")
+    ylims!(ax, -10000, 10000)
+    ax.yreversed = true
+    axislegend(ax)
+
+    save("melt_drainage_divides_test.png", fig)
     return nothing
 end
 

@@ -1,6 +1,6 @@
 module MarkerAdvection
 
-import Plots
+using CairoMakie
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.SedimentWaterInterface: get_depth
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_layer_thickness
@@ -522,27 +522,24 @@ function plot_advection_input(
     
     gridt = model.topography.arrays.gridt.array
     gridx = gridt[1, :]
-    
-    p = Plots.plot(
-        gridx, compaction_displacement_max .* 100,
-        label="Compaction Displacement Max*100"
+
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Thickness or Displacement max (m)",
     )
-    Plots.plot!(
-        p,
-        gridx, sediment_thickness_markers_initial,
-        label="Sediment Thickness Markers"
-    )
-    Plots.plot!(
-        p,
-        gridx, sticky_thickness_markers_initial,
-        label="Sticky Thickness Markers"
-    )
-    Plots.xlabel!("x (m)")
-    Plots.ylabel!("Thickness or Displacement max (m)")
-    
+    lines!(ax, gridx, compaction_displacement_max .* 100;
+           label = "Compaction Displacement Max*100")
+    lines!(ax, gridx, sediment_thickness_markers_initial;
+           label = "Sediment Thickness Markers")
+    lines!(ax, gridx, sticky_thickness_markers_initial;
+           label = "Sticky Thickness Markers")
+    axislegend(ax)
+
     ntimestep = model.timestep.parameters.main_time_loop.ntimestep.value
-    Plots.savefig(p, "advection_input_ntimestep_$(ntimestep).png")
-    
+    save("advection_input_ntimestep_$(ntimestep).png", fig)
+
     return nothing
 end
 

@@ -2,7 +2,7 @@
 """
 module PlotLavaFlow
 
-import Plots
+using CairoMakie
 import EarthBox.ModelDataContainer: ModelData
 
 """ Plot the lava thickness on the topography grid.
@@ -14,21 +14,16 @@ function plot_lava_thickness(
     idrainage_basin::Int
 )::Nothing
     ntimestep = model.timestep.parameters.main_time_loop.ntimestep.value
-    p = Plots.plot(
-        topo_gridx,
-        lava_thickness,
-        label = "",
-        linecolor = :red,
-        xlabel = "Y (m)",
-        ylabel = "Thickness (m)"
-    )
+    fig = Figure()
+    ax = Axis(fig[1, 1]; xlabel = "Y (m)", ylabel = "Thickness (m)")
+    lines!(ax, topo_gridx, lava_thickness; color = :red)
     plot_name = string(
         "lava_thickness",
         "_drain_", idrainage_basin,
         "_time_", ntimestep,
         ".png"
     )
-    Plots.savefig(p, plot_name)
+    save(plot_name, fig)
     return nothing
 end
 

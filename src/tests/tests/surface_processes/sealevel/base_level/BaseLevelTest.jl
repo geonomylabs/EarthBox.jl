@@ -1,6 +1,6 @@
 module BaseLevelTest
 
-using Plots
+using CairoMakie
 import EarthBox.SurfaceProcesses.Sealevel.RelativeBaseLevel.DensityProps: 
     DensityModel, DensityProperties
 import EarthBox.SurfaceProcesses.Sealevel.RelativeBaseLevel: 
@@ -303,28 +303,27 @@ function make_temperature_plots(
     show_plot::Bool=false
 )::Nothing
     
-    p = plot(
-        temp_gridy_ref .- 273, gridy_ref./1000.0,
-        label="Temperature_Ref",
-        color=:red
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Temperature (C)",
+        ylabel = "y (km below rock line)",
     )
-    plot!(
-        temp_gridy .- 273, gridy./1000.0,
-        label="Temperature_Model_Grid",
-        color=:blue
-    )
-    xlabel!("Temperature (C)")
-    ylabel!("y (km below rock line)")
-    xlims!(0, 1400)
-    ylims!(0, 160)
-    yaxis!(:flip)
-    
+    lines!(ax, temp_gridy_ref .- 273, gridy_ref ./ 1000.0;
+           color = :red, label = "Temperature_Ref")
+    lines!(ax, temp_gridy .- 273, gridy ./ 1000.0;
+           color = :blue, label = "Temperature_Model_Grid")
+    xlims!(ax, 0, 1400)
+    ylims!(ax, 0, 160)
+    ax.yreversed = true
+    axislegend(ax)
+
     if !show_plot
-        savefig(p, "temperature_profiles.png")
+        save("temperature_profiles.png", fig)
     else
-        display(p)
+        display(fig)
     end
-    
+
     return nothing
 end
 
@@ -338,34 +337,29 @@ function make_density_plots(
     show_plot::Bool=false
 )::Nothing
     
-    p = plot(
-        density_gridy_ref, gridy_ref./1000.0,
-        label="Density_Ref",
-        color=:red,
-        legend=:bottomleft
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Density (kg/m3)",
+        ylabel = "y (km below rock line)",
     )
-    plot!(
-        density_gridy, gridy./1000.0,
-        label="Density_Model_Grid",
-        color=:blue
-    )
-    plot!(
-        density_gridy_from_markers, gridy_for_marker_averaging./1000.0,
-        label="Density_Marker_Interpolation_Grid",
-        color=:green
-    )
-    xlabel!("Density (kg/m3)")
-    ylabel!("y (km below rock line)")
-    xlims!(2500, 3500)
-    ylims!(0, 160)
-    yaxis!(:flip)
-    
+    lines!(ax, density_gridy_ref, gridy_ref ./ 1000.0;
+           color = :red, label = "Density_Ref")
+    lines!(ax, density_gridy, gridy ./ 1000.0;
+           color = :blue, label = "Density_Model_Grid")
+    lines!(ax, density_gridy_from_markers, gridy_for_marker_averaging ./ 1000.0;
+           color = :green, label = "Density_Marker_Interpolation_Grid")
+    xlims!(ax, 2500, 3500)
+    ylims!(ax, 0, 160)
+    ax.yreversed = true
+    axislegend(ax; position = :lb)
+
     if !show_plot
-        savefig(p, "density_profiles.png")
+        save("density_profiles.png", fig)
     else
-        display(p)
+        display(fig)
     end
-    
+
     return nothing
 end
 
@@ -379,33 +373,29 @@ function make_pressure_plots(
     show_plot::Bool=false
 )::Nothing
     
-    p = plot(
-        pressure_gridy_ref./1e9, gridy_ref./1000.0,
-        label="Pressure_Ref",
-        color=:red
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Pressure (GPa)",
+        ylabel = "y (km below rock line)",
     )
-    plot!(
-        pressure_gridy./1e9, gridy./1000.0,
-        label="Pressure_Model_Grid",
-        color=:blue
-    )
-    plot!(
-        pressure_gridy_from_markers./1e9, gridy_for_marker_averaging./1000.0,
-        label="Pressure_Marker_Interpolation_Grid",
-        color=:green
-    )
-    xlabel!("Pressure (GPa)")
-    ylabel!("y (km below rock line)")
-    xlims!(0, 6.0)
-    ylims!(0, 160)
-    yaxis!(:flip)
-    
+    lines!(ax, pressure_gridy_ref ./ 1e9, gridy_ref ./ 1000.0;
+           color = :red, label = "Pressure_Ref")
+    lines!(ax, pressure_gridy ./ 1e9, gridy ./ 1000.0;
+           color = :blue, label = "Pressure_Model_Grid")
+    lines!(ax, pressure_gridy_from_markers ./ 1e9, gridy_for_marker_averaging ./ 1000.0;
+           color = :green, label = "Pressure_Marker_Interpolation_Grid")
+    xlims!(ax, 0, 6.0)
+    ylims!(ax, 0, 160)
+    ax.yreversed = true
+    axislegend(ax)
+
     if !show_plot
-        savefig(p, "pressure_profiles.png")
+        save("pressure_profiles.png", fig)
     else
-        display(p)
+        display(fig)
     end
-    
+
     return nothing
 end
 

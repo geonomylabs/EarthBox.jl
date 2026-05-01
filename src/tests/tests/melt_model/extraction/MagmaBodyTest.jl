@@ -2,7 +2,7 @@ module MagmaBodyTest
 
 import EarthBox.MeltModel.Extraction: PartiallyMoltenZone
 import EarthBox.FindShallowest: find_shallowest_partially_molten_mantle_marker_opt
-import Plots
+using CairoMakie
 
 function run_test()
     (
@@ -48,28 +48,27 @@ function plot_results(
     marker_y::Vector{Float64},
     marker_matid::Vector{Int16}
 )::Nothing
-    dpi = 150
-    figsize = (10, 10)
-    figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    p = Plots.scatter(
-        marker_x ./ 1000.0, 
-        marker_y ./ 1000.0, 
-        marker_z=marker_matid,
-        clims=(1.0, 3.0),
-        color=:viridis,
-        colorbar_title="marker_matid",
-        xlabel="X Axis (km)",
-        ylabel="Y Axis (km)",
-        title="Magma body use_optimized",
-        yflip=true,
-        aspect_ratio=:auto,
-        size=figsize_pixels,
-        markershape=:rect,
-        markersize=4.0,
-        markerstrokewidth=0.0,
-        markerstrokecolor=:transparent,
-        )
-    Plots.savefig(p, "magma_body.png")
+    fig = Figure(size = (1500, 1500))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "X Axis (km)",
+        ylabel = "Y Axis (km)",
+        title = "Magma body use_optimized",
+        yreversed = true,
+    )
+    sc = scatter!(
+        ax,
+        marker_x ./ 1000.0,
+        marker_y ./ 1000.0;
+        color = marker_matid,
+        colormap = :viridis,
+        colorrange = (1.0, 3.0),
+        marker = :rect,
+        markersize = 8,
+        strokewidth = 0.0,
+    )
+    Colorbar(fig[1, 2], sc; label = "marker_matid")
+    save("magma_body.png", fig)
     return nothing
 end
 

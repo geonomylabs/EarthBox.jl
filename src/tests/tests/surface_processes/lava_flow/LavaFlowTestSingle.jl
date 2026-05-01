@@ -1,6 +1,6 @@
 module LavaFlowTestSingle
 
-import Plots
+using CairoMakie
 import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager.MakeFlow: make_flow
 
 function run_test()
@@ -146,19 +146,18 @@ function plot_surface_and_topography(
 )::Nothing
     dpi = 150
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    p = Plots.plot(
-        topo_gridx, topo_gridy .- lava_thickness,
-        label="Surface",
-        size=figsize_pixels,
-        margin=5Plots.mm
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "X(m)",
+        ylabel = "Y(m)",
+        title = "Pulse $pulse_id Iteration $icount Index $i",
     )
-    Plots.plot!(p, topo_gridx, topo_gridy, label="Topography")
-    #Plots.ylims!(p, (100.0, -100.0))
-    Plots.title!("Pulse $pulse_id Iteration $icount Index $i")
-    Plots.xlabel!("X(m)")
-    Plots.ylabel!("Y(m)")
-    Plots.yaxis!(:flip)
-    Plots.savefig(p, "surface_p$(pulse_id)_icount$(icount)$(extension)")
+    lines!(ax, topo_gridx, topo_gridy .- lava_thickness; label = "Surface")
+    lines!(ax, topo_gridx, topo_gridy; label = "Topography")
+    ax.yreversed = true
+    axislegend(ax)
+    save("surface_p$(pulse_id)_icount$(icount)$(extension)", fig)
     return nothing
 end
 
@@ -170,18 +169,18 @@ function plot_lava_thickness(
     lava_thickness::Vector{Float64}
 )::Nothing
     bar_width = topo_gridx[2] - topo_gridx[1]
-    p = Plots.bar(
-        topo_gridx, lava_thickness,
-        bar_width=bar_width,
-        label="Lava Thickness",
-        margin=5Plots.mm,
-        linewidth=0,  # Turn off bar edges
-        fillcolor=:blue  # Color all bars blue
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Position",
+        ylabel = "Lava Thickness",
+        title = "Lava Thickness at pulse $pulse_id Iteration $icount Index $i",
     )
-    Plots.title!("Lava Thickness at pulse $pulse_id Iteration $icount Index $i")
-    Plots.xlabel!("Position")
-    Plots.ylabel!("Lava Thickness")
-    Plots.savefig(p, "lava_thickness_p$(pulse_id)_icount$(icount).png")
+    barplot!(ax, topo_gridx, lava_thickness;
+             width = bar_width, color = :blue, strokewidth = 0,
+             label = "Lava Thickness")
+    axislegend(ax)
+    save("lava_thickness_p$(pulse_id)_icount$(icount).png", fig)
     return nothing
 end
 

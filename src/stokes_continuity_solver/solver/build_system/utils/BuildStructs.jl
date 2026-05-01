@@ -1,7 +1,6 @@
 module BuildStructs
 
 import Printf: @printf
-import Plots
 import EarthBox.Arrays: ArrayUtils
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.BuildSysTools: SystemVectors

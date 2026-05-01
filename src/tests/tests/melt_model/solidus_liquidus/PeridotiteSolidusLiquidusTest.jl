@@ -1,6 +1,6 @@
 module PeridotiteSolidusLiquidusTest
 
-using Plots
+using CairoMakie
 import EarthBox.MeltModel.MeltFraction: get_melting_model_parameters
 import EarthBox.ConversionFuncs: kelvin_to_celsius
 
@@ -45,23 +45,26 @@ function plot_peridotite_solidus_liquidus(;model_name::String)::Nothing
     end
 
     use_pressure = true
-    p = plot()
-    plot!(p, legend=:bottomleft)
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Temperature (C)",
+        xticks = 1000:200:2300,
+    )
     if use_pressure
-        plot!(p, temperature_liquidus_list, pressure_list, label="Liquidus ($model_name)")
-        plot!(p, temperature_solidus_list, pressure_list, label="Solidus ($model_name)")
-        ylabel!("Pressure_GPa")
+        lines!(ax, temperature_liquidus_list, pressure_list; label = "Liquidus ($model_name)")
+        lines!(ax, temperature_solidus_list, pressure_list; label = "Solidus ($model_name)")
+        ax.ylabel = "Pressure_GPa"
     else
-        plot!(p, temperature_liquidus_list, depth_km_list, label="Liquidus ($model_name)")
-        plot!(p, temperature_solidus_list, depth_km_list, label="Solidus ($model_name)")
-        ylabel!("Depth (km)")
-        ylims!(0, 6)
+        lines!(ax, temperature_liquidus_list, depth_km_list; label = "Liquidus ($model_name)")
+        lines!(ax, temperature_solidus_list, depth_km_list; label = "Solidus ($model_name)")
+        ax.ylabel = "Depth (km)"
+        ylims!(ax, 0, 6)
     end
-    xticks!(1000:200:2300)
-    xlims!(1000, 2300)
-    xlabel!("Temperature (C)")
-    yaxis!(:flip)
-    savefig(p, "peridotite_solidus_liquidus_$(model_name).png")
+    xlims!(ax, 1000, 2300)
+    ax.yreversed = true
+    axislegend(ax; position = :lb)
+    save("peridotite_solidus_liquidus_$(model_name).png", fig)
     return nothing
 end
 

@@ -9,7 +9,7 @@ module TestCellGravity
 
 import EarthBox.Gravity.GravityCell: calc_cell_gravity_for_xarray, calculate_gravity_anomaly_prism
 import EarthBox.ConversionFuncs: meters_per_second_squared_to_milligal
-import Plots
+using CairoMakie
 
 """ Box geometry for the gravity cell.
 """
@@ -168,25 +168,29 @@ end
 """ Plot the gravity anomaly in mGal.
 """
 function plot_gravity_mgal(prism::GravityPrism)::Nothing
-    p = Plots.plot(
-        prism.observer_geometry.xcoors_observer, 
-        prism.gravity_anomaly_mgal)
-    Plots.xlabel!(p, "x_observer (m)")
-    Plots.ylabel!(p, "gravity anomaly(mgl)")
-    Plots.title!(p, "Test gravprism function")
-    Plots.display(p)
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x_observer (m)",
+        ylabel = "gravity anomaly(mgl)",
+        title = "Test gravprism function",
+    )
+    lines!(ax, prism.observer_geometry.xcoors_observer, prism.gravity_anomaly_mgal)
+    display(fig)
 end
 
 """ Plot the gravity anomaly in non-dimensional units.
 """
 function plot_gravity_nondim(prism::GravityPrism)::Nothing
-    p = Plots.plot(
-        prism.observer_geometry.xcoors_observer, 
-        prism.gravity_anomaly_nondim)
-    Plots.xlabel!(p, "x_observer (m)")
-    Plots.ylabel!(p, "gravity anomaly / 2 / G / delta_density")
-    Plots.title!(p, "Test gravprism function")
-    Plots.display(p)
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x_observer (m)",
+        ylabel = "gravity anomaly / 2 / G / delta_density",
+        title = "Test gravprism function",
+    )
+    lines!(ax, prism.observer_geometry.xcoors_observer, prism.gravity_anomaly_nondim)
+    display(fig)
 end
 
 """ Calculate gravity anomaly of an infinite prism.
@@ -232,14 +236,15 @@ end
 """ Plot the gravity anomaly in non-dimensional units.
 """
 function plot_nondim(prism::GravityInfinitePrism)::Nothing
-    p = Plots.plot(
-        prism.observer_geometry.xcoors_observer,
-        prism.gravity_anomaly_nondim
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x_observe (m)",
+        ylabel = "gravity_anomaly / 2 / G / delta_density",
+        title = "Gravity anomaly of a cell below a datum",
     )
-    Plots.xlabel!(p, "x_observe (m)")
-    Plots.ylabel!(p, "gravity_anomaly / 2 / G / delta_density")
-    Plots.title!(p, "Gravity anomaly of a cell below a datum")
-    Plots.display(p)
+    lines!(ax, prism.observer_geometry.xcoors_observer, prism.gravity_anomaly_nondim)
+    display(fig)
 end
 
 """ Test parameters for the gravity cell.
@@ -357,19 +362,19 @@ function run_test()::Nothing
     gravity_anomaly_turcotte = gravity_prism.gravity_anomaly_nondim
 
     xcoors_observer = observer_geometry.xcoors_observer
-    p = Plots.plot(
-        xcoors_observer, gravity_anomaly_turcotte,
-        label="Turcotte", color=:blue, linewidth=4
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x_observer (m)",
+        ylabel = "gravity anomaly / 2 / G / delta_density",
+        title = "Gravity anomaly of a cell below a datum",
     )
-    Plots.plot!(
-        p, xcoors_observer, gravity_anomaly_telford,
-        label="Telford", color=:red, linestyle=:dash
-    )
-    Plots.xlabel!(p, "x_observer (m)")
-    Plots.ylabel!(p, "gravity anomaly / 2 / G / delta_density")
-    Plots.title!(p, "Gravity anomaly of a cell below a datum")
-    #Plots.legend!(p)
-    Plots.display(p)
+    lines!(ax, xcoors_observer, gravity_anomaly_turcotte;
+           color = :blue, linewidth = 4, label = "Turcotte")
+    lines!(ax, xcoors_observer, gravity_anomaly_telford;
+           color = :red, linestyle = :dash, label = "Telford")
+    axislegend(ax)
+    display(fig)
 end
 
 end # module

@@ -1,6 +1,6 @@
 module MarkerCompactionTest
 
-import Plots
+using CairoMakie
 import EarthBox.Compaction: CompactionCorrection
 import EarthBox.Compaction.MarkerCompaction: calculate_marker_swarm_indices
 import EarthBox.Compaction.MarkerCompaction: calculate_x_sorted_swarm_indices_from_marker_x
@@ -653,23 +653,22 @@ function plot_markers(
     println("markers_y range: [$(minimum(markers_y)), $(maximum(markers_y))]") 
     println("markers_matid range: [$(minimum(markers_matid)), $(maximum(markers_matid))]")
 
-    # Make matid colored red
     markercolor = [matid == 3 ? :red : :blue for matid in markers_matid]
-    p = Plots.scatter(
-        markers_x, markers_y, markercolor=markercolor, markersize=marker_size,
-        markerstrokewidth=0.0, markerstrokecolor=:transparent,
-        markershape=:rect, size=figsize_pixels, dpi=dpi, xlabel="x", ylabel="y",
-        ylims=(ymin_plot, ymax_plot), aspect_ratio=:auto, yflip=true
-        )
-    Plots.plot!(p, topo_gridx, topo_gridy, color=:red, label="Topo", linewidth=2)
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y")
+    scatter!(ax, markers_x, markers_y;
+             color = markercolor, markersize = marker_size,
+             marker = :rect, strokewidth = 0.0)
+    lines!(ax, topo_gridx, topo_gridy; color = :red, linewidth = 2, label = "Topo")
     if plot_top_bottom_sed
-        Plots.plot!(p, topo_gridx, top_sed, color=:green, linewidth=2, label="Top Sed")
-        Plots.plot!(
-            p, topo_gridx, bottom_sed, color=:black, linestyle=:dash, 
-            linewidth=2, label="Bottom Sed"
-            )
+        lines!(ax, topo_gridx, top_sed; color = :green, linewidth = 2, label = "Top Sed")
+        lines!(ax, topo_gridx, bottom_sed;
+               color = :black, linestyle = :dash, linewidth = 2, label = "Bottom Sed")
     end
-    Plots.savefig(p, name)
+    ylims!(ax, ymin_plot, ymax_plot)
+    ax.yreversed = true
+    axislegend(ax)
+    save(name, fig)
     return nothing
 end
 
@@ -688,16 +687,16 @@ function plot_correction_step(
     # Plot the markers with different colors for different material ids
     dpi = 150
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    # Make matid colored red
     markercolor = [matid == 3 ? :red : :blue for matid in markers_matid]
-    p = Plots.scatter(
-        markers_x, markers_y, markercolor=markercolor, markersize=marker_size,
-        markerstrokewidth=0.0, markerstrokecolor=:transparent,
-        markershape=:rect, size=figsize_pixels, dpi=dpi, xlabel="x", ylabel="y",
-        ylims=(ymin_plot, ymax_plot), aspect_ratio=:auto, yflip=true
-        )
-    Plots.plot!(p, topo_gridx, topo_gridy, color=:red, linewidth=2)
-    Plots.savefig(p, "compaction_correction_step_$(istep).png")
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "y")
+    scatter!(ax, markers_x, markers_y;
+             color = markercolor, markersize = marker_size,
+             marker = :rect, strokewidth = 0.0)
+    lines!(ax, topo_gridx, topo_gridy; color = :red, linewidth = 2)
+    ylims!(ax, ymin_plot, ymax_plot)
+    ax.yreversed = true
+    save("compaction_correction_step_$(istep).png", fig)
     return nothing
 end
 
@@ -709,14 +708,11 @@ function plot_sediment_thickness_corrected(
     dpi = 150
     figsize = (5, 5)
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    p = Plots.plot(
-        xlabel="x",
-        ylabel="Sediment Thickness",
-        ylims=(0, 5000.0),
-        size=figsize_pixels
-    )
-    Plots.plot!(p, topo_gridx, sediment_thickness_corrected)
-    Plots.savefig(p, "sediment_thickness_corrected_$(istep).png")
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "Sediment Thickness")
+    lines!(ax, topo_gridx, sediment_thickness_corrected)
+    ylims!(ax, 0, 5000.0)
+    save("sediment_thickness_corrected_$(istep).png", fig)
     return nothing
 end
 
@@ -728,14 +724,11 @@ function plot_sticky_thickness(
     dpi = 150
     figsize = (5, 5)
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
-    p = Plots.plot(
-        xlabel="x",
-        ylabel="Sticky Thickness",
-        ylims=(0, 4000.0),
-        size=figsize_pixels
-    )
-    Plots.plot!(p, topo_gridx, sticky_thickness)
-    Plots.savefig(p, "sticky_thickness$(istep).png")
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(fig[1, 1]; xlabel = "x", ylabel = "Sticky Thickness")
+    lines!(ax, topo_gridx, sticky_thickness)
+    ylims!(ax, 0, 4000.0)
+    save("sticky_thickness$(istep).png", fig)
     return nothing
 end
 

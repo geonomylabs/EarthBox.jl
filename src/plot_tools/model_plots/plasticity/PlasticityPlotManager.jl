@@ -5,7 +5,6 @@ import ...Charts: plot_ncurves, check_output_directory
 import ..PlotDtypes: AxesType
 import DataStructures: OrderedDict
 using YAML
-using Plots
 using Printf
 
 function get_stokes_convergence_plot_args_string()::String
@@ -232,8 +231,6 @@ function make_plasticity_plot(
     )
 
     plot_ncurves(chart_input)
-
-    annotate_final_sub_iteration_with_time(curve_dict, annotation_font_size)
     return nothing
 end
 
@@ -347,28 +344,6 @@ function make_data_dict(
     end
 
     return data_xy
-end
-
-"""
-    annotate_final_sub_iteration_with_time(curve_dict::Dict{String, Vector{Any}}, 
-                                          annotation_font_size::Int)
-
-Annotate final sub-iteration with time in Myr.
-"""
-function annotate_final_sub_iteration_with_time(
-    curve_dict::Dict{String, Vector{Any}},
-    annotation_font_size::Int
-)
-    for i in 1:length(curve_dict["last_time_myr"])
-        tmyr = curve_dict["last_time_myr"][i]
-        lastid = curve_dict["last_ids"][i]
-        l2norm = curve_dict["last_l2_norms"][i]
-        label = string(tmyr)
-        Plots.annotate!(
-            (lastid, l2norm),
-            text(label, annotation_font_size, :center, :bottom)
-        )
-    end
 end
 
 end  # module

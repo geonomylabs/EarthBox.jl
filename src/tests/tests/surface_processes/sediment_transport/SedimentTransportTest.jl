@@ -1,6 +1,6 @@
 module SedimentTransportTest
 
-import Plots
+using CairoMakie
 import EarthBox.ConversionFuncs: mm_per_yr_to_meters_per_seconds as mm_yr_to_m_s
 import EarthBox.ConversionFuncs: years_to_seconds
 import EarthBox.ConversionFuncs: meters_per_year_to_meters_per_seconds as m_yr_to_m_s
@@ -217,41 +217,40 @@ function make_plots(
             continue
         end
         println(">> Making plot for time step: ", i)
-        
-        p = Plots.plot(
-            topo_gridx./1000.0, topo_gridy, label="Topography", 
-            color=:blue, linewidth=2.0, linestyle=:solid,
-            aspect_ratio=:auto, dpi=dpi, size=figsize_pixels
-            )
-        Plots.plot!(
-            p, topo_gridx./1000.0, bsmt_gridy, label="Initial Basement", 
-            color=:red, linewidth=2.0, linestyle=:solid
-            )
-        
+
+        time_stamp = make_time_stamp(i, transport_timestep)
+        fig = Figure(size = figsize_pixels)
+        ax = Axis(
+            fig[1, 1];
+            xlabel = "x (km)",
+            ylabel = "Topography (meters)",
+            title = "Downhill Diffusion: " * time_stamp,
+        )
+        lines!(ax, topo_gridx ./ 1000.0, topo_gridy;
+               color = :blue, linewidth = 2.0, linestyle = :solid,
+               label = "Topography")
+        lines!(ax, topo_gridx ./ 1000.0, bsmt_gridy;
+               color = :red, linewidth = 2.0, linestyle = :solid,
+               label = "Initial Basement")
+
         plot_water_depth = true
         if plot_water_depth
-            Plots.plot!(
-                p, topo_gridx./1000.0, water_depth_collection[i], label="Water Depth", 
-                color=:cyan, linewidth=2.0, linestyle=:dash
-                )
+            lines!(ax, topo_gridx ./ 1000.0, water_depth_collection[i];
+                   color = :cyan, linewidth = 2.0, linestyle = :dash,
+                   label = "Water Depth")
         end
-        
-        Plots.plot!(
-            p, divides_collection[i]./1000.0, zeros(length(divides_collection[i])),
-            seriestype=:scatter, label="Drainage Divides", color=:green,
-            marker=:circle, markersize=4.0, markerstrokecolor=:transparent, 
-            markerstrokewidth=0.0
-            )
-        
-        Plots.xlabel!("x (km)")
-        Plots.ylabel!("Topography (meters)")
-        time_stamp = make_time_stamp(i, transport_timestep)
-        Plots.title!("Downhill Diffusion: " * time_stamp)
-        Plots.ylims!(-2500, 2500)
-        Plots.yaxis!(:flip)
-        
+
+        scatter!(ax, divides_collection[i] ./ 1000.0,
+                 zeros(length(divides_collection[i]));
+                 color = :green, marker = :circle, markersize = 8,
+                 label = "Drainage Divides")
+
+        ylims!(ax, -2500, 2500)
+        ax.yreversed = true
+        axislegend(ax)
+
         plot_name = "downhill_diffusion_" * string(i) * ".png"
-        Plots.savefig(p, plot_name)
+        save(plot_name, fig)
     end
     return nothing
 end
@@ -268,28 +267,25 @@ function make_max_displacement_plot(
     figsize = (5, 5)
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
 
-    p = Plots.plot(
-        topo_gridx, sediment_thickness_initial,
-        label="Initial Sediment Thickness (m)", color=:blue,
-        dpi=dpi, size=figsize_pixels, linewidth=2.0, linestyle=:solid
-        )
-    Plots.plot!(
-        p, topo_gridx, sediment_thickness_initial_compacted,
-          label="Initial Sediment Thickness Compacted (m)", color=:green,
-          linewidth=2.0, linestyle=:solid
-          )
-    Plots.plot!(
-        p, topo_gridx, compaction_displacement_max,
-          label="Compaction Displacement (m)", color=:red,
-          linewidth=2.0, linestyle=:solid
-          )
-    
-    Plots.xlabel!("x (m)")
-    Plots.ylabel!("Displacement (m)")
-    Plots.title!("Maximum Compaction Displacement in Original Layer")
-    Plots.ylims!(0, 2500.0)
-    
-    Plots.savefig(p, "compaction_displacement.png")
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Displacement (m)",
+        title = "Maximum Compaction Displacement in Original Layer",
+    )
+    lines!(ax, topo_gridx, sediment_thickness_initial;
+           color = :blue, linewidth = 2.0, linestyle = :solid,
+           label = "Initial Sediment Thickness (m)")
+    lines!(ax, topo_gridx, sediment_thickness_initial_compacted;
+           color = :green, linewidth = 2.0, linestyle = :solid,
+           label = "Initial Sediment Thickness Compacted (m)")
+    lines!(ax, topo_gridx, compaction_displacement_max;
+           color = :red, linewidth = 2.0, linestyle = :solid,
+           label = "Compaction Displacement (m)")
+    ylims!(ax, 0, 2500.0)
+    axislegend(ax)
+    save("compaction_displacement.png", fig)
     return nothing
 end
 

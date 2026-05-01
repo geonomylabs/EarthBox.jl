@@ -1,11 +1,10 @@
 module PlotDtypes
 
-import Plots
 import CairoMakie
 
 abstract type AbstractPlotParameterGroup end
 
-const AxesType = Union{Plots.Plot, CairoMakie.Axis}
+const AxesType = CairoMakie.Axis
 
 const PlotParametersType = Dict{String, Union{Float64, Int64, String, Bool, Tuple{Float64, Vararg{Float64}}}}
 const PlotDictType = Dict{String, PlotParametersType}

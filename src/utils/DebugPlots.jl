@@ -3,7 +3,6 @@ module DebugPlots
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.Arrays: ArrayUtils
 import EarthBox.ConversionFuncs: get_factor_cm_yr_to_m_s
-import Plots
 import CairoMakie
 
 function plot_interpolated_temperature_tk1(model::ModelData, msg::String)::Nothing
@@ -14,7 +13,7 @@ function plot_interpolated_temperature_tk1(model::ModelData, msg::String)::Nothi
     tk1 = model.heat_equation.arrays.temperature.tk1.array
 
     ArrayUtils.print_min_max("tk1", tk1)
-    
+
     dpi = 150
     figsize = (15, 5)
     figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
@@ -22,23 +21,27 @@ function plot_interpolated_temperature_tk1(model::ModelData, msg::String)::Nothi
     xspacing = 50
     yspacing = 25
 
-    p = Plots.heatmap(
-        gridx_b, gridy_b, tk1, size=figsize_pixels,
-        xlabel="x (km)", ylabel="y (km)", 
-        title="Temperature (K)",
-        color=:viridis, aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):xspacing:maximum(gridx_b),
-        yticks=minimum(gridy_b):yspacing:maximum(gridy_b),
-        legendfontsize=25, guidefontsize=25,
-        tickfontsize=20, titlefontsize=25,
+    fig = CairoMakie.Figure(size = figsize_pixels)
+    ax = CairoMakie.Axis(
+        fig[1, 1];
+        xlabel = "x (km)", ylabel = "y (km)",
+        title = "Temperature (K)",
+        titlesize = 25,
+        xlabelsize = 25, ylabelsize = 25,
+        xticklabelsize = 20, yticklabelsize = 20,
+        xticks = minimum(gridx_b):xspacing:maximum(gridx_b),
+        yticks = minimum(gridy_b):yspacing:maximum(gridy_b),
     )
-    Plots.plot!(p, yflip=true)
-    #plot_basic_grid_lines(p, model)
-    #plot_marker_overlay(p, model)
-    Plots.savefig("tk1_2d_grid_$(ntimestep_str).png")
-    
+    CairoMakie.xlims!(ax, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax, minimum(gridy_b), maximum(gridy_b))
+    ax.yreversed = true
+    hm = CairoMakie.heatmap!(
+        ax, gridx_b, gridy_b, permutedims(tk1);
+        colormap = :viridis,
+    )
+    CairoMakie.Colorbar(fig[1, 2], hm)
+    CairoMakie.save("tk1_2d_grid_$(ntimestep_str).png", fig)
+
     return nothing
 end
 
@@ -95,49 +98,65 @@ function plot_interpolated_basic_grid_velocity(model::ModelData, msg::String)::N
         end
     end
     
-    p = Plots.quiver(
-        x, y, quiver=(vx, vy), size=figsize_pixels,
-        xlabel="x (m)", ylabel="y (m)",
-        title="Basic Grid Velocity Field (Normalized)", aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):500:maximum(gridx_b),
-        yticks=minimum(gridy_b):500:maximum(gridy_b),
-        legendfontsize=12, guidefontsize=12, tickfontsize=10, titlefontsize=15
+    fig = CairoMakie.Figure(size = figsize_pixels)
+    ax = CairoMakie.Axis(
+        fig[1, 1];
+        xlabel = "x (m)", ylabel = "y (m)",
+        title = "Basic Grid Velocity Field (Normalized)",
+        titlesize = 15,
+        xlabelsize = 12, ylabelsize = 12,
+        xticklabelsize = 10, yticklabelsize = 10,
+        xticks = minimum(gridx_b):500:maximum(gridx_b),
+        yticks = minimum(gridy_b):500:maximum(gridy_b),
     )
-    Plots.savefig("basic_grid_velocity_field_$(ntimestep_str).png")
+    CairoMakie.xlims!(ax, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax, minimum(gridy_b), maximum(gridy_b))
+    CairoMakie.arrows!(ax, x, y, vx, vy; lengthscale = 1.0, color = :black)
+    CairoMakie.save("basic_grid_velocity_field_$(ntimestep_str).png", fig)
 
-    p = Plots.heatmap(
-        gridx_b, gridy_b, vxb_cm_yr.*1e4, size=figsize_pixels,
-        dip=300, xlabel="x (m)", ylabel="y (m)", 
-        title="Vx (cm/yr x 1e4) Basic Grid",
-        color=:viridis, aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):500:maximum(gridx_b),
-        yticks=minimum(gridy_b):500:maximum(gridy_b),
-        legendfontsize=25, guidefontsize=25,
-        tickfontsize=20, titlefontsize=25,
+    fig2 = CairoMakie.Figure(size = figsize_pixels)
+    ax2 = CairoMakie.Axis(
+        fig2[1, 1];
+        xlabel = "x (m)", ylabel = "y (m)",
+        title = "Vx (cm/yr x 1e4) Basic Grid",
+        titlesize = 25,
+        xlabelsize = 25, ylabelsize = 25,
+        xticklabelsize = 20, yticklabelsize = 20,
+        xticks = minimum(gridx_b):500:maximum(gridx_b),
+        yticks = minimum(gridy_b):500:maximum(gridy_b),
     )
-    plot_basic_grid_lines(p, model)
-    plot_marker_overlay(p, model)
-    Plots.savefig("vx_basic_cm_yr_$(ntimestep_str).png")
+    CairoMakie.xlims!(ax2, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax2, minimum(gridy_b), maximum(gridy_b))
+    hm2 = CairoMakie.heatmap!(
+        ax2, gridx_b, gridy_b, permutedims(vxb_cm_yr) .* 1e4;
+        colormap = :viridis,
+    )
+    CairoMakie.Colorbar(fig2[1, 2], hm2)
+    plot_basic_grid_lines(ax2, model)
+    plot_marker_overlay(ax2, model)
+    CairoMakie.save("vx_basic_cm_yr_$(ntimestep_str).png", fig2)
 
-    p = Plots.heatmap(
-        gridx_b, gridy_b, vyb_cm_yr.*1e4, size=figsize_pixels,
-        dip=300, xlabel="x (m)", ylabel="y (m)", 
-        title="Vy (cm/yr x 1e4) Basic Grid",
-        color=:viridis, aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):500:maximum(gridx_b),
-        yticks=minimum(gridy_b):500:maximum(gridy_b),
-        legendfontsize=25, guidefontsize=25,
-        tickfontsize=20, titlefontsize=25,
+    fig3 = CairoMakie.Figure(size = figsize_pixels)
+    ax3 = CairoMakie.Axis(
+        fig3[1, 1];
+        xlabel = "x (m)", ylabel = "y (m)",
+        title = "Vy (cm/yr x 1e4) Basic Grid",
+        titlesize = 25,
+        xlabelsize = 25, ylabelsize = 25,
+        xticklabelsize = 20, yticklabelsize = 20,
+        xticks = minimum(gridx_b):500:maximum(gridx_b),
+        yticks = minimum(gridy_b):500:maximum(gridy_b),
     )
-    plot_basic_grid_lines(p, model)
-    plot_marker_overlay(p, model)
-    Plots.savefig("vy_basic_cm_yr_$(ntimestep_str).png")
+    CairoMakie.xlims!(ax3, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax3, minimum(gridy_b), maximum(gridy_b))
+    hm3 = CairoMakie.heatmap!(
+        ax3, gridx_b, gridy_b, permutedims(vyb_cm_yr) .* 1e4;
+        colormap = :viridis,
+    )
+    CairoMakie.Colorbar(fig3[1, 2], hm3)
+    plot_basic_grid_lines(ax3, model)
+    plot_marker_overlay(ax3, model)
+    CairoMakie.save("vy_basic_cm_yr_$(ntimestep_str).png", fig3)
 
     return nothing
 end
@@ -163,39 +182,47 @@ function plot_viscoplastic_viscosity_etan0_etas0(model::ModelData, msg::String):
     xspacing = 20
     yspacing = 20
 
-    p = Plots.heatmap(
-        gridx_b, gridy_b, log10.(etas0), size=figsize_pixels,
-        xlabel="x (km)", ylabel="y (km)", 
-        title="Log10 Shear Viscosity (Pa.s)",
-        color=:viridis, aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):xspacing:maximum(gridx_b),
-        yticks=minimum(gridy_b):yspacing:maximum(gridy_b),
-        legendfontsize=25, guidefontsize=25,
-        tickfontsize=20, titlefontsize=25,
+    fig = CairoMakie.Figure(size = figsize_pixels)
+    ax = CairoMakie.Axis(
+        fig[1, 1];
+        xlabel = "x (km)", ylabel = "y (km)",
+        title = "Log10 Shear Viscosity (Pa.s)",
+        titlesize = 25,
+        xlabelsize = 25, ylabelsize = 25,
+        xticklabelsize = 20, yticklabelsize = 20,
+        xticks = minimum(gridx_b):xspacing:maximum(gridx_b),
+        yticks = minimum(gridy_b):yspacing:maximum(gridy_b),
     )
-    Plots.plot!(p, yflip=true)
-    #plot_basic_grid_lines(p, model)
-    #plot_marker_overlay(p, model)
-    Plots.savefig("etas_2d_grid_$(ntimestep_str).png")
-    
-    p = Plots.heatmap(
-        gridx_pr, gridy_pr, log10.(etan0), size=figsize_pixels,
-        xlabel="x (km)", ylabel="y (km)", 
-        title="Log10 Normal Viscosity (Pa.s)",
-        color=:viridis, aspect_ratio=:auto,
-        xlims=(minimum(gridx_b), maximum(gridx_b)),
-        ylims=(minimum(gridy_b), maximum(gridy_b)),
-        xticks=minimum(gridx_b):xspacing:maximum(gridx_b),
-        yticks=minimum(gridy_b):yspacing:maximum(gridy_b),
-        legendfontsize=25, guidefontsize=25,
-        tickfontsize=20, titlefontsize=25,
+    CairoMakie.xlims!(ax, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax, minimum(gridy_b), maximum(gridy_b))
+    ax.yreversed = true
+    hm = CairoMakie.heatmap!(
+        ax, gridx_b, gridy_b, permutedims(log10.(etas0));
+        colormap = :viridis,
     )
-    Plots.plot!(p, yflip=true)
-    #plot_basic_grid_lines(p, model)
-    #plot_marker_overlay(p, model)
-    Plots.savefig("etan_2d_grid_$(ntimestep_str).png")
+    CairoMakie.Colorbar(fig[1, 2], hm)
+    CairoMakie.save("etas_2d_grid_$(ntimestep_str).png", fig)
+
+    fig2 = CairoMakie.Figure(size = figsize_pixels)
+    ax2 = CairoMakie.Axis(
+        fig2[1, 1];
+        xlabel = "x (km)", ylabel = "y (km)",
+        title = "Log10 Normal Viscosity (Pa.s)",
+        titlesize = 25,
+        xlabelsize = 25, ylabelsize = 25,
+        xticklabelsize = 20, yticklabelsize = 20,
+        xticks = minimum(gridx_b):xspacing:maximum(gridx_b),
+        yticks = minimum(gridy_b):yspacing:maximum(gridy_b),
+    )
+    CairoMakie.xlims!(ax2, minimum(gridx_b), maximum(gridx_b))
+    CairoMakie.ylims!(ax2, minimum(gridy_b), maximum(gridy_b))
+    ax2.yreversed = true
+    hm2 = CairoMakie.heatmap!(
+        ax2, gridx_pr, gridy_pr, permutedims(log10.(etan0));
+        colormap = :viridis,
+    )
+    CairoMakie.Colorbar(fig2[1, 2], hm2)
+    CairoMakie.save("etan_2d_grid_$(ntimestep_str).png", fig2)
 
     return nothing
 end
@@ -255,31 +282,22 @@ function plot_marker_fric(
     return nothing
 end
 
-function plot_marker_overlay(p::Plots.Plot, model::ModelData)::Nothing
+function plot_marker_overlay(ax::CairoMakie.Axis, model::ModelData)::Nothing
     marker_x = model.markers.arrays.location.marker_x.array
     marker_y = model.markers.arrays.location.marker_y.array
-    Plots.scatter!(
-        p, marker_x, marker_y, 
-        color=:red,
-        markersize=0.25,
-        label=nothing
+    CairoMakie.scatter!(
+        ax, marker_x, marker_y;
+        color = :red, markersize = 1.0, strokewidth = 0.0,
     )
     return nothing
 end
 
-function plot_basic_grid_lines(p::Plots.Plot, model::ModelData)::Nothing
+function plot_basic_grid_lines(ax::CairoMakie.Axis, model::ModelData)::Nothing
     gridx_b = model.grids.arrays.basic.gridx_b.array
     gridy_b = model.grids.arrays.basic.gridy_b.array
-    # Plot vertical grid lines
-    for x in gridx_b
-        Plots.plot!(p, [x, x], [minimum(gridy_b), maximum(gridy_b)], 
-            color=:black, label=nothing, linewidth=0.75)
-    end
-    # Plot horizontal grid lines 
-    for y in gridy_b
-        Plots.plot!(p, [minimum(gridx_b), maximum(gridx_b)], [y, y],
-            color=:black, label=nothing, linewidth=0.75)
-    end
+    CairoMakie.vlines!(ax, gridx_b; color = :black, linewidth = 0.75)
+    CairoMakie.hlines!(ax, gridy_b; color = :black, linewidth = 0.75)
+    return nothing
 end
 
 end # module

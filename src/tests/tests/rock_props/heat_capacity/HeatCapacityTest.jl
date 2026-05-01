@@ -1,6 +1,6 @@
 module HeatCapacityTest
 
-using Plots
+using CairoMakie
 import EarthBox.RockProperties.RhoCpModel.UpdateManager.TemperatureDependentWaples: 
     calculate_heat_capacity_waples
 import EarthBox.ConversionFuncs: celsius_to_kelvin, kelvin_to_celsius
@@ -68,39 +68,40 @@ function make_pressure_temperature_plot(
     temperature_array::Vector{Float64},
     model_name::String
 )::Nothing
-    # Create the main plot with pressure
-    p1 = plot(
-        pressure_array, depth_array,
-        label="Pressure",
-        color=:red,
-        xlabel="Pressure (GPa)",
-        ylabel="Depth (km)",
-        xlims=(0, 4.0),
-        xticks=0:0.5:4,
-        ylims=(0, 160.0),
-        yticks=0:10:160,
-        yaxis=:flip,
-        size=(800, 600),
-        legend=:bottomleft
+    fig = Figure(size = (800, 600))
+    ax_p = Axis(
+        fig[1, 1];
+        xlabel = "Pressure (GPa)",
+        ylabel = "Depth (km)",
+        xticks = 0:0.5:4,
+        yticks = 0:10:160,
+        xaxisposition = :bottom,
     )
-    
-    # Add temperature on secondary x-axis
-    plot!(
-        twiny(),
-        temperature_array, depth_array,
-        label="Temperature",
-        color=:blue,
-        linestyle=:dot,
-        xlabel="Temperature (C)",
-        xlims=(0.0, 1400.0),
-        xticks=0:100:1400,
-        ylims=(0, 160.0),
-        yticks=0:10:160,
-        yaxis=:flip,
-        legend=:topright
+    ax_t = Axis(
+        fig[1, 1];
+        xlabel = "Temperature (C)",
+        xticks = 0:100:1400,
+        xaxisposition = :top,
     )
+    hidespines!(ax_t)
+    hideydecorations!(ax_t)
 
-    savefig(p1, "pressure_temperature_plot_$(model_name).png")
+    lines!(ax_p, pressure_array, depth_array;
+           color = :red, label = "Pressure")
+    lines!(ax_t, temperature_array, depth_array;
+           color = :blue, linestyle = :dot, label = "Temperature")
+
+    xlims!(ax_p, 0, 4.0)
+    xlims!(ax_t, 0.0, 1400.0)
+    ylims!(ax_p, 0, 160.0)
+    ylims!(ax_t, 0, 160.0)
+    ax_p.yreversed = true
+    ax_t.yreversed = true
+
+    axislegend(ax_p; position = :lb)
+    axislegend(ax_t; position = :rt)
+
+    save("pressure_temperature_plot_$(model_name).png", fig)
 
     return nothing
 end
@@ -110,21 +111,20 @@ function make_heat_capacity_plot(
     heat_capacity_array::Vector{Float64},
     model_name::String
 )::Nothing
-    # Create heat capacity plot
-    p2 = plot(
-        heat_capacity_array, depth_array,
-        color=:black,
-        label="Heat Capacity",
-        xlabel="Heat Capacity (J/K/kg)",
-        ylabel="Depth (km)",
-        xlims=(600, 1500.0),
-        xticks=600:100:1500,
-        yaxis=:flip,
-        yticks=0:10:160,
-        size=(800, 600),
-        legend=:bottomleft
+    fig = Figure(size = (800, 600))
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "Heat Capacity (J/K/kg)",
+        ylabel = "Depth (km)",
+        xticks = 600:100:1500,
+        yticks = 0:10:160,
     )
-    savefig(p2, "heat_capacity_plot_$(model_name).png")
+    lines!(ax, heat_capacity_array, depth_array;
+           color = :black, label = "Heat Capacity")
+    xlims!(ax, 600, 1500.0)
+    ax.yreversed = true
+    axislegend(ax; position = :lb)
+    save("heat_capacity_plot_$(model_name).png", fig)
 
     return nothing
 end

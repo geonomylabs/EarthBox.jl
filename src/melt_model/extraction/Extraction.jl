@@ -11,7 +11,7 @@ include("core/Volcanism.jl")
 include("core/MeltVolumetrics.jl")
 
 using Printf
-import Plots
+using CairoMakie
 import EarthBox.ParameterRegistry: get_eb_parameters
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.PrintFuncs: @timeit_memit, print_info, print_warning, 
@@ -672,32 +672,29 @@ function make_debug_plots(
     println(">> Min partial melt gridy: ", minimum(partial_melt_gridy))
     println(">> Max partial melt gridy: ", maximum(partial_melt_gridy))
     
-    dpi = 150
-    figsize = (5, 5)
-    figsize_pixels = (figsize[1] * dpi, figsize[2] * dpi)
+    figsize_pixels = (750, 750)
 
-    p = Plots.plot(
-        topo_gridx, partial_melt_gridy, label="Top of Partial Melt Zone", 
-        color=:blue, linewidth=2.0, linestyle=:solid,
-        aspect_ratio=:auto, dpi=dpi, size=figsize_pixels
-        )
-    Plots.plot!(
-        p, divides_x, ones(length(divides_x)) * ymin,
-        seriestype=:scatter, label="Drainage Divides", color=:green,
-        marker=:circle, markersize=4.0, markerstrokecolor=:transparent, 
-        markerstrokewidth=0.0
-        )
+    fig = Figure(size = figsize_pixels)
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Partial Melt Topography",
+        title = "Melt drainage divides",
+    )
+    lines!(ax, topo_gridx, partial_melt_gridy;
+           color = :blue, linewidth = 2.0, linestyle = :solid,
+           label = "Top of Partial Melt Zone")
+    scatter!(ax, divides_x, ones(length(divides_x)) * ymin;
+             color = :green, marker = :circle, markersize = 8,
+             label = "Drainage Divides")
+    ylims!(ax, ymin, ymax)
+    ax.yreversed = true
+    axislegend(ax)
 
-    Plots.xlabel!("x (m)")
-    Plots.ylabel!("Partial Melt Topography")
-    Plots.title!("Melt drainage divides")
-    Plots.ylims!(ymin, ymax)  # Set y-axis limits
-    Plots.yaxis!(:flip)
-    
     plot_name = "melt_drainage_divides" * string(ntimestep) * ".png"
     filepath = joinpath(output_dir, plot_name)
     println(">> Saving drainage plot to: ", filepath)
-    Plots.savefig(p, filepath)
+    save(filepath, fig)
 end
 
 function make_derivative_plot!(
@@ -724,27 +721,26 @@ function make_derivative_plot!(
     println(">> Derivative at mid point - 1: ", derivative[mid-1])
     println(">> Derivative at mid point + 1: ", derivative[mid+1])
     
-    p = Plots.plot(
-        topo_gridx, derivative,
-        label="Derivative of Top of Partial Melt Zone", color=:blue
-        )
-    Plots.plot!(
-        p, divides_x, ones(length(divides_x)) * ymin,
-        seriestype=:scatter, label="Drainage Divides", color=:green,
-        marker=:circle, markersize=4.0, markerstrokecolor=:transparent, 
-        markerstrokewidth=0.0
+    fig = Figure()
+    ax = Axis(
+        fig[1, 1];
+        xlabel = "x (m)",
+        ylabel = "Derivative of Partial Melt Topography",
+        title = "Melt drainage divides",
     )
-    Plots.xlabel!("x (m)")
-    Plots.ylabel!("Derivative of Partial Melt Topography")
-    Plots.title!("Melt drainage divides")
-    Plots.legend()
-    Plots.ylims!(ymin, ymax)  # Set y-axis limits
-    Plots.yaxis!(:flip)
-    
+    lines!(ax, topo_gridx, derivative;
+           color = :blue, label = "Derivative of Top of Partial Melt Zone")
+    scatter!(ax, divides_x, ones(length(divides_x)) * ymin;
+             color = :green, marker = :circle, markersize = 8,
+             label = "Drainage Divides")
+    ylims!(ax, ymin, ymax)
+    ax.yreversed = true
+    axislegend(ax)
+
     plot_name = "melt_drainage_derivatives" * string(ntimestep) * ".png"
     filepath = joinpath(output_dir, plot_name)
     println(">> Saving drainage plot to: ", filepath)
-    Plots.savefig(p, filepath)
-end 
+    save(filepath, fig)
+end
 
 end # module

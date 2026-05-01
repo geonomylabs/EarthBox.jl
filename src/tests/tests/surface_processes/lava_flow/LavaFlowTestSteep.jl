@@ -1,6 +1,6 @@
 module LavaFlowTestSteep
 
-import Plots
+using CairoMakie
 import EarthBox.SurfaceProcesses.LavaFlowManager.LavaFlowSolverManager.MakeFlow: make_flow
 
 """
@@ -202,87 +202,89 @@ function plot_surface_comparison(
     topo_gridx, topo_composite, lava_composite, topo_broad, lava_broad,
     slot_threshold, broad_rift_step
 )::Nothing
-    dpi = 150
     xkm = topo_gridx ./ 1000.0
 
-    p1 = Plots.plot(xkm, topo_composite,
-                    label="Topography", color=:black, linewidth=2,
-                    title="Composite rift — lava TRAPPED in slot (threshold $(round(Int,slot_threshold)) m)",
-                    margin=5Plots.mm)
-    Plots.plot!(p1, xkm, topo_composite .- lava_composite,
-                label="Lava surface", color=:red, linewidth=2)
-    Plots.xlabel!(p1, "X (km)")
-    Plots.ylabel!(p1, "Depth (m)")
-    Plots.yaxis!(p1, :flip)
+    fig = Figure(size = (1200, 700))
+    ax1 = Axis(
+        fig[1, 1];
+        xlabel = "X (km)", ylabel = "Depth (m)",
+        title = "Composite rift — lava TRAPPED in slot (threshold $(round(Int,slot_threshold)) m)",
+    )
+    lines!(ax1, xkm, topo_composite; color = :black, linewidth = 2, label = "Topography")
+    lines!(ax1, xkm, topo_composite .- lava_composite; color = :red, linewidth = 2, label = "Lava surface")
+    ax1.yreversed = true
+    axislegend(ax1)
 
-    p2 = Plots.plot(xkm, topo_broad,
-                    label="Topography", color=:black, linewidth=2,
-                    title="Broad rift only — lava ESCAPES (threshold ≈ $(round(broad_rift_step, digits=1)) m)",
-                    margin=5Plots.mm)
-    Plots.plot!(p2, xkm, topo_broad .- lava_broad,
-                label="Lava surface", color=:blue, linewidth=2)
-    Plots.xlabel!(p2, "X (km)")
-    Plots.ylabel!(p2, "Depth (m)")
-    Plots.yaxis!(p2, :flip)
+    ax2 = Axis(
+        fig[2, 1];
+        xlabel = "X (km)", ylabel = "Depth (m)",
+        title = "Broad rift only — lava ESCAPES (threshold ≈ $(round(broad_rift_step, digits=1)) m)",
+    )
+    lines!(ax2, xkm, topo_broad; color = :black, linewidth = 2, label = "Topography")
+    lines!(ax2, xkm, topo_broad .- lava_broad; color = :blue, linewidth = 2, label = "Lava surface")
+    ax2.yreversed = true
+    axislegend(ax2)
 
-    p = Plots.plot(p1, p2, layout=(2, 1), size=(1200, 700), dpi=dpi)
-    Plots.savefig(p, "lava_flow_steep_vs_gentle_surface.png")
+    save("lava_flow_steep_vs_gentle_surface.png", fig)
 
     # Zoomed view centred on rift axis (±50 km)
     zoom_km = 50.0
     x_centre_km = (topo_gridx[end] / 2.0) / 1000.0
-    xlims = (x_centre_km - zoom_km, x_centre_km + zoom_km)
+    xlims_zoom = (x_centre_km - zoom_km, x_centre_km + zoom_km)
 
-    pz1 = Plots.plot(xkm, topo_composite,
-                     label="Topography", color=:black, linewidth=2,
-                     title="Composite rift — zoomed (±$(round(Int,zoom_km)) km)",
-                     margin=5Plots.mm, xlims=xlims)
-    Plots.plot!(pz1, xkm, topo_composite .- lava_composite,
-                label="Lava surface", color=:red, linewidth=2)
-    Plots.yaxis!(pz1, :flip)
-    Plots.xlabel!(pz1, "X (km)")
-    Plots.ylabel!(pz1, "Depth (m)")
+    fig_z = Figure(size = (1200, 700))
+    axz1 = Axis(
+        fig_z[1, 1];
+        xlabel = "X (km)", ylabel = "Depth (m)",
+        title = "Composite rift — zoomed (±$(round(Int,zoom_km)) km)",
+    )
+    lines!(axz1, xkm, topo_composite; color = :black, linewidth = 2, label = "Topography")
+    lines!(axz1, xkm, topo_composite .- lava_composite; color = :red, linewidth = 2, label = "Lava surface")
+    xlims!(axz1, xlims_zoom...)
+    axz1.yreversed = true
+    axislegend(axz1)
 
-    pz2 = Plots.plot(xkm, topo_broad,
-                     label="Topography", color=:black, linewidth=2,
-                     title="Broad rift only — zoomed (±$(round(Int,zoom_km)) km)",
-                     margin=5Plots.mm, xlims=xlims)
-    Plots.plot!(pz2, xkm, topo_broad .- lava_broad,
-                label="Lava surface", color=:blue, linewidth=2)
-    Plots.yaxis!(pz2, :flip)
-    Plots.xlabel!(pz2, "X (km)")
-    Plots.ylabel!(pz2, "Depth (m)")
+    axz2 = Axis(
+        fig_z[2, 1];
+        xlabel = "X (km)", ylabel = "Depth (m)",
+        title = "Broad rift only — zoomed (±$(round(Int,zoom_km)) km)",
+    )
+    lines!(axz2, xkm, topo_broad; color = :black, linewidth = 2, label = "Topography")
+    lines!(axz2, xkm, topo_broad .- lava_broad; color = :blue, linewidth = 2, label = "Lava surface")
+    xlims!(axz2, xlims_zoom...)
+    axz2.yreversed = true
+    axislegend(axz2)
 
-    pz = Plots.plot(pz1, pz2, layout=(2, 1), size=(1200, 700), dpi=dpi)
-    Plots.savefig(pz, "lava_flow_steep_vs_gentle_surface_zoom.png")
+    save("lava_flow_steep_vs_gentle_surface_zoom.png", fig_z)
     return nothing
 end
 
 function plot_thickness_comparison(
     topo_gridx, lava_composite, lava_broad
 )::Nothing
-    dpi = 150
-    xkm      = topo_gridx ./ 1000.0
+    xkm = topo_gridx ./ 1000.0
     bar_width = xkm[2] - xkm[1]
 
-    p1 = Plots.bar(xkm, lava_composite,
-                   bar_width=bar_width, fillcolor=:red, linewidth=0,
-                   label="Lava thickness",
-                   title="Composite rift — lava thickness (edifice in slot)",
-                   margin=5Plots.mm)
-    Plots.xlabel!(p1, "X (km)")
-    Plots.ylabel!(p1, "Thickness (m)")
+    fig = Figure(size = (1200, 700))
+    ax1 = Axis(
+        fig[1, 1];
+        xlabel = "X (km)", ylabel = "Thickness (m)",
+        title = "Composite rift — lava thickness (edifice in slot)",
+    )
+    barplot!(ax1, xkm, lava_composite;
+             width = bar_width, color = :red, strokewidth = 0, label = "Lava thickness")
+    axislegend(ax1)
 
-    p2 = Plots.bar(xkm, lava_broad,
-                   bar_width=bar_width, fillcolor=:blue, linewidth=0,
-                   label="Lava thickness",
-                   title="Broad rift only — lava thickness (spread)",
-                   margin=5Plots.mm)
-    Plots.xlabel!(p2, "X (km)")
-    Plots.ylabel!(p2, "Thickness (m)")
+    ax2 = Axis(
+        fig[2, 1];
+        xlabel = "X (km)", ylabel = "Thickness (m)",
+        title = "Broad rift only — lava thickness (spread)",
+    )
+    barplot!(ax2, xkm, lava_broad;
+             width = bar_width, color = :blue, strokewidth = 0, label = "Lava thickness")
+    axislegend(ax2)
 
-    p = Plots.plot(p1, p2, layout=(2, 1), size=(1200, 700), dpi=dpi)
-    Plots.savefig(p, "lava_flow_steep_vs_gentle_thickness.png")
+    save("lava_flow_steep_vs_gentle_thickness.png", fig)
     return nothing
 end
 
