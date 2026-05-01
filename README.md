@@ -2,7 +2,7 @@
 # EarthBox.jl
 
 - [EarthBox Overview](#earthbox-overview)
-- [Operating System](#operating-systems)
+- [Operating Systems](#operating-systems)
 - [Julia Installation](#julia-installation)
 - [Basic EarthBox Installation](#basic-earthbox-installation)
 - [Run a Model and Plot Results](#run-a-model-and-plot-results)
@@ -16,7 +16,7 @@
 EarthBox.jl is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling
 framework with melt generation, melt intrusion, melt extrusion, frictional-plastic melt 
 damage, lava flow modeling and marine and terrestrial sediment transport with compaction. 
-This novel combination of features enables Seaward-dipping-reflectors (SDR's) to be 
+This novel combination of features enables seaward-dipping reflectors (SDRs) to be 
 dynamically modeled using realistic rheology and boundary conditions.
 
 See documentation at [EarthBox.jl Docs](https://geonomylabs.github.io/EarthBox.jl/stable/) 
@@ -111,7 +111,7 @@ See [Julia Tarball](https://julialang.org/downloads/platform/#linux_and_freebsd)
 more details. Custom installations of Julia will require adding the path to the Julia 
 bin in your `~/.bashrc` file:
 
-``` bash
+```bash
 export PATH="path/to/the/unpacked/julia/bin:$PATH"
 ```
 
@@ -234,8 +234,8 @@ EarthBox (see [Stable MPI Configuration](https://juliaparallel.org/MPI.jl/stable
     julia> using MPI
     julia> MPI.install_mpiexecjl()
     ```
-    *Make a note of the path to the directory containing `mpiexecjl` produced as screen 
-    output since you will add this path to your `.bashrc`*
+    *Make a note of the path to the directory containing `mpiexecjl` produced as screen
+    output since you will add this path to your `.bashrc`.*
 
 5) Add the path to `mpiexecjl` to your `~/.bashrc`
 
@@ -294,7 +294,7 @@ project as a development project:
 
     This will allow you to access EarthBox via
 
-    ``` julia
+    ```julia
     using EarthBox
     ```
 
@@ -319,7 +319,7 @@ libraries. This section provides guidance on how to do this on Debian Linux
 operating systems (e.g. Ubuntu/PopOS) assuming that `MPI.jl` and `MPIPreferences.jl` 
 have already been installed for EarthBox and the base Julia environment: 
 
-1) Install required System libraries (OpenMPI)
+1) Install required system libraries (OpenMPI)
 
     A system-level OpenMPI MPI implementation can be installed on Debian Linux systems 
     (Ubuntu/PopOS systems) using the following command:
@@ -344,7 +344,7 @@ have already been installed for EarthBox and the base Julia environment:
     MPIPreferences.use_system_binary()
     ```
 
-    Which will generate output that looks like the following:
+    This will generate output that looks like the following:
 
     ```julia
     ┌ Info: MPI implementation identified
@@ -373,7 +373,7 @@ have already been installed for EarthBox and the base Julia environment:
 
 Using a compiled version of MUMPS that links to system libraries can lead to
 significant performance improvements when solving large systems of equations
-especially for the analysis phase of the MUMPS solver and enable additional
+especially for the analysis phase of the MUMPS solver and can enable additional
 parallel ordering methods that may not be available with the Julia binaries.
 
 The instructions here assume (1) you are working on a Debian Linux OS (e.g. Ubuntu and 
@@ -398,7 +398,7 @@ that contains the local MUMPS libraries. This should be set in your `~/.bashrc` 
     ```
 
     This path will be used to recompile the MUMPS package for Julia. For guidance on
-    compiling MUMPS and generated the MUMPS library directory see [Building MUMPS Libraries](#building-mumps-libraries).
+    compiling MUMPS and generating the MUMPS library directory see [Building MUMPS Libraries](#building-mumps-libraries).
 
 2) Define the `LD_LIBRARY_PATH` path to ensure that all system libraries are found 
 when `MUMPS.jl` is re-built:
