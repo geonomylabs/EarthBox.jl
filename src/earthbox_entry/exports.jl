@@ -1,6 +1,3 @@
-# Test Export
-export TestManager
-
 # Option name export
 export bc_model_type_names, velocity_type_names, advection_scheme_names, 
     topo_node_advection_names, sealevel_option_names, global_plasticity_names, 
