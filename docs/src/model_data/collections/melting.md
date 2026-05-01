@@ -8,6 +8,7 @@
     - [Extraction](@ref ModelDataContainer.MeltingContainer.ParameterCollection.Extraction)
 - [Arrays](@ref ModelDataContainer.MeltingContainer.ArrayCollection.Arrays)
     - [Extraction](@ref ModelDataContainer.MeltingContainer.ArrayCollection.Extraction)
+    - [Buffers](@ref ModelDataContainer.MeltingContainer.ArrayCollection.Buffers)
 
 
 ```@docs
@@ -29,5 +30,7 @@ ModelDataContainer.MeltingContainer.ParameterCollection.Extraction
 ModelDataContainer.MeltingContainer.ArrayCollection.Arrays
 
 ModelDataContainer.MeltingContainer.ArrayCollection.Extraction
+
+ModelDataContainer.MeltingContainer.ArrayCollection.Buffers
 ```
 

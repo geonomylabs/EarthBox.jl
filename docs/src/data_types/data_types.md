@@ -20,6 +20,7 @@ EarthBox.Arrays.ArrayTypes.BcArrayFloat.BcArrayFloatState
 EarthBox.Arrays.ArrayTypes.MaterialArrayFloat2D.MaterialArrayFloat2DState
 EarthBox.Arrays.ArrayTypes.MaterialArrayInt2D.MaterialArrayInt2DState
 EarthBox.Arrays.ArrayTypes.TopoArray2D.TopoArray2DState
+EarthBox.Arrays.ArrayTypes.Array3DFloat.Array3DFloatState
 EarthBox.Arrays.ArrayTypes.CarbArray2D.CarbArray2DState
 EarthBox.Arrays.ArrayTypes.ScalarArray3D.ScalarArray3DState
 

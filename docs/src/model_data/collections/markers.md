@@ -15,6 +15,14 @@
     - [Location](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Location)
     - [GridMarkerRelationship](@ref ModelDataContainer.MarkerContainer.ArrayCollection.GridMarkerRelationship)
     - [Melt](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Melt)
+    - [Advection](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Advection)
+    - [Compaction](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Compaction)
+    - [Solidification](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Solidification)
+    - [Recycle](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Recycle)
+    - [Serpentinization](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Serpentinization)
+    - [SubgridHeat](@ref ModelDataContainer.MarkerContainer.ArrayCollection.SubgridHeat)
+    - [SedimentTransport](@ref ModelDataContainer.MarkerContainer.ArrayCollection.SedimentTransport)
+    - [Lithostatic](@ref ModelDataContainer.MarkerContainer.ArrayCollection.Lithostatic)
 
 
 ```@docs
@@ -52,4 +60,20 @@ ModelDataContainer.MarkerContainer.ArrayCollection.Location
 ModelDataContainer.MarkerContainer.ArrayCollection.GridMarkerRelationship
 
 ModelDataContainer.MarkerContainer.ArrayCollection.Melt
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Advection
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Compaction
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Solidification
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Recycle
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Serpentinization
+
+ModelDataContainer.MarkerContainer.ArrayCollection.SubgridHeat
+
+ModelDataContainer.MarkerContainer.ArrayCollection.SedimentTransport
+
+ModelDataContainer.MarkerContainer.ArrayCollection.Lithostatic
 ```
