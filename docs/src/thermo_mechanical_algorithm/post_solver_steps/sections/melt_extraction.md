@@ -3,7 +3,7 @@
 [1] Calculate melt drainage divides ([Drainage Steps](@ref))
 
 [2] Update extractable melt fraction ``M_{extractable,m}`` for each marker ``m`` using equation 
-[eq:extractable-melt-fraction](@ref) with melt fraction ``M_m`` and and extracted melt fraction
+[eq:extractable-melt-fraction](@ref) with melt fraction ``M_m`` and extracted melt fraction
 ``M_{extracted,m}``.
 
 [3] Update extracted melt fraction ``M_{extracted,m}`` for each marker using equation 

@@ -1,6 +1,6 @@
 # Advection-solver Steps
 
-[1] Update marker location ``(x_m, y_m)`` and spin ``w_m`` using a 4th order Runge-Kutta scheme
+[1] Update marker location ``(x_m, y_m)`` and spin ``w_m`` using a 4th-order Runge-Kutta scheme
 and the current velocity field ``v_{x(i,j)_{vx}}`` and ``v_{y(i,j)_{vy}}``.
 
 [2] Update marker stress ``\sigma_{xx,m}'`` and ``\sigma_{xy,m}'`` for rotation using equation

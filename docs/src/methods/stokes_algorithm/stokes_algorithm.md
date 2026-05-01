@@ -85,7 +85,7 @@ viscosity ``\eta_{vp(i,j)_p}`` and ``\eta_{vp(i,j)_b}`` and updated model time s
 [11] Update marker deviatoric stress components ``\sigma_{xx,m}'`` and ``\sigma_{xx,m}'`` by applying
 subgrid-stress diffusion steps ([Subgrid-stress Diffusion Steps](@ref)).
 
-[12] Advect markers and calculate marker angular velocity ``\omega_m`` using the 4-th order 
+[12] Advect markers and calculate marker angular velocity ``\omega_m`` using the 4th-order 
 Runge-Kutta method and angular velocity on the basic grid ``\omega_{(i,j)_b}`` given by:
 
 ###### eq:angular-velocity

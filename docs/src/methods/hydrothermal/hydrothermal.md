@@ -28,7 +28,7 @@ k_{m} =
 ```
 
 where ``f_{s}`` is a smoothing factor set equal to ``0.75``, ``T_{hydro}^{max}`` is the maximum temperature
-of the hydrothermal system set equal to ``600^{\circ}C``, ``d_{sm,m}`` is the the submud depth of the
+of the hydrothermal system set equal to ``600^{\circ}C``, ``d_{sm,m}`` is the submud depth of the
 marker and ``d_{hydro}^{max}`` is the maximum submud depth of the hydrothermal system set equal to
 ``4000m``, ``y_{ml}`` is the y-coordinate of the mudline at the x-coordinate of the marker, ``y_{sl}`` is
 the y-coordinate of the sea level, ``y_m`` is the y-coordinate of the marker, ``d_{sed,x_m}`` is the

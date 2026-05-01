@@ -42,14 +42,14 @@ No need to calc new y_marker_current for rk = 3 since this is the last iteration
     return y_marker_initial  # Default return for rk_order >= 3
 end
 
-""" Calculate final velocity or spin using 4-th order Runge-Kutta.
+""" Calculate final velocity or spin using 4th-order Runge-Kutta.
 
 # Arguments
 - `rkarray::Vector{Float64}`: Array containing velocity components (m/s) or spin (1/s)
     interpolated at 4 points in the velocity field.
 
 # Returns
-- `Float64`: Interpolated velocity component or spin using 4-th order Runge-Kutta.
+- `Float64`: Interpolated velocity component or spin using 4th-order Runge-Kutta.
 """
 @inline function apply_4th_order_runge_kutta(rkarray::Vector{Float64})::Float64
     @inbounds return (rkarray[1] + 2.0 * rkarray[2] + 2.0 * rkarray[3] + rkarray[4]) / 6.0

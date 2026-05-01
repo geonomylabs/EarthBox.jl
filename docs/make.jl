@@ -273,7 +273,7 @@ makedocs(
     sitename = "EarthBox.jl", 
     plugins  = [bib],
     pages    = PAGES,
-    repo     = "https://github.com/eakneller/EarthBox.jl",
+    repo     = "https://github.com/geonomylabs/EarthBox.jl",
     #warnonly = [:cross_references],
     #draft = false,        # set to true to speed things up
     #doctest = true,       # set to false to speed things up
@@ -286,7 +286,7 @@ makedocs(
 )
 
 deploydocs(
-    repo      = "github.com/eakneller/EarthBox.jl.git",
+    repo      = "github.com/geonomylabs/EarthBox.jl.git",
     devbranch = "main",               # your development branch
     # push_preview = true,            # optional: PR previews
     #forcepush = true,

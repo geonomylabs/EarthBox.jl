@@ -16,7 +16,7 @@ initial_marker_distribution:
   nmarkers_cell_y: [5.0, None, ' Number of markers per cell in vertical direction. ']
 marker_advection:
   marker_cell_displ_max: [0.5, fraction, ' Maximum marker displacement as a fraction of cell size.']
-  itype_move_markers: [4, None, ' Integer ID for marker displacement method: 0 = no motion; 1 = simple advection; 4 = 4-th order Runge-Kutta.']
+  itype_move_markers: [4, None, ' Integer ID for marker displacement method: 0 = no motion; 1 = simple advection; 4 = 4th-order Runge-Kutta.']
 subgrid_diffusion:
   subgrid_diff_coef_stress: [1.0, None, ' Numerical subgrid stress diffusion coefficient. ']
   subgrid_diff_coef_temp: [1.0, None, ' Numerical subgrid temperature diffusion coefficient.']

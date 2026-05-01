@@ -36,7 +36,7 @@ function get_markers_parameters()::NamedTuple
             ),
         itype_move_markers = ParameterInt(
             4, "None", 
-            "Displacement Options: 0 no motion 1 simp. advection; 4 4-th order Runge-Kutta"
+            "Displacement Options: 0 no motion 1 simp. advection; 4 4th-order Runge-Kutta"
             ),
         stype_move_markers = ParameterStr(
             "None", "None", "Displacement options name"),

@@ -19,7 +19,7 @@ damage, lava flow modeling and marine and terrestrial sediment transport with co
 This novel combination of features enables Seaward-dipping-reflectors (SDR's) to be 
 dynamically modeled using realistic rheology and boundary conditions.
 
-See documentation at [EarthBox.jl Docs](https://eakneller.github.io/EarthBox.jl/stable/) 
+See documentation at [EarthBox.jl Docs](https://geonomylabs.github.io/EarthBox.jl/stable/) 
 including a detailed description of the EarthBox API, installation, methods, models
 and benchmark results.
 
@@ -65,17 +65,11 @@ Suggested citations:
 Kneller, E. A. (2025). EarthBox.jl: A visco-elasto-plastic geodynamic
 modeling framework in Julia with marine and terrestrial sediment transport, 
 melt intrusion and extrusion, frictional-plastic melt damage and lava flow 
-modeling. https://github.com/eakneller/EarthBox.jl
+modeling. https://github.com/geonomylabs/EarthBox.jl
 
 Kneller, E. A. (2025). The Formation of Seaward-dipping Reflectors in Volcanic 
 Margins: Insights from High-resolution Visco-elasto-plastic Geodynamic Models 
 with Extrusive Surface Processes. [EarthArXiv Preprints](https://eartharxiv.org/repository/view/10967/). Preprint.
-
-## Disclaimer
-
-This project is an independent, open-source, educational effort developed using publicly available 
-academic methods and references, and is not affiliated with or derived from the work of any current 
-or former employer.
 
 ## Operating Systems
 

@@ -16,8 +16,8 @@ function get_options()::Dict{Int, OptionState}
         option_ids[option_names.RungeKuttaWithInterp] => 
             OptionState(
                 option_name=string(option_names.RungeKuttaWithInterp),
-                description="Topography nodes are advected using a 4th order " *
-                    "Runge Kutta scheme and the elevation of the advected " *
+                description="Topography nodes are advected using a 4th-order " *
+                    "Runge-Kutta scheme and the elevation of the advected " *
                     "marker chain is interpolated to Eulerian topography " *
                     "grid points.",
                 bools=Dict{Symbol, Bool}()

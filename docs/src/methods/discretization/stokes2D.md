@@ -351,7 +351,7 @@ equation [Eq.](@ref eq:global-indices-of-stokes-unknowns) as follows:
 
 ## Sparse Stokes Matrix Example
 
-Appling the stencils from [x-Stokes Discretization](@ref), [y-Stokes Discretization](@ref) and [Continuity Discretization](@ref)
+Applying the stencils from [x-Stokes Discretization](@ref), [y-Stokes Discretization](@ref) and [Continuity Discretization](@ref)
 for a small system leads to the system of equations shown in [Fig.](@ref fig:sparse-matrix-stokes).
 
 |    |    | 0  | 1  | 2  | 3  | 4  | 5  | 6  | 7  | 8  | 9  | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24 | 25 | 26 |

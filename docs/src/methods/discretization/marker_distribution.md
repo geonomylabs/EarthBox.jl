@@ -12,7 +12,7 @@ y_m & = i_m \Delta y_m - 0.5 \Delta y_m + (r_{i_m} - 0.5) \Delta y_m
 
 where ``i_m`` is the marker index in the x-direction ranging from 1 to ``N_{x,m}`` 
 with ``N_{x,m}`` equal to the total number of markers in the x-direction, ``j_m`` 
-is the marker index in the y-direction ranging from from 1 to ``N_{y,m}`` with 
+is the marker index in the y-direction ranging from 1 to ``N_{y,m}`` with 
 ``N_{y,m}`` equal to the total number of markers in the y-direction, 
 ``\Delta x_m`` is the average marker spacing in the x-direction, ``\Delta y_m`` 
 is the average marker spacing in the y-direction, and ``r_{i_m}`` and ``r_{j_m}`` 

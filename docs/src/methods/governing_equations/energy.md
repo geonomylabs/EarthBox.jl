@@ -14,7 +14,7 @@ where ``T`` is the temperature, ``C_p`` is the specific heat capacity, ``k`` is 
 conductivity, ``H_{rad}`` is the radiogenic heat production term, ``H_{shear}`` is the shear heating term, 
 ``H_{adi}`` is the adiabatic term, ``H_{melt}`` is a melting-processes term associated with the latent 
 heat of melting and crystallization, ``H_{exo}`` is a serpentinization term associated with the heat 
-produced from from exothermic serpentinization reactions and ``\frac{DT}{Dt}`` is the substantive 
+produced from exothermic serpentinization reactions and ``\frac{DT}{Dt}`` is the substantive 
 time-temperature derivative defined as:
 
 ###### eq:substantive-temperature-derivative
