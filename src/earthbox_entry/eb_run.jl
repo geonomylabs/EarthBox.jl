@@ -30,6 +30,8 @@ Initialize time step parameters and run the model for a given number of time ste
     - $(PDATA.iupdate_timestep.description)
 - `$(PDATA.number_of_transport_timesteps_per_model_timestep.name)::Int`
     - $(PDATA.number_of_transport_timesteps_per_model_timestep.description)
+- `$(PDATA.iuse_fixed_output_counter.name)::Int`
+    - $(PDATA.iuse_fixed_output_counter.description)
 """
 function run_time_steps(
     earthbox::EarthBoxState; 
