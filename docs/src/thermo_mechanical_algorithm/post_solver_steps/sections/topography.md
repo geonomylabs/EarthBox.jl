@@ -1,6 +1,6 @@
 # Topography Grid Update Steps
 
-[1] Advect Eulerian topography marker chain nodes ``(x_t, y_t)`` using 4th order Runge-Kutta scheme
+[1] Advect Eulerian topography marker chain nodes ``(x_t, y_t)`` using a 4th-order Runge-Kutta scheme
 and the current velocity field ``v_{x(i,j)_{v_x}}`` and ``v_{y(i,j)_{v_y}}``
 to obtain ``(x_t', y_t')``.
 

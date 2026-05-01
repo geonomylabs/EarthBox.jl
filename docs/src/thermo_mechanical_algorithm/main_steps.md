@@ -108,8 +108,7 @@ pressure solutions.
 temperature for grid and sub-grid thermal diffusion using the updated time step $\Delta t$.
 
 [6] Execute [Advection-solver Steps](@ref) using adjusted time step 
-$\Delta t$ including advecting markers and rotating stress tensors using a 4-th order Runge 
-Kutta scheme, updating marker total and plastic strain and correcting temperature in the sticky 
+$\Delta t$ including advecting markers and rotating stress tensors using a 4th-order Runge-Kutta scheme, updating marker total and plastic strain and correcting temperature in the sticky 
 air/water layer.
 
 [7] Execute [Post-solver Steps](@ref) including updating melt extraction,

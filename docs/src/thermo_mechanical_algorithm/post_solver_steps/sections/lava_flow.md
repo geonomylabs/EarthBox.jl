@@ -55,7 +55,7 @@ using the forecasted y-coordinate of the eruption ``y_{e,fc}`` and the y-coordin
 resolution ``(x_{topo}', y_{topo}')`` that will be used for lava flow calculations using a 
 cellular automata approach.
 
-[4] Calculate a the decimated grid spacing ``\Delta x'``.
+[4] Calculate the decimated grid spacing ``\Delta x'``.
 
 [5] Calculate the number of pulses per flow ``N_{pulse}`` from equation [eq:num_pulses](@ref)
 using the flow volume ``V_{flow}``, the decimated grid spacing ``\Delta x'``, and the residual

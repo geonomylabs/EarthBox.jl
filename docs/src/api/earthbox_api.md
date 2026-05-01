@@ -104,12 +104,12 @@ of how to use the EarthBox API for building models and running time steps.
        Lagrangian-Eulerian approach for tracking the sticky-rock interface.
 - [Sealevel](@ref)
     - Initialize a sea level model with different models for defining sea level
-       including constant, using the upper-left corning the the lithosphere and
+       including constant, using the upper-left corner of the lithosphere and
        using isostatic balance between a reference lithosphere column and average 
        pressure at the base of the model domain. A base level shift model can 
        also be defined.
 - [RelativeBaseLevel](@ref)
-    - Initialize the reference lithosphere used in the seal-level model based
+    - Initialize the reference lithosphere used in the sea-level model based
        on average pressure at the base of the model. 
 - [SedimentTransport](@ref)
     - Initialize the sediment transport model with deposition, erosion, fluvial
@@ -118,7 +118,7 @@ of how to use the EarthBox API for building models and running time steps.
     - Initialize a salt deposition model.
 - [Time Step Execution](@ref)
     - Initialize time stepping and velocity stepping parameters and execute
-       model times steps.
+       model time steps.
 - [Case Management](@ref)
     - Define a dictionary of parameters for multiple cases and define model
        parameters based on a case name.

@@ -4,7 +4,7 @@ Sediment transport is modeled on a Eulerian topography grid ``(x_{topo,i}, y_{to
 from ``0`` to ``N_t-1``, ``N_{topo}`` is the number of topography nodes and ``y_{t,i}`` is the y-coordinate of 
 the topography at the ``i``-th node. The spacing of the topography grid in the x-direction is denoted by 
 ``\Delta x_t``, which remains constant throughout the model domain. Prior to applying the sediment 
-transport model, topography grid nodes are advected in the current velocity field using a 4th order 
+transport model, topography grid nodes are advected in the current velocity field using a 4th-order 
 Runge-Kutta scheme and then interpolated to the original topography grid to obtain new y-coordinates 
 of topography that track the interface between rock and the sticky-air/water layer.
 

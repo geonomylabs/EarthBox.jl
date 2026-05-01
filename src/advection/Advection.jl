@@ -102,7 +102,7 @@ end
 
 """ Advect markers and rotate stress tensor.
 
-This function uses a 4-th order Runge Kutta scheme to interpolate velocity and spin to the
+This function uses a 4th-order Runge-Kutta scheme to interpolate velocity and spin to the
 marker locations. The marker locations and stress rotation are then updated using the
 interpolated values.
 """
@@ -113,7 +113,7 @@ function advect_markers_and_rotate_stress_tensor!(model::ModelData, inside_flags
     return nothing
 end
 
-""" Interpolate velocity and spin using a 4-th order Runge Kutta scheme.
+""" Interpolate velocity and spin using a 4th-order Runge-Kutta scheme.
 
 Writes into the pre-allocated `model.markers.arrays.advection.marker_{vx,vy,spin}`
 buffers. A no-op when Runge-Kutta is disabled.

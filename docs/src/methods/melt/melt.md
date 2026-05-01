@@ -12,7 +12,7 @@ where ``m`` is the index of the marker, ``M_m`` is the melt fraction for the mar
 temperature of the marker, ``T_{solidus,m}`` is the solidus temperature of the marker, and 
 ``T_{liquidus,m}`` is the liquidus temperature of the marker [gerya13](@cite). 
 
-The the solidus temperature of markers with ultramafic composition is defined for anhydrous 
+The solidus temperature of markers with ultramafic composition is defined for anhydrous 
 peridotite by the following equation:
 
 ###### eq:solidus-mantle

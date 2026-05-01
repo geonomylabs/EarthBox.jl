@@ -232,7 +232,7 @@ function initialize_boundary_conditions(eb::EarthBoxState)::Nothing
     # and then later increase the extension rate to avoid numerical issues that
     # may manifest themselves as erroneous high strain zones. This issue is
     # overcome by using velocity stepping. In this example we turn on velocity stepping,
-    # specify and step time and let EarthBox calculate the the velocity step factor 
+    # specify a step time and let EarthBox calculate the velocity step factor 
     # (`velocity_step_factor`) and time step adjustment factor (`timestep_adjustment_factor`).
     # based on the extension velocities specified above (`full_velocity_extension` and 
     # `full_velocity_extension_step1`). Alternatively, you could specify the velocity step

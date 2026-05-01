@@ -45,7 +45,7 @@ the following equation:
     W_i = y_{topo,i}^o - y_{sl} \text{.}
 ```
 
-where ``y_{sl}`` is the y-coordinate of the seal level.
+where ``y_{sl}`` is the y-coordinate of the sea level.
 
 [7] Run [Sediment Transport Time Loop](@ref).
 

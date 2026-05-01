@@ -159,7 +159,7 @@ index ``i_e``. Basaltic lava material flows from cells with higher relative elev
 with the lower relative elevation until the integrated thickness of the lava flow ``H_{flow}'`` equals 
 the residual thickness ``H_{res}`` after which flow ceases to occur. During the iterative update procedure 
 for a given pulse of the lava, the y-coordinates of topography, ``y_{topo(i)}''``, ``y_{topo(i-1)}''``, 
-and ``y_{topo(i+1)}''`` are are related to current flow thickness ``H_{flow(i)}'`` as follows:
+and ``y_{topo(i+1)}''`` are related to current flow thickness ``H_{flow(i)}'`` as follows:
 
 ```math
 \begin{split}

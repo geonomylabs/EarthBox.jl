@@ -3,7 +3,7 @@
 EarthBox is a multiphase visco-elasto-plastic marker-in-cell geodynamic modeling program that 
 discretizes the Stokes-continuity and heat transport equations on a staggered grid using 
 conservative finite differences and free-surface stabilization (See [Methods](@ref)). 
-Advective processes are modeled using a 4-th order Runge-Kutta scheme that includes both 
+Advective processes are modeled using a 4th-order Runge-Kutta scheme that includes both 
 grid and sub-grid changes in temperature and deviatoric stress. A variety of geologic 
 processes are integrated in the EarthBox modeling system including partial melting, 
 instantaneous melt extraction and transport, gabbroic melt fractionation, melt extrusion, 
@@ -68,7 +68,7 @@ in stabilizing spreading centers when extrusive processes are included.
 
 Topography can be difficult to accurately track with particle-in-cell models. EarthBox
 implements an Eulerian-Lagrangian approach whereby a topography marker chain is
-advected using a 4th order Runge-Kutta scheme and then topographic elevation is 
+advected using a 4th-order Runge-Kutta scheme and then topographic elevation is 
 interpolated to an Eulerian topography grid. The approach led to highly accurate tracking of
 the air-rock interface comparable to finite-element Eulerian-Lagrangian codes. 
 

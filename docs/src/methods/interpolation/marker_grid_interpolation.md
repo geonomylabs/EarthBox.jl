@@ -1,7 +1,7 @@
 # Marker-Grid Interpolation
 
 Marker-in-cell methods require tensor and scalar parameters to be interpolated back and forth
-between the the Eulerian grid and the Lagrangian markers. We use the first-order bilinear 
+between the Eulerian grid and the Lagrangian markers. We use the first-order bilinear 
 interpolation scheme for interpolating marker information to Eulerian grid nodes:
 
 ###### eq:bilinear_interp2grid

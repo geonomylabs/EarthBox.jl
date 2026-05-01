@@ -100,7 +100,7 @@ where ``\sigma_{II}`` is the second invariant of the stress tensor given by
 \sigma_{II} = \sqrt{\left(\sigma_{xy}^2 + \sigma_{xx}^2\right)} \text{.}
 ```
 
-Visco-plastic viscosity ``\eta_{vp}`` is is limited by a minimum value and a maximum value to
+Visco-plastic viscosity ``\eta_{vp}`` is limited by a minimum value and a maximum value to
 avoid numerical issues. A typical minimum viscosity used in EarthBox simulations is ``10^{18} Pa \cdot s``,
 and a typical maximum viscosity is ``10^{26} Pa \cdot s``.
 
