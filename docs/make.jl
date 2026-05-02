@@ -26,15 +26,13 @@ model_pages = [
         "Polyphase Extension n17" => "models/lithospheric_extension/polyphase_extension_n17.md",
         "Extension with Weak Fault" => "models/lithospheric_extension/extension_weak_fault.md",
         "Extension with Softening b14" => "models/lithospheric_extension/extension_with_softening_b14.md",
-        "SDR Formation" => "models/sdr_formation/sdr_formation.md",
+        "SDR Dynamics" => "models/sdr_dynamics/sdr_dynamics.md",
         "Visco-elasto-plastic Extension with Downhill Diffusion" => "models/vep_extension_downhill_diffusion/vep_extension_downhill_diffusion.md",
         "Slab Retreat" => "models/subduction/slab_retreat.md",
         "Sandbox Extension" => "models/sandbox/sandbox_extension.md",
         "Sandbox Shortening" => "models/sandbox/sandbox_shortening.md",
         "Spreading Center" => "models/spreading_center/spreading_center.md",
         "Hot Box Melting" => "models/hot_box_melting/hot_box_melting.md",
-        "Magmatic Crust Formation: Central Atlantic" => "models/regional/catl.md",
-        "Magma Poor Margin: Iberia" => "models/regional/iberia.md",
     ]
 ]
 

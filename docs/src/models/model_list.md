@@ -2,7 +2,6 @@
 
 A collection of models is packages with EarthBox: 
 
-- [Lithospheric Extension with Strong Lateral Zones](@ref)
 - [Lithospheric Extension with a Weak Fault](@ref)
 - [Lithospheric Extension with Viscous Softening](@ref)
 - [Polyphase Lithospheric Extension](@ref)
@@ -13,8 +12,6 @@ A collection of models is packages with EarthBox:
 - [Subduction Zone Initiation at a Fracture Zone](@ref)
 - [Sandbox Extension Analogue Benchmark](@ref)
 - [Sandbox Shortening Analogue Benchmark](@ref)
-- [Magma-poor Extension: Iberia](@ref)
-- [Magmatic Crust Formation: Central Atlantic](@ref)
 
 The model collection can be copied to your local directory using the REPL:
 

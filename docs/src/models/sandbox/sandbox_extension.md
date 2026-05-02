@@ -1,5 +1,5 @@
 # Sandbox Extension Analogue Benchmark
 
 ```
-see EarthBox/models/sandbox/sandbox_extension
+see EarthBox/examples/models/sandbox_extension
 ```

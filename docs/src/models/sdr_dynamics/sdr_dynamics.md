@@ -1,7 +1,7 @@
 # Lithospheric Extension with Seaward Dipping Reflector (SDR) Formation
 
 ```
-see EarthBox/models/sdr_formation
+see EarthBox/examples/models/sdr_dynamics
 ```
 
 ```@raw html
