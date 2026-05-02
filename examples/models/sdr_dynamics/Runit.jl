@@ -31,12 +31,13 @@ module Runit
 
 using EarthBox
 include("Model.jl")
-import .Model: ROOT_PATH_OUTPUT
+import .Model: ROOT_PATH_OUTPUT, ROOT_PATH_STORAGE
 
 function main()
     run_earthbox(
         model_dir = "$(abspath(@__DIR__))",
-        root_path_output_from_script = ROOT_PATH_OUTPUT
+        root_path_output_from_script = ROOT_PATH_OUTPUT,
+        root_path_storage_from_script = ROOT_PATH_STORAGE
         )
 end
 

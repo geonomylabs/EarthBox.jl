@@ -1,8 +1,7 @@
 """
     Model.jl
 
-Module containing the customized model setup and execution functions for the 
-hot box melting model.
+Module containing the customized model setup and execution functions.
 
 Model output is sent to the model output directory named `<case_name>_output` 
 where `<case_name>` is the name of the model case (e.g. "case1"). The model 

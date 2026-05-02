@@ -108,67 +108,68 @@ function marker_plots(;
     iend::Union{Int64, Nothing} = nothing
 )::Nothing
     plot_markers(
-        plot_type=:CompositionHeatFlowGravity,
-        model_output_path=model_output_path,
-        material_library_file_path=MATERIAL_COLLECTION.path,
-        materials_input_dict=get_materials_input_dict(),
-        # General plotting parameters
-        figsize = model_figsize,
-        dimensions=dimensions,
-        xyspacing=xyspacing,
-        istart=istart, iend=iend,
-        xy_location_contour_legend = (1.0, 4.0),
-        text_box_font_size = 6,
-        # General marker parameters
-        marker_size=2.0, decimation_factor=1,
-        plot_mesh=0, mesh_line_width=0.1,
-        plot_contour_labels=0, contour_line_width=1.0, contour_line_color="black",
-        # Topography parameters
-        plot_topography=1, topo_line_width=1.0, 
-        topo_line_color="red",
-        # Base level parameters
-        plot_base_level=1, base_level_line_width=1.0,
-        base_level_line_color="blue",
-        # Melt fraction parameters
-        plot_meltfrac_contours=0, melt_fraction_min=0.0,
-        melt_fraction_max=0.2, melt_fraction_contour_interval=0.05,
-        meltfrac_contour_color="red", meltfrac_number_format="%6.2f",
-        # Plastic strain parameters
-        plot_plastic_strain = true,
-        strain_min = 1.0, strain_max = 6.0,
-        strain_contour_interval = 0.25, strain_cmap="inferno",
-        # Plastic strain rate parameters
-        plot_plastic_strain_rate = 1,
-        strain_rate_min = -18, strain_rate_max = -13,
-        strain_rate_contour_interval = 0.5, strain_rate_cmap = "Reds",
-        # Sediment age parameters
-        plot_sediment_age=1,
-        age_min=0.0, age_max=70.0,
-        age_contour_interval=0.25, age_cmap=:turbo,
-        # Intrusive age parameters
-        plot_intrusive_age=1,
-        age_min_intrusive=0.0, age_max_intrusive=70.0,
-        age_contour_interval_intrusive=0.2, age_cmap_intrusive="rainbow",
-        # Volcanics age parameters
-        plot_volcanics_age=0,
-        age_min_volcanics=0.0, age_max_volcanics=80.0,
-        age_contour_interval_volcanics=0.1,
-        # Serpentinization parameters
-        plot_serpentinization=1,
-        serpentinization_min=0.0, serpentinization_max=1.0,
-        serpentinization_contour_interval=0.1, serpentinization_cmap="Greens",
-        # Temperature contours parameters
-        plot_temperature_contours=1,
-        temperature_min=100.0, temperature_max=1400.0,
-        temperature_contour_interval=100.0,
-        temperature_number_format="%6.0f",
-        temperature_contour_color="black",
-        # Heat flow parameters
-        heatflow_min=0.0, heatflow_max=200.0,
-        heatflow_spacing=50.0,
-        # Gravity Parameters (mgal)
-        gravity_min=-400.0, gravity_max=400.0,
-        gravity_spacing=50.0
+	plot_type=:CompositionHeatFlowGravity,
+	#plot_type=:CalculateHeatFlowGravity,
+	model_output_path=model_output_path,
+	material_library_file_path=MATERIAL_COLLECTION.path,
+	materials_input_dict=get_materials_input_dict(),
+	# General plotting parameters
+	figsize = model_figsize,
+	dimensions=dimensions,
+	xyspacing=xyspacing,
+	istart=istart, iend=iend,
+	xy_location_contour_legend = (1.0, 4.0),
+	text_box_font_size = 6,
+	# General marker parameters
+	marker_size=2.0, decimation_factor=1,
+	plot_mesh=0, mesh_line_width=0.1,
+	plot_contour_labels=0, contour_line_width=1.0, contour_line_color="black",
+	# Topography parameters
+	plot_topography=1, topo_line_width=1.0, 
+	topo_line_color="red",
+	# Base level parameters
+	plot_base_level=1, base_level_line_width=1.0,
+	base_level_line_color="blue",
+	# Melt fraction parameters
+	plot_meltfrac_contours=0, melt_fraction_min=0.0,
+	melt_fraction_max=0.2, melt_fraction_contour_interval=0.05,
+	meltfrac_contour_color="red", meltfrac_number_format="%6.2f",
+	# Plastic strain parameters
+	plot_plastic_strain = true,
+	strain_min = 1.0, strain_max = 6.0,
+	strain_contour_interval = 0.25, strain_cmap="inferno",
+	# Plastic strain rate parameters
+	plot_plastic_strain_rate = 1,
+	strain_rate_min = -18, strain_rate_max = -13,
+	strain_rate_contour_interval = 0.5, strain_rate_cmap = "Reds",
+	# Sediment age parameters
+	plot_sediment_age=1,
+	age_min=0.0, age_max=70.0,
+	age_contour_interval=0.25, age_cmap=:turbo,
+	# Intrusive age parameters
+	plot_intrusive_age=1,
+	age_min_intrusive=0.0, age_max_intrusive=70.0,
+	age_contour_interval_intrusive=0.2, age_cmap_intrusive="rainbow",
+	# Volcanics age parameters
+	plot_volcanics_age=0,
+	age_min_volcanics=0.0, age_max_volcanics=80.0,
+	age_contour_interval_volcanics=0.1,
+	# Serpentinization parameters
+	plot_serpentinization=1,
+	serpentinization_min=0.0, serpentinization_max=1.0,
+	serpentinization_contour_interval=0.1, serpentinization_cmap="Greens",
+	# Temperature contours parameters
+	plot_temperature_contours=1,
+	temperature_min=100.0, temperature_max=1400.0,
+	temperature_contour_interval=100.0,
+	temperature_number_format="%6.0f",
+	temperature_contour_color="black",
+	# Heat flow parameters
+	heatflow_min=0.0, heatflow_max=200.0,
+	heatflow_spacing=50.0,
+	# Gravity Parameters (mgal)
+	gravity_min=-400.0, gravity_max=400.0,
+	gravity_spacing=50.0
     )
     return nothing
 end

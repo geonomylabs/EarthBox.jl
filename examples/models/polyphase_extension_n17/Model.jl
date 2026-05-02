@@ -2,7 +2,7 @@
     Model.jl
 
 Module containing the customized model setup and execution functions for the 
-extension_weak_fault model.
+polyphase_extension_n17 model (Naliboff et al., 2017).
 
 Model output is sent to the model output directory named `<case_name>_output` 
 where `<case_name>` is the name of the model case (e.g. "case1"). The model 
@@ -28,6 +28,9 @@ From command-line, run:
 ```bash
 julia Model.jl case_name=<case_name>
 ```
+
+where `<case_name>` is the name of the model case and the model output path is 
+defined automatically using the `case_name` and the constant `ROOT_PATH_OUTPUT`.
 """
 module Model
 
@@ -35,7 +38,7 @@ using EarthBox
 include("Materials.jl")
 import .Materials: get_materials_input_dict, MATERIAL_COLLECTION
 
-const ROOT_PATH_OUTPUT = "/mnt/extradrive1/earthbox_output/lithospheric_extension/extension_weak_fault"
+const ROOT_PATH_OUTPUT = "/mnt/extradrive1/earthbox_output/polyphase_extension_n17"
 
 # Get the input parameters object so names can be accessed programmatically
 const PARAMS = get_eb_parameters()
@@ -43,75 +46,52 @@ const PARAMS = get_eb_parameters()
 # Constants are defined for parameters used in multiple initialization functions
 const adiabatic_gradient       = 0.4 # K/km
 const xsize                    = 500_000.0 # meters
-const ysize                    = 160_000.0 # meters
+const ysize                    = 120_000.0 # meters
 const thick_air                = 10_000.0 # meters
-const thick_crust              = 32_000.0 # meters
+const thick_crust              = 40_000.0 # meters
 const thick_upper_crust        = 22_000.0 # meters
-const thick_lith               = 125_000.0 # meters
-const marker_spacing           = 100.0 # meters (50 m for high resolution case)
-const grid_spacing_high_res    = 500.0 # meters (200 m for high resolution case)
-const avg_grid_spacing_low_res = 2000.0 # meters
+const thick_lith               = 100_000.0 # meters
+const dx_topo                  = 50.0 # meters
+const marker_spacing           = 50.0 # meters (50 m for high resolution case)
+const grid_spacing_high_res    = 200.0 # meters (200 m for high resolution case)
+const avg_grid_spacing_low_res = 1000.0 # meters (1000 m for high resolution case)
 const temperature_base_lith_celsius = 1330.0
 
 function run_case(;case_name::String="case0")::Nothing
     print_info("Running model for case: $case_name")
-    # model output directories are named <case_name>_output where <case_name> is 
-    # the name of the model case
     model_output_path = get_model_output_path(case_name, ROOT_PATH_OUTPUT)
     eb = setup_model(model_output_path=model_output_path)
-    PRINT_SETTINGS.print_performance = false
-    # Here we specify model duration and let EarthBox calculate the viscoelastic
-    # time step based on minimum grid spacing and extension rate. The number of
-    # time steps is estimated based on the `model_duration_myr` parameter, velocity 
-    # stepping and the calculated viscoelastic time step. Alternatively, you could specify 
-    # `timestep_viscoelastic` in seconds and `ntimestep_max`. This will deactivate
-    # the automated calculations and requires a bit of math to define adequate values.
-    # If the calculated velocity is higher than the half-spreading rate leading to
-    # a reduced time step , you may may have to set the model duration to a
-    # larger value to achieve the desired actual model duration.
+    PRINT_SETTINGS.print_performance = true
+    eb.model_manager.config.solver.verbose_output = 0
     run_time_steps(
         eb,
         make_backup           = true,
-        model_duration_myr    = 50.0,
+        ntimestep_max         = 6000,
+        timestep_viscoelastic = ConversionFuncs.years_to_seconds(50_000.0),
         timestep_out          = ConversionFuncs.years_to_seconds(500_000.0)
     )
     return nothing
 end
 
 function setup_model(;model_output_path::String)::EarthBoxState
-    # Consider increasing model resolution to 200 m for high resolution domains
-    # and increasing marker spacing to 50 m. Note this will increase the 
-    # computational cost. For these high-resolution cases consider using the MUMPS 
-    # solver (use_mumps = true), which may require special setup procedures on 
-    # your system that often can be accomplished with less effort  on Linux systems. 
-    # Consider using Virtual box with a Debian Linux distribution (e.g. Ubuntu or 
-    # PopOS) if you are using Windows. See the EarthBox documentation for more 
-    # details.
-    
-    # Number of basic nodes in x- and y-directions (xnum, ynum) are calculated 
-    # from the T-type refinement parameters and used to initialize the staggered 
-    # grid. Alternatively, you could define xnum and ynum directly as input 
-    # parameters and provided t-type parameters during Staggered grid initialization.
-    # However, this will require putting some thought into defining a sufficient
-    # number of basic nodes in x- and y-directions given the specified refinement 
-    # parameters.
     ttype_refinement_parameters = Dict(
-        PARAMS.xo_highres.name => 150_000.0, # meters
-        PARAMS.xf_highres.name => 350_000.0, # meters
-        PARAMS.yf_highres.name => 50_000.0, # meters
-        PARAMS.dx_highres.name => grid_spacing_high_res, # meters (200 m for high resolution case)
+        PARAMS.xo_highres.name => 100_000.0, # meters
+        PARAMS.xf_highres.name => 400_000.0, # meters
+        PARAMS.yf_highres.name => 70_000.0, # meters
+        PARAMS.dx_highres.name => grid_spacing_high_res, # meters
         PARAMS.dx_lowres.name  => avg_grid_spacing_low_res, # meters
-        PARAMS.dy_highres.name => grid_spacing_high_res, # meters (200 m for high resolution case)
+        PARAMS.dy_highres.name => grid_spacing_high_res, # meters
         PARAMS.dy_lowres.name  => avg_grid_spacing_low_res # meters
     )
     eb = EarthBoxState(
-        restart_from_backup         = false,
+        restart_from_backup         = true,
         xsize                       = xsize, # meters
         ysize                       = ysize, # meters
-        dx_marker                   = marker_spacing, # meters (50 m for high resolution case)
-        dy_marker                   = marker_spacing, # meters (50 m for high resolution case)
+        dx_marker                   = marker_spacing,
+        dy_marker                   = marker_spacing,
         ttype_refinement_parameters = ttype_refinement_parameters,
-        use_mumps                   = false,
+        use_mumps                   = true,
+        analysis_method             = :PARALLEL,
         nprocs                      = 8,
         paths                       = Dict("output_dir" => model_output_path)
     )
@@ -151,13 +131,7 @@ function initialize_geometry(eb::EarthBoxState)::Nothing
         thick_crust       = thick_crust, # meters
         thick_upper_crust = thick_upper_crust, # meters
     )
-    MaterialGeometry.WeakFault.initialize!(
-        model,
-        fault_dip_degrees = 45.0, # degrees
-        fault_thickness = 400.0, # meters
-        x_initial_fault = 250_000.0, # meters
-        fault_height = 45_000.0, # meters
-        )
+    MaterialGeometry.LithoStrongZones.initialize!(model, iuse_strong_zones = 1)
     return nothing
 end
 
@@ -172,27 +146,16 @@ function initialize_boundary_conditions(eb::EarthBoxState)::Nothing
         temperature_bottom = ConversionFuncs.celsius_to_kelvin(
             temperature_base_lith_celsius 
             + adiabatic_gradient*(ysize - thick_air - thick_lith)/1000.0
-        )
+            )
     )
     BoundaryConditions.Velocity.initialize!(
-        model, 
-        full_velocity_extension = ConversionFuncs.cm_yr_to_m_s(0.1),
-        full_velocity_extension_step1 = ConversionFuncs.cm_yr_to_m_s(0.5),
-        )
-    # It is often required to start extension models with a relatively low extension rate
-    # and then later increase the extension rate to avoid numerical issues that
-    # may manifest themselves as erroneous high strain zones. This issue is
-    # overcome by using velocity stepping. In this example we turn on velocity stepping,
-    # specify and step time and let EarthBox calculate the the velocity step factor 
-    # (`velocity_step_factor`) and time step adjustment factor (`timestep_adjustment_factor`).
-    # based on the extension velocities specified above (`full_velocity_extension` and 
-    # `full_velocity_extension_step1`). Alternatively, you could specify the velocity step
-    # factor (`velocity_step_factor`) and time step adjustment factor (`timestep_adjustment_factor`) 
-    # directly.
+        model, full_velocity_extension = ConversionFuncs.cm_yr_to_m_s(0.1))
     BoundaryConditions.VelocityStep.initialize!(
         model,
         iuse_velocity_step = 1,
-        velocity_step_time = 0.5, # Myr
+        velocity_step_factor = 0.5/0.1, # 0.1 cm/yr to 0.5 cm/yr
+        timestep_adjustment_factor = 10_000.0/50_000.0, # 50_000.0 to 10_000.0 yr
+        velocity_step_time = 50.0, # Myr
     )
     return nothing
 end
@@ -209,7 +172,7 @@ function initialize_marker_materials(eb::EarthBoxState)::Nothing
     model = eb.model_manager.model
     Markers.MarkerMaterials.initialize!(
         model,
-        material_model       = material_model_names.LithosphericExtensionWeakFault,
+        material_model       = material_model_names.LithosphericExtensionLateralStrongZones,
         paths                = Dict("materials_library_file" => MATERIAL_COLLECTION.path),
         materials_input_dict = get_materials_input_dict(),
         viscosity_min        = 1e18, # Pa.s
@@ -221,6 +184,8 @@ function initialize_marker_materials(eb::EarthBoxState)::Nothing
         yield_stress_min    = 0.0, # Pa
         yield_stress_max    = 1e32 # Pa
     )
+    Markers.MarkerMaterials.MarkerViscousStrainSoftening.initialize!(
+        model, iuse_viscous_strain_soft = 0, vsoftfac = 30.0)
     return nothing
 end
 
@@ -234,7 +199,7 @@ function initialize_marker_temperature(eb::EarthBoxState)::Nothing
             PARAMS.amplitude_perturbation.name      => 0.0, # meters
             PARAMS.width_perturbation.name          => 10_000.0, # meters
             PARAMS.thick_thermal_lithosphere.name   => thick_lith, # meters
-            PARAMS.adiabatic_gradient.name          => adiabatic_gradient, # K/km
+            PARAMS.adiabatic_gradient.name          => 0.4, # K/km
             PARAMS.conductivity_upper_crust.name    => 2.25, # W/m/K
             PARAMS.conductivity_lower_crust.name    => 2.2, # W/m/K
             PARAMS.conductivity_mantle.name         => 2.0, # W/m/K
@@ -249,8 +214,13 @@ end
 function initialize_marker_plasticity(eb::EarthBoxState)::Nothing
     model = eb.model_manager.model
     Markers.MarkerFriction.initialize!(
-        model, initialization_model = friction_init_names.Regular)
+        model,
+        initialization_model  = friction_init_names.Regular,
+        iuse_random_fric_time = 1,
+        randomization_factor  = 10.0
+    )
     Markers.MarkerCohesion.initialize!(model)
+    # This is required for viscous strain softening
     Markers.MarkerPreexponential.initialize!(model)
     return nothing
 end
@@ -273,19 +243,13 @@ function initialize_stokes_continuity_solver(eb::EarthBoxState)::Nothing
         model,
         velocity_type                = velocity_type_names.VelocityFromStokesSolver,
         gravity_y                    = 9.8, # m/s^2
-        iuse_interface_stabilization = 1 # avoid the drunken sailor problem
+        iuse_interface_stabilization = 1
     )
-    # Consider decreasing the tolerance to 1e-3 or 1e-4 and increasing the number 
-    # of global iterations to a large value like 100. You will be able to obtain 
-    # a more accurate solution. This may not change the conclusions attained by 
-    # the geoscientist but it is essential to perform rigorous testing to confirm 
-    # this. Use Plot.jl to plot the convergence of the global plasticity loop 
-    # (Picard iteration).
     GlobalPlasticityLoop.initialize!(
         model,
         global_plasticity_loop = global_plasticity_names.NodalPlasticityLoop,
-        tolerance_picard       = 1e-2,
-        nglobal                = 3
+        tolerance_picard       = 1e-3,
+        nglobal                = 100
     )
     return nothing
 end
@@ -297,8 +261,6 @@ function initialize_heat_solver(eb::EarthBoxState)::Nothing
         iuse_adiabatic_heating = 1,
         iuse_shear_heating     = 1,
         iuse_sticky_correction = 1,
-        # The max_temp_change is used for the adaptive time stepping scheme used
-        # to solve the heat equation.
         max_temp_change        = 70.0 # K
     )
     return nothing
@@ -308,11 +270,10 @@ function initialize_advection_model(eb::EarthBoxState)::Nothing
     Advection.initialize!(
         eb.model_manager.model,
         advection_scheme                  = advection_scheme_names.RungeKutta4thOrder,
-        # Decreasing the marker_cell_displ_max can increase numerical accuracy.
-        marker_cell_displ_max             = 0.75, # fraction
+        iuse_local_adaptive_time_stepping = 1,
+        marker_cell_displ_max             = 0.5, # fraction
         subgrid_diff_coef_temp            = 1.0,
-        subgrid_diff_coef_stress          = 1.0,
-        iuse_local_adaptive_time_stepping = 1 # use local grid spacing instead of average
+        subgrid_diff_coef_stress          = 1.0
     )    
     return nothing
 end
@@ -328,22 +289,15 @@ end
 
 function initialize_surface_processes_model(eb::EarthBoxState)::Nothing
     model = eb.model_manager.model
-    # The topography model defines a marker chain that tracks the sticky-rock 
-    # interface. The RungeKuttaWithInterp node advection scheme uses a 
-    # Lagrangian-Eulerian approach to advect the marker chain.
     SurfaceProcesses.Topography.initialize!(
         model,
         iuse_topo            = 1,
         node_advection       = topo_node_advection_names.RungeKuttaWithInterp,
-        dx_topo              = 200.0, # meters
+        dx_topo              = dx_topo, # meters
         topo_xsize           = xsize, # meters
         nsmooth_top_bottom   = 2,
-        marker_search_factor = 2.0    
+        marker_search_factor = 2.0 
     )
-    # Use a reference lithosphere column and average pressure at the base of the 
-    # to define global sea level in the model by setting at the top of the reference 
-    # lithosphere column. A base level shift relative to global sea level is
-    # available as an option but set to zero in this example.
     SurfaceProcesses.Sealevel.initialize!(
         model,
         option_name               = sealevel_option_names.AveragePressure,
@@ -351,19 +305,17 @@ function initialize_surface_processes_model(eb::EarthBoxState)::Nothing
         base_level_shift_end_time = 16.0, # Myr
         base_level_shift          = 0.0, # meters
     )
-    # Define parameters for the reference lithosphere used in the global sea level
-    # calculation to define the base level.
     SurfaceProcesses.Sealevel.RelativeBaseLevel.initialize!(
         model,
-        iuse_linear_segments                  = 0,
+        iuse_linear_segments                   = 0,
         thickness_upper_continental_crust_ref = thick_upper_crust, # meters
         thickness_lower_continental_crust_ref = thick_crust - thick_upper_crust, # meters
         thickness_lithosphere_ref             = thick_lith, # meters
         gridy_spacing_ref                     = 100.0, # meters
         temperature_top_ref                   = 0.0, # Celsius
         temperature_moho_ref                  = 600.0, # Celsius
-        temperature_base_lith_ref             = temperature_base_lith_celsius, # Celsius
-        adiabatic_gradient_ref                = adiabatic_gradient, # K/km
+        temperature_base_lith_ref             = 1330.0, # Celsius
+        adiabatic_gradient_ref                = 0.4, # K/km
     )
     return nothing
 end
