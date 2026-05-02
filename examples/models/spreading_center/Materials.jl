@@ -15,9 +15,9 @@ function get_materials_input_dict()::MaterialsDictType
             "mat_name" => mat_names.sticky_air,
             "mat_type" => types.sticky_air,
             "mat_domain" => domains.atmosphere,
-            "red_fraction" => 215/255,
-            "green_fraction" => 215/255,
-            "blue_fraction" => 215/255,
+            "red_fraction" => 255/255,
+            "green_fraction" => 255/255,
+            "blue_fraction" => 255/255,
         ),
         # Sticky Water
         Int16(2) => MaterialDictType(

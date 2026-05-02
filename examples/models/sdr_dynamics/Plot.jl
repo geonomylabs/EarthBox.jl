@@ -49,7 +49,7 @@ using EarthBox
 
 include("Model.jl")
 include("Materials.jl")
-import .Model: ROOT_PATH_OUTPUT
+import .Model: ROOT_PATH_STORAGE
 import .Model: xsize, ysize, xo_highres, xf_highres, yf_highres
 import .Model: define_case_parameters, PARAMS
 import .Materials: get_materials_input_dict, MATERIAL_COLLECTION
@@ -102,7 +102,7 @@ const plot_ymax = use_full_domain ? ysize/1000.0 : 40.0 # yf_highres/1000.0
 
 # x-location (km) of the spreading center for each case
 const case_spreading_center_x = Dict(
-    "case0"  => 250.0,
+    "case0"  => 200.0,
     "case1"  => 250.0,
     "case2"  => 250.0,
     "case3"  => 250.0,
@@ -112,6 +112,20 @@ const case_spreading_center_x = Dict(
     "case7"  => 250.0,
     "case8"  => 250.0,
     "case9"  => 250.0,
+    "case10" => 250.0,
+    "case11" => 250.0,
+    "case12" => 250.0,
+    "case13" => 250.0,
+    "case14" => 250.0,
+    "case15" => 250.0,
+    "case16" => 250.0,
+    "case17" => 250.0,
+    "case18" => 250.0,
+    "case19" => 250.0,
+    "case20" => 250.0,
+    "case21" => 250.0,
+    "case22" => 250.0,
+    "case23" => 250.0,
 )
 
 function get_dimensions(case_name::String)::Tuple{Float64, Float64, Float64, Float64}
@@ -227,12 +241,12 @@ function marker_plots(;
         colorbar_ticks_fontsize = 16, colorbar_labels_fontsize = 18,
         legend_fontsize = 14, text_box_font_size = 14,
         # General marker parameters
-        marker_size=5.0, decimation_factor=marker_decimation_factor,
+        marker_size=1.0, decimation_factor=marker_decimation_factor,
         plot_mesh=0, mesh_line_width=0.1,
         plot_contour_labels=0, contour_line_width=1.5, contour_line_color="black",
         # Composition colorbar legend customization
-        show_composition_matid_labels=true, 
-        hidden_composition_matids=[5, 7, 8, 9, 10, 11, 12, 13, 14],
+        show_composition_matid_labels=false, 
+        hidden_composition_matids=[5, 7, 9, 11, 13, 15, 16, 18, 19, 20],
         # Topography parameters
         plot_topography=1, topo_line_width=3.0, 
         topo_line_color="black",
@@ -349,7 +363,7 @@ end
 
 function main()::Nothing
     run_cl_plotter(
-        root_path_output = ROOT_PATH_OUTPUT,
+        root_path_output = ROOT_PATH_STORAGE,
         marker_plots_func = marker_plots,
         scalar_plots_func = scalar_plots,
         velocity_plots_func = velocity_plots,

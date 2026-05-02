@@ -1,8 +1,7 @@
 """
     Model.jl
 
-Module containing the customized model setup and execution functions for the 
-extension_to_sfs model.
+Module containing the customized model setup and execution functions.
 
 Model output is sent to the model output directory named `<case_name>_output` 
 where `<case_name>` is the name of the model case (e.g. "case1"). The model 
@@ -32,7 +31,9 @@ julia Model.jl case_name=<case_name>
 module Model
 
 using EarthBox
+include("CaseInputs.jl")
 include("Materials.jl")
+import .CaseInputs: define_case_parameters
 import .Materials: get_materials_input_dict, MATERIAL_COLLECTION
 
 const ROOT_PATH_OUTPUT = "/mnt/extradrive1/earthbox_output/extension_to_sfs"
@@ -45,6 +46,9 @@ const PARAMS = get_eb_parameters()
 const adiabatic_gradient       = 0.4 # K/km
 const xsize                    = 500_000.0 # meters
 const ysize                    = 160_000.0 # meters
+const xo_highres               = 125_000.0 # meters
+const xf_highres               = 375_000.0 # meters
+const yf_highres               = 70_000.0 # meters
 const thick_air                = 10_000.0 # meters
 const thick_crust              = 32_000.0 # meters
 const thick_upper_crust        = 22_000.0 # meters
@@ -54,13 +58,13 @@ const grid_spacing_high_res    = 200.0 # meters (200 m for high resolution case)
 const dx_topo                  = 100.0 # meters
 const dx_lowres                = 1000.0 # average spacing in meters
 const dy_lowres                = 1000.0 # average spacing in meters
-const temperature_base_lith_celsius = 1345.0 # C, this is the final cooler temperature at the base of the lithosphere
 
 function run_case(;case_name::String="case0")::Nothing
     print_info("Running model for case: $case_name")
+    case_parameters = define_case_parameters(case_name)
     model_output_path = get_model_output_path(case_name, ROOT_PATH_OUTPUT)
     storage_dir = get_storage_path(case_name, ROOT_PATH_STORAGE)
-    eb = setup_model(model_output_path, storage_dir)
+    eb = setup_model(case_parameters, model_output_path, storage_dir)
     PRINT_SETTINGS.print_performance = true
     run_time_steps(
         eb,
@@ -73,13 +77,14 @@ function run_case(;case_name::String="case0")::Nothing
 end
 
 function setup_model(
+    case_parameters::CaseType,
     output_dir::String,
     storage_dir::Union{String, Nothing}=nothing
 )::EarthBoxState
     ttype_refinement_parameters = Dict(
-        PARAMS.xo_highres.name => 125_000.0,
-        PARAMS.xf_highres.name => 375_000.0,
-        PARAMS.yf_highres.name => 70_000.0,
+        PARAMS.xo_highres.name => xo_highres,
+        PARAMS.xf_highres.name => xf_highres,
+        PARAMS.yf_highres.name => yf_highres,
         PARAMS.dx_highres.name => grid_spacing_high_res,
         PARAMS.dx_lowres.name  => dx_lowres,
         PARAMS.dy_highres.name => grid_spacing_high_res,
@@ -96,21 +101,21 @@ function setup_model(
         nprocs                      = 8,
         analysis_method             = :PARALLEL,
         parallel_ordering_method    = :PTSCOTCH,
-        # Add "storage_dir" = storage_dir to the paths dictionary to activate storage functionality.
+        # Add "storage_dir" => storage_dir to the paths dictionary to activate storage functionality.
         paths                       = Dict("output_dir" => output_dir)
     )
-    initialize_model_input(eb)
+    initialize_model_input(eb, case_parameters)
     return eb
 end
 
-function initialize_model_input(eb::EarthBoxState)::Nothing
+function initialize_model_input(eb::EarthBoxState, case_parameters::CaseType)::Nothing
     initialize_marker_output(eb)
     initialize_staggered_grid(eb)
     initialize_geometry(eb)
-    initialize_boundary_conditions(eb)
+    initialize_boundary_conditions(eb, case_parameters)
     initialize_marker_coordinates(eb)
     initialize_marker_materials(eb)
-    initialize_marker_temperature(eb)
+    initialize_marker_temperature(eb, case_parameters)
     initialize_marker_plasticity(eb)
     initialize_rock_properties(eb)
     initialize_stokes_continuity_solver(eb)
@@ -118,7 +123,7 @@ function initialize_model_input(eb::EarthBoxState)::Nothing
     initialize_advection_model(eb)
     initialize_interpolation_model(eb)
     initialize_melt_model(eb)
-    initialize_surface_processes_model(eb)
+    initialize_surface_processes_model(eb, case_parameters)
     return nothing
 end
 
@@ -153,17 +158,21 @@ function initialize_geometry(eb::EarthBoxState)::Nothing
     return nothing
 end
 
-function initialize_boundary_conditions(eb::EarthBoxState)::Nothing
+function initialize_boundary_conditions(
+    eb::EarthBoxState, 
+    case_parameters::CaseType
+)::Nothing
     model = eb.model_manager.model
     BoundaryConditions.initialize!(
         model, model_type = bc_model_type_names.LithosphericExtensionFixedBoundaries)
     BoundaryConditions.Pressure.initialize!(model, pressure_bc=1e5)
+    temperature_base_lith = case_parameters[PARAMS.temperature_base_lith.name].value
     BoundaryConditions.Temperature.initialize!(
         model,
         temperature_top    = ConversionFuncs.celsius_to_kelvin(0.0),
-        temperature_bottom = ConversionFuncs.celsius_to_kelvin(
-            temperature_base_lith_celsius 
-            + adiabatic_gradient*(ysize - thick_air - thick_lith)/1000.0
+        temperature_bottom = temperature_base_lith +
+            ConversionFuncs.celsius_to_kelvin(
+                + adiabatic_gradient*(ysize - thick_air - thick_lith)/1000.0
             )
     )
     BoundaryConditions.Velocity.initialize!(
@@ -174,7 +183,7 @@ function initialize_boundary_conditions(eb::EarthBoxState)::Nothing
         velocity_step_factor              = 0.5/0.1, # 0.1 cm/yr to 0.5 cm/yr
         timestep_adjustment_factor        = 24_000.0/50_000.0, # 50_000.0 to 24_000.0 yr
         velocity_step_time                = 50.0, # Myr
-        velocity_second_step_factor       = 2.0/0.5, # 0.5 cm/yr to 2 cm/yr
+        velocity_second_step_factor       = case_parameters[PARAMS.velocity_second_step_factor.name].value,
         timestep_second_adjustment_factor = 6_000.0/24_000.0, # 24_000 yr to 6_000 yr
         velocity_second_step_time         = 60.0
     )
@@ -213,15 +222,15 @@ function initialize_marker_materials(eb::EarthBoxState)::Nothing
     return nothing
 end
 
-function initialize_marker_temperature(eb::EarthBoxState)::Nothing
+function initialize_marker_temperature(eb::EarthBoxState, case_parameters::CaseType)::Nothing
+    temperature_base_lith = case_parameters[PARAMS.temperature_base_lith.name].value
     Markers.MarkerTemperature.initialize!(
         eb.model_manager.model,
         initial_temperature_model=initial_temperature_names.AnalyticalThreeLayer,
         parameters=Dict(
-            PARAMS.temperature_base_lith.name       => (
-                ConversionFuncs.celsius_to_kelvin(temperature_base_lith_celsius)),
-            PARAMS.amplitude_perturbation.name      => 4000.0,
-            PARAMS.width_perturbation.name          => 10_000.0,
+            PARAMS.temperature_base_lith.name       => temperature_base_lith,
+            PARAMS.amplitude_perturbation.name      => 0.0, # 4000.0, # meters
+            PARAMS.width_perturbation.name          => 10_000.0, # meters
             PARAMS.thick_thermal_lithosphere.name   => thick_lith,
             PARAMS.adiabatic_gradient.name          => adiabatic_gradient,
             PARAMS.conductivity_upper_crust.name    => 2.25, # W/m/K
@@ -239,7 +248,9 @@ function initialize_marker_plasticity(eb::EarthBoxState)::Nothing
     model = eb.model_manager.model
     Markers.MarkerFriction.initialize!(
         model,
-        initialization_model  = 0, # regular initialization of friction coefficients
+        initialization_model = :CentralWeakening, # Initialization of friction coefficients with probabilistic central weakening
+	delta_fric_coef = 0.1,
+	central_weakening_probability = 0.6,
         iuse_random_fric_time = 1, # Activate time-dependent randomization of friction  coefficients
         randomization_factor  = 10.0, # Time-dependent randomization factor for friction coefficients
     )
@@ -400,7 +411,10 @@ function initialize_melt_model(eb::EarthBoxState)::Nothing
     return nothing
 end
 
-function initialize_surface_processes_model(eb::EarthBoxState)::Nothing
+function initialize_surface_processes_model(
+    eb::EarthBoxState, 
+    case_parameters::CaseType
+)::Nothing
     model = eb.model_manager.model
     SurfaceProcesses.Topography.initialize!(
         model,
@@ -418,6 +432,7 @@ function initialize_surface_processes_model(eb::EarthBoxState)::Nothing
         base_level_shift_end_time = 100.0, # Myr
         base_level_shift          = 0.0, # m
     )
+    temperature_base_lith = case_parameters[PARAMS.temperature_base_lith.name].value
     SurfaceProcesses.Sealevel.RelativeBaseLevel.initialize!(
         model,
         iuse_linear_segments                  = 0,
@@ -427,13 +442,13 @@ function initialize_surface_processes_model(eb::EarthBoxState)::Nothing
         gridy_spacing_ref                     = 100.0, # m
         temperature_top_ref                   = 0.0, # C
         temperature_moho_ref                  = 600.0, # C
-        temperature_base_lith_ref             = temperature_base_lith_celsius, # C
+        temperature_base_lith_ref             = ConversionFuncs.kelvin_to_celsius(temperature_base_lith), # C
         adiabatic_gradient_ref                = adiabatic_gradient, # K/km
     )
     SurfaceProcesses.SedimentTransport.initialize!(
         model,
         iuse_downhill_diffusion         = 1,
-        subaerial_transport_coefficient = 1.0e-4, # None
+        subaerial_transport_coefficient = 1.0e-4,
         subaerial_slope_diffusivity     = ConversionFuncs.m2_yr_to_m2_s(0.25),
         submarine_slope_diffusivity     = ConversionFuncs.m2_yr_to_m2_s(100.0),
         submarine_diffusion_decay_depth = 1000.0, # m

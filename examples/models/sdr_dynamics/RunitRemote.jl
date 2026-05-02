@@ -22,23 +22,28 @@ case \$- in
     *) return;;
 esac
 ```
+
+If `using EarthBox` fails on a node only for **remote** runs, non-interactive SSH
+often does not see `JULIA_DEPOT_PATH` from `.bashrc` (exports after the early
+return above are skipped). Move `JULIA_DEPOT_PATH` exports to the **top** of 
+`~/.bashrc` before the `case \$-` block.
 """
 function run_remote_models()
     # Path to the model directory where the Runit.jl script is stored.
     # Model.jl and Plot.jl should also be in this directory.
-    model_dir_path = "/mnt/extradrive1/nfs/apps/julia/EarthBox/models/extension_to_sfs/extension_strong_zones"
+    model_dir_path = "/home/$(get_username())/apps/julia/EarthBox_models/sdr_dynamics"
     # Dictionary of host names and model case names that will be run on the 
     # remote hosts.
     models = Dict(
-        "peridotite" => ["case0", "case1"],
-        #"eclogite" => ["case0", "case1", "case2", "case3"],
-        #"lherzolite" => ["case4", "case5", "case6", "case7"],
-        #"plagioclase" => ["case8", "case9", "case10", "case11"],
-        #"chromite" => ["case12", "case13", "case14", "case15"],
-        #"pyroxene" => ["case18"],
-        #"dunite" => ["case20", "case21", "case22", "case23"],
-        #"komatiite" => ["case24"],
-        #"spinel" => ["case42", "case43", "case44", "case47"]
+        #"peridotite" => ["case0", "case1"],
+        #"eclogite" => ["case2", "case3"],
+        "lherzolite" => ["case4", "case5"],
+        #"plagioclase" => ["case6", "case7"],
+        #"chromite" => ["case8", "case9"],
+        #"pyroxene" => ["case10","case11"],
+	    #"spinel" => ["case12", "case13", "case23"],
+        #"komatiite" => ["case14", "case15"],
+        #"dunite" => ["case16", "case17"],
     )
     remote_model_loop(
         models,
