@@ -45,3 +45,4 @@ jobs:
         env:
           EARTHBOX_TEST_GROUP: fast
           JULIA_NUM_THREADS: auto
+          OPENBLAS_NUM_THREADS: "1"
