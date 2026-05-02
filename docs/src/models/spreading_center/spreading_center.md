@@ -1,5 +1,5 @@
 # Seafloor Spreading Model with Melting, Melt Extraction and Extrusion
 
 ```
-see EarthBox/models/spreading_center
+see EarthBox/examples/models/spreading_center
 ```

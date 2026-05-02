@@ -7,5 +7,5 @@ Boundary conditions, model domain and rheology are similar to Naliboff et al.
 
 
  ```
- see EarthBox/models/lithospheric_extension/polyphase_extension_n17
+ see EarthBox/examples/models/polyphase_extension_n17
  ```

@@ -4,5 +4,5 @@
  melting, melt extraction, melt emplacement at the Moho and melt extrusion at the surface.
 
  ```
- see EarthBox/models/hot_box_melting
+ see EarthBox/examples/models/hot_box_melting
  ```

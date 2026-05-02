@@ -6,5 +6,5 @@ effects of viscous softening. Boundary conditions, model geometry and rheology
 are similar to Brune et al. (2014).
 
  ```
- see EarthBox/models/lithospheric_extension/extension_with_softening_b14
+ see EarthBox/examples/models/extension_with_softening_b14
  ```
