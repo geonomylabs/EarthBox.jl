@@ -1,6 +1,8 @@
 using EarthBox
 using Test
 
+@info "Julia thread/CPU info for this test run" Threads.nthreads() Sys.CPU_THREADS
+
 # Test groups selected via the EARTHBOX_TEST_GROUP env var:
 #   "fast" — unit tests + fast benchmarks (default; CI-friendly, < a few minutes)
 #   "slow" — only the long benchmarks (Plasticity Kaus10, Elastic Slab; ~10+ min)
