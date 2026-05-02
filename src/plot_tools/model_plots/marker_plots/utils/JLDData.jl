@@ -80,14 +80,12 @@ function get_jld_marker_data(
         ifind_time = 0
         for dataname in get_list(marker_data_names)
             if haskey(jldfile, dataname)
-                model_time = jldfile["time"]
-                time_units = jldfile["time_units"]
                 dset = jldfile[dataname]
                 if ifind_time == 0
                     (
                         model_time, time_units
                     ) = convert_time_units(
-                        parameters.conversion, model_time, time_units)
+                        parameters.conversion, jldfile["time"], jldfile["time_units"])
                     ifind_time = 1
                 end
                 array = copy(dset["array"])
