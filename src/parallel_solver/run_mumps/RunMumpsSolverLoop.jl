@@ -302,10 +302,13 @@ function mpirun_mumps_io_comm(
         error("Persistent solver is not running. Call initialize_persistent_solver() first.")
     end
     solution_flag = execute_mumps_with_timeout_io_comm(solver_config, termination_flag)
-    if solution_flag == 0
-        return "Failure"
+    # `execute_mumps_with_timeout_io_comm` returns Union{Int64, String}: Int64 1 only on a real
+    # solve, Int64 0 on a child-reported error, and a String on timeout / spawn failure. The
+    # previous `solution_flag == 0` test let timeout strings fall through as "Success".
+    if isa(solution_flag, Integer) && solution_flag == 1
+        return "Success"
     end
-    return "Success"
+    return "Failure"
 end
 
 # Shutdown the persistent solver
@@ -356,11 +359,11 @@ function execute_mumps_with_timeout_io_comm(
         # Create a termination file to signal to the child process to terminate
         # solver loop
         create_termination_file(soe_dir_path, termination_flag)
+        # Create a solver config file to store the solver configuration parameters
+        create_solver_config_file(solver_config)
         # Create a solver ready file to signal to the child process that it is time
         # to start solving the system of equations
         create_solver_ready_file(soe_dir_path)
-        # Create a solver config file to store the solver configuration parameters
-        create_solver_config_file(solver_config)
 
         # Initialize solution flag to 0 (system not solved)
         solution_flag = 0
@@ -379,7 +382,15 @@ function execute_mumps_with_timeout_io_comm(
                 timed_out = true
                 break
             end
-            # Check for a solution flag file was produced by the external solver loop indicating 
+            # The child writes the error flag file when it catches an unrecoverable error.
+            # Detecting it here collapses failure latency from `pymumps_timeout` to ~10ms.
+            error_flag_file_path = get_error_flag_file_path(soe_dir_path)
+            if isfile(error_flag_file_path)
+                rm(error_flag_file_path)
+                print_warning("MUMPS child reported error via error flag file.", level=2)
+                return 0
+            end
+            # Check for a solution flag file was produced by the external solver loop indicating
             # that the solver is done solving the system of equations
             solution_flag_file_path = get_solution_flag_file_path(soe_dir_path)
             if isfile(solution_flag_file_path)
@@ -428,6 +439,13 @@ function get_solution_flag_file_path(soe_dir_path::String)::String
     solution_file_name = names.solution_flag_file_name
     solution_file_path = joinpath(soe_dir_path, solution_file_name)
     return solution_file_path
+end
+
+function get_error_flag_file_path(soe_dir_path::String)::String
+    names = NamesManager.FileAndDirNames()
+    error_file_name = names.error_flag_file_name
+    error_file_path = joinpath(soe_dir_path, error_file_name)
+    return error_file_path
 end
 
 function create_termination_file(
@@ -479,6 +497,7 @@ function clean_up_soe_dir(solver_config::SolverConfigState)::Nothing
     remove_termination_file(soe_dir_path)
     remove_ready_to_solve_file(soe_dir_path)
     remove_solution_flag_file(soe_dir_path)
+    remove_error_flag_file(soe_dir_path)
     return nothing
 end
 
@@ -505,6 +524,16 @@ end
 function remove_solution_flag_file(soe_dir_path::String)::Nothing
     names = NamesManager.FileAndDirNames()
     file_name = names.solution_flag_file_name
+    file_path = joinpath(soe_dir_path, file_name)
+    if isfile(file_path)
+        rm(file_path)
+    end
+    return nothing
+end
+
+function remove_error_flag_file(soe_dir_path::String)::Nothing
+    names = NamesManager.FileAndDirNames()
+    file_name = names.error_flag_file_name
     file_path = joinpath(soe_dir_path, file_name)
     if isfile(file_path)
         rm(file_path)

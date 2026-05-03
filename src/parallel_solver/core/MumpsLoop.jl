@@ -230,6 +230,16 @@ function create_solution_flag_file(soe_dir_path::String, solution_flag::Int64)::
     return nothing
 end
 
+function create_error_flag_file(soe_dir_path::String, error_flag::Int64)::Nothing
+    names = NamesManager.FileAndDirNames()
+    error_file_name = names.error_flag_file_name
+    error_file_path = joinpath(soe_dir_path, error_file_name)
+    open(error_file_path, "w") do f
+        write(f, error_flag)
+    end
+    return nothing
+end
+
 function get_ready_to_solve_files(soe_dir_path::String)::Vector{String}
     flag_files = filter(f -> startswith(f, "ready_to_solve_"), readdir(soe_dir_path))
     return flag_files
