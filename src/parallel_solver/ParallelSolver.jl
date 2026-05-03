@@ -82,6 +82,17 @@ function parallel_direct_solver(
             ordering_orig = solver_config.parallel_ordering_method
             memory_relax_orig = solver_config.memory_relax_perc
         end
+        # The persistent MUMPS child terminates after any unrecoverable error (its catch block
+        # calls MPI.Finalize and exits the loop function). Without restarting it, subsequent
+        # retry attempts in this loop talk to a dead child and just time out. Restart before
+        # each retry on either persistent-child path.
+        if nmumps > 0 && mpi_comm !== nothing && use_internal_mumps
+            restart_ok = RunMumpsSolverLoop.restart_persistent_solver(solver_config, mpi_comm)
+            if !restart_ok
+                print_info("Failed to restart persistent MUMPS solver. Aborting retries.", level=2)
+                break
+            end
+        end
         modify_mumps_parameters!(solver_config, nmumps)
         print_mumps_solver_info(solver_config, nmumps)
         if mpi_comm !== nothing && use_internal_mumps
