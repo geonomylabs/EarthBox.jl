@@ -32,5 +32,7 @@ ModelDataContainer.MeltingContainer.ArrayCollection.Arrays
 ModelDataContainer.MeltingContainer.ArrayCollection.Extraction
 
 ModelDataContainer.MeltingContainer.ArrayCollection.Buffers
+
+ModelDataContainer.MeltingContainer.ArrayCollection.BuffersGroup.ensure_extraction_buffers!
 ```
 
