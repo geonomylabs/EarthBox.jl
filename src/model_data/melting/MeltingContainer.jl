@@ -19,10 +19,11 @@ Data structure containing parameter and array objects for melting and melt extra
 - `arrays::`[`Arrays`](@ref): Array groups for melt extraction tracking
 
 # Constructor
-    Melting(marknum::Int)::Melting
+    Melting()::Melting
 
-Create a new Melting collection with default values. `marknum` sizes the
-marker-length scratch buffers in `arrays.buffers`.
+Create a new Melting collection with default values. The marker-length
+scratch buffers in `arrays.buffers` start empty and are sized lazily on
+first call to `MeltModel.Extraction.update_melt_extraction!`.
 
 """
 mutable struct Melting <: CollectionContainer
@@ -30,8 +31,8 @@ mutable struct Melting <: CollectionContainer
     arrays::Arrays
 end
 
-function Melting(marknum::Int)::Melting
-    return Melting(Parameters(), Arrays(marknum))
+function Melting()::Melting
+    return Melting(Parameters(), Arrays())
 end
 
 end # module 
