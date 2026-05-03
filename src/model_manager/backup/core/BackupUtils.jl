@@ -11,6 +11,9 @@ function check_for_backup(eb_obj::Any)::Bool
             check = true
         end
     end
+    if check && hasproperty(eb_obj, :ibackup) && !eb_obj.ibackup
+        check = false
+    end
     return check
 end
 
