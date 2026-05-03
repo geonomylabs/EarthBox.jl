@@ -81,6 +81,11 @@ function solve_system_io_comm(soe_dir_path::String)::Nothing
             else
                 mumps = MUMPS.Mumps{Float64}(
                     MUMPS.mumps_unsymmetric, MUMPS.default_icntl, MUMPS.default_cntl64)
+                # Debug-only failure-injection mode for this iteration. Set on rank 0 after
+                # the SOE read; consulted again on rank 0 at the solution-flag write site.
+                # `""` means no injection. Only rank 0 ever reads/writes this; peer ranks
+                # ignore it but must keep up with the collective MUMPS calls.
+                inject_mode = ""
                 # Set analysis step parameters on all processes
                 if rank == root
                     (
@@ -119,8 +124,24 @@ function solve_system_io_comm(soe_dir_path::String)::Nothing
                     if verbose_output_itype == 1
                         print_icntl_parameters(mumps)
                     end
+
+                    # Debug-only failure injection. crash/hang fire here so the parent's
+                    # observable behavior matches a real exception or a real hang. The
+                    # `internal_error` case stores the mode and is acted on at the solution-
+                    # flag write site below — we still run factorize/solve so peer ranks
+                    # complete their collectives normally; only the success/failure label
+                    # written to disk is forced.
+                    inject_mode = read_and_consume_inject_marker(soe_dir_path)
+                    if inject_mode == "crash"
+                        error("Injected MUMPS crash for testing (debug-only failure injection)")
+                    elseif inject_mode == "hang"
+                        print_info("Injected MUMPS hang: sleeping indefinitely.", level=2)
+                        while true
+                            sleep(60)
+                        end
+                    end
                 end
-                
+
                 MUMPS.factorize!(mumps)
                 if rank == root
                     found_error_factorization = check_mumps_errors(mumps, "factorization", rank)
@@ -135,7 +156,13 @@ function solve_system_io_comm(soe_dir_path::String)::Nothing
                 if rank == root
                     x = vec(MUMPS.get_solution(mumps))
                     solution_flag = 0
-                    if !found_error_solve
+                    if inject_mode == "internal_error"
+                        # Debug-only: pretend the solve produced no usable result, mimicking
+                        # a MUMPS-internal error (e.g. INFOG(1)=-20). Child stays alive and
+                        # the parent's retry should reuse it without restarting.
+                        print_info("Injected MUMPS internal_error: forcing solution_flag=0.", level=2)
+                        solution_flag = 0
+                    elseif !found_error_solve
                         SystemExporter.export_solution_vector(soe_dir_path, x)
                         solution_flag = 1
                     else
@@ -238,6 +265,21 @@ function create_error_flag_file(soe_dir_path::String, error_flag::Int64)::Nothin
         write(f, error_flag)
     end
     return nothing
+end
+
+# Debug-only: consume the parent-written failure-injection marker if present. Returns the
+# mode string (`internal_error`, `crash`, `hang`) or `""` if no marker. Removes the file so
+# the injection fires exactly once. The marker is created by the parent before the ready
+# file, so when this is called (after the ready trigger), the marker is fully on disk.
+function read_and_consume_inject_marker(soe_dir_path::String)::String
+    names = NamesManager.FileAndDirNames()
+    file_path = joinpath(soe_dir_path, names.inject_failure_file_name)
+    if !isfile(file_path)
+        return ""
+    end
+    mode = String(strip(read(file_path, String)))
+    rm(file_path)
+    return mode
 end
 
 function get_ready_to_solve_files(soe_dir_path::String)::Vector{String}
