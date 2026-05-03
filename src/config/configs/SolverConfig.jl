@@ -77,7 +77,7 @@ function SolverConfigState(;
     parallel_ordering_method::String = "ParMETIS",
     memory_relax_perc::Int = 25,
     verbose_output::Int = 0,
-    pymumps_timeout::Float64 = 3600.0, # old naming from python implementation
+    pymumps_timeout::Float64 = 3600.0, # old naming from python implementation, update to mumps_timeout
     output_dir::Union{String, Nothing} = nothing,
     src_dir::Union{String, Nothing} = nothing,
     use_internal_mumps::Bool = false,
