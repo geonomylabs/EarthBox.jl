@@ -110,7 +110,11 @@ function run_benchmark(
         error("Invalid benchmark name: $benchmark_name. Valid benchmark names are: $(valid_options)")
     end
     test_dict = OrderedDict(benchmark_name => true)
-    bench = run_benchmarks(test_dict; mumps_solver_dict=get_mumps_solver_dict(kwargs...), kwargs...)
+    bench = run_benchmarks(
+        test_dict;
+        mumps_solver_dict = get_mumps_solver_dict(benchmark_name; kwargs...),
+        kwargs...,
+    )
 
     results_dict = bench.results_dict
     test_results_dict = results_dict[String(benchmark_name)]["summary_for_each_time_step"]
@@ -460,13 +464,13 @@ function validate_input_names(kwargs::Dict{Symbol, Any})::Nothing
     end
 end
 
-function get_mumps_solver_dict(;kwargs...)::Union{Dict{Symbol, Vector{Any}}, Nothing}
+function get_mumps_solver_dict(
+    benchmark_name::Symbol; kwargs...
+)::Union{Dict{Symbol, Vector{Any}}, Nothing}
     use_mumps = get(kwargs, :use_mumps, false)
     nprocs = get(kwargs, :nprocs, 1)
     if use_mumps
-        mumps_solver_dict = Dict(
-            option_names.flexure_triangular_hole => [true, nprocs]
-        )
+        mumps_solver_dict = Dict(benchmark_name => Any[true, nprocs])
     else
         mumps_solver_dict = nothing
     end
