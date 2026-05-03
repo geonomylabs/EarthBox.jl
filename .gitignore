@@ -13,3 +13,7 @@ LocalPreferences.toml
 #--------------------------
 # Local build of HTML documentation
 docs/build/
+
+# EarthBox benchmark results (under test/ and accidental repo-root runs)
+test/earthbox_benchmark_results_*/
+/earthbox_benchmark_results_*/
