@@ -34,9 +34,9 @@ function solve_system(
     mumps = MUMPS.Mumps{Float64}(MUMPS.mumps_unsymmetric, MUMPS.default_icntl, MUMPS.default_cntl64)
     if MPI.Comm_rank(comm) == root
         # Set analysis step parameters
-        MUMPS.set_icntl!(mumps, 28, analysis_method_itype)  # Analysis step method
-        MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype)  # Parallel ordering method
-        MUMPS.set_icntl!(mumps, 14, memory_relax_perc)  # Memory relaxation percentage
+        MUMPS.set_icntl!(mumps, 28, analysis_method_itype; displaylevel=0)  # Analysis step method
+        MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype; displaylevel=0)  # Parallel ordering method
+        MUMPS.set_icntl!(mumps, 14, memory_relax_perc; displaylevel=0)  # Memory relaxation percentage
         (N, Li, Lj, Lv, rhs) = SystemReader.read_system_of_equations_from_file(soe_dir_path)
         A = SparseArrays.sparse(Li, Lj, Lv, N, N)
         MUMPS.associate_matrix!(mumps, A)

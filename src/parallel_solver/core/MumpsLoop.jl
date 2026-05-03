@@ -93,14 +93,14 @@ function solve_system_io_comm(soe_dir_path::String)::Nothing
                         verbose_output_itype, memory_relax_perc
                     ) = read_solver_config_file(soe_dir_path)
                     remove_solver_config_file(soe_dir_path)
-                    MUMPS.set_icntl!(mumps, 28, analysis_method_itype)
-                    MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype)
-                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc)
+                    MUMPS.set_icntl!(mumps, 28, analysis_method_itype; displaylevel=0)
+                    MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype; displaylevel=0)
+                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc; displaylevel=0)
                     if verbose_output_itype == 0
-                        MUMPS.set_icntl!(mumps, 1, 6)  # Error messages to stderr
-                        MUMPS.set_icntl!(mumps, 2, 0)  # Diagnostics suppressed
-                        MUMPS.set_icntl!(mumps, 3, 0)  # Global info suppressed
-                        MUMPS.set_icntl!(mumps, 4, 0)  # Print level suppressed
+                        MUMPS.set_icntl!(mumps, 1, 6; displaylevel=0)  # Error messages to stderr
+                        MUMPS.set_icntl!(mumps, 2, 0; displaylevel=0)  # Diagnostics suppressed
+                        MUMPS.set_icntl!(mumps, 3, 0; displaylevel=0)  # Global info suppressed
+                        MUMPS.set_icntl!(mumps, 4, 0; displaylevel=0)  # Print level suppressed
                     end
 
                     # Remove the ready to solve file since it has been read
@@ -345,14 +345,14 @@ function solve_system_mpi_comm(soe_dir_path::String)::Nothing
                         verbose_output_itype, memory_relax_perc
                     ) = read_solver_config_file(soe_dir_path)
                     remove_solver_config_file(soe_dir_path)
-                    MUMPS.set_icntl!(mumps, 28, analysis_method_itype)
-                    MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype)
-                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc)   
+                    MUMPS.set_icntl!(mumps, 28, analysis_method_itype; displaylevel=0)
+                    MUMPS.set_icntl!(mumps, 29, parallel_ordering_method_itype; displaylevel=0)
+                    MUMPS.set_icntl!(mumps, 14, memory_relax_perc; displaylevel=0)
                     if verbose_output_itype == 0
-                        MUMPS.set_icntl!(mumps, 1, 6)   # Error messages to stderr
-                        MUMPS.set_icntl!(mumps, 2, 0)  # Diagnostics suppressed
-                        MUMPS.set_icntl!(mumps, 3, 0)  # Global info suppressed
-                        MUMPS.set_icntl!(mumps, 4, 0)   # Print level suppressed
+                        MUMPS.set_icntl!(mumps, 1, 6; displaylevel=0)   # Error messages to stderr
+                        MUMPS.set_icntl!(mumps, 2, 0; displaylevel=0)  # Diagnostics suppressed
+                        MUMPS.set_icntl!(mumps, 3, 0; displaylevel=0)  # Global info suppressed
+                        MUMPS.set_icntl!(mumps, 4, 0; displaylevel=0)   # Print level suppressed
                     end
                     matrix_info = Vector{Int64}(undef, 2)
 
