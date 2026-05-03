@@ -66,13 +66,15 @@ function Buffers(; nlayers::Int=50)::Buffers
             Int64[],
             ADATA.partial_melt_marker_indices.name,
             ADATA.partial_melt_marker_indices.units,
-            ADATA.partial_melt_marker_indices.description
+            ADATA.partial_melt_marker_indices.description;
+            ibackup=false
         ),
         MarkerArrayInt1DState(
             Int64[],
             ADATA.marker_indices_tmp.name,
             ADATA.marker_indices_tmp.units,
-            ADATA.marker_indices_tmp.description
+            ADATA.marker_indices_tmp.description;
+            ibackup=false
         ),
         Array1DIntState(
             zeros(Int, nlayers),
@@ -90,7 +92,8 @@ function Buffers(; nlayers::Int=50)::Buffers
             Int64[],
             ADATA.layered_partial_melt_indices.name,
             ADATA.layered_partial_melt_indices.units,
-            ADATA.layered_partial_melt_indices.description
+            ADATA.layered_partial_melt_indices.description;
+            ibackup=false
         )
     )
 end
