@@ -9,6 +9,12 @@ Base.@kwdef mutable struct InternalMumpsSolver
     inter::Union{MPI.Comm, Nothing} = nothing
     is_running::Bool = false
     comm::Union{MPI.Comm, Nothing} = nothing
+    # Set by `execute_mumps_with_timeout_io_comm` after each attempt. `true` means the most
+    # recent attempt took a path that terminates the child (error flag, timeout, spawn
+    # failure); `false` means the child wrote a solution flag and went back to polling, so it
+    # is still alive. Read by the retry guard in `parallel_direct_solver` to decide whether
+    # to call `restart_persistent_solver` between retries.
+    child_presumed_dead::Bool = false
 end
 
 """
@@ -71,7 +77,7 @@ function SolverConfigState(;
     parallel_ordering_method::String = "ParMETIS",
     memory_relax_perc::Int = 25,
     verbose_output::Int = 0,
-    pymumps_timeout::Float64 = 3600.0,
+    pymumps_timeout::Float64 = 3600.0, # old naming from python implementation
     output_dir::Union{String, Nothing} = nothing,
     src_dir::Union{String, Nothing} = nothing,
     use_internal_mumps::Bool = false,

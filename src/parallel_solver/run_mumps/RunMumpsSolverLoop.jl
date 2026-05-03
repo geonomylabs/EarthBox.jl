@@ -347,12 +347,16 @@ function is_solver_healthy(solver::InternalMumpsSolver)::Bool
 end
 
 function execute_mumps_with_timeout_io_comm(
-    solver_config::SolverConfigState, 
+    solver_config::SolverConfigState,
     termination_flag::Int64
 )::Union{Int64, String}
     print_info("Executing MUMPS solver with file IO communication...", level=2)
     pymumps_timeout = solver_config.pymumps_timeout
     loop_check_time = 1.0
+    # Optimistically clear the dead-child flag; specific failure paths below set it back to
+    # true. The solution-flag path leaves it false because the child writes that flag from
+    # inside its polling loop and stays alive afterward.
+    solver_config.internal_mumps_solver.child_presumed_dead = false
     try
         soe_dir_path = get_soe_dir_path(solver_config)
         check_system_of_equations_dir(soe_dir_path)
@@ -384,11 +388,16 @@ function execute_mumps_with_timeout_io_comm(
             end
             # The child writes the error flag file when it catches an unrecoverable error.
             # Detecting it here collapses failure latency from `pymumps_timeout` to ~10ms.
+            # The child's catch block calls MPI.Finalize and exits, so the child is dead by
+            # the time this branch fires; flag it for restart. We return a string sentinel
+            # rather than `Int64(0)` so this path is distinguishable from a `solution_flag=0`
+            # (child caught a MUMPS-internal error, stayed alive).
             error_flag_file_path = get_error_flag_file_path(soe_dir_path)
             if isfile(error_flag_file_path)
                 rm(error_flag_file_path)
+                solver_config.internal_mumps_solver.child_presumed_dead = true
                 print_warning("MUMPS child reported error via error flag file.", level=2)
-                return 0
+                return "MUMPS error flag"
             end
             # Check for a solution flag file was produced by the external solver loop indicating
             # that the solver is done solving the system of equations
@@ -406,11 +415,15 @@ function execute_mumps_with_timeout_io_comm(
             sleep(0.01)
         end
         if timed_out
+            # Timeout with no flag file means the child is unresponsive — if it were alive
+            # it would have written either solution_flag or error_flag. Treat as dead.
+            solver_config.internal_mumps_solver.child_presumed_dead = true
             print_warning("MUMPS system_solver timed out after $pymumps_timeout seconds.", level=2)
             return "MUMPS timed out"
         end
     catch e
         if isa(e, ProcessFailedException)
+            solver_config.internal_mumps_solver.child_presumed_dead = true
             print_warning("MUMPS system_solver failed: $e", level=2)
             return "MUMPS failed: $(e)"
         else
