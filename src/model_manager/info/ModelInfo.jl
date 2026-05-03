@@ -189,9 +189,11 @@ function collect_info!(
     obj_mean = "NA"
     if hasproperty(target_obj, :array)
         obj_type = typeof(target_obj.array)
-        obj_min = minimum(target_obj.array)
-        obj_max = maximum(target_obj.array)
-        obj_mean = Statistics.mean(target_obj.array)
+        if !isempty(target_obj.array)
+            obj_min = minimum(target_obj.array)
+            obj_max = maximum(target_obj.array)
+            obj_mean = Statistics.mean(target_obj.array)
+        end
     elseif hasproperty(target_obj, :value)
         obj_type = typeof(target_obj.value)
         obj_value = target_obj.value

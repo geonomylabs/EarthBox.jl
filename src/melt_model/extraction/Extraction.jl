@@ -14,7 +14,9 @@ using Printf
 using CairoMakie
 import EarthBox.ParameterRegistry: get_eb_parameters
 import EarthBox.ModelDataContainer: ModelData
-import EarthBox.PrintFuncs: @timeit_memit, print_info, print_warning, 
+import EarthBox.ModelDataContainer.MeltingContainer.ArrayCollection.BuffersGroup:
+    ensure_extraction_buffers!
+import EarthBox.PrintFuncs: @timeit_memit, print_info, print_warning,
     print_melt_extraction_info
 import EarthBox.ModelDataContainer: load_parameters!
 import EarthBox.ConversionFuncs: celsius_to_kelvin, seconds_to_years
@@ -114,6 +116,12 @@ function update_melt_extraction!(
     inside_flags::Vector{Int8},
     output_dir::String
 )::Nothing
+    iuse_melting = model.melting.parameters.options.iuse_melting.value
+    iuse_extraction = model.melting.parameters.options.iuse_extraction.value
+    if iuse_melting == 1 && iuse_extraction == 1
+        marknum = model.markers.parameters.distribution.marknum.value
+        ensure_extraction_buffers!(model.melting.arrays.buffers, marknum)
+    end
     @timeit_memit "Finished updating melt extraction" begin
         update_melt_drainage_divides!(model, output_dir)
         extract_melt_from_mantle_to_magma_bodies!(model)

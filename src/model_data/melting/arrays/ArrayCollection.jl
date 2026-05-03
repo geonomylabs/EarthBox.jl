@@ -16,10 +16,10 @@ Data structure containing array groups for melt extraction tracking.
 - `buffers::`[`Buffers`](@ref): Pre-allocated marker-sized scratch buffers
 
 # Constructor
-    Arrays(marknum::Int)::Arrays
+    Arrays()::Arrays
 
-Create a new Arrays collection with default extraction arrays and
-marker-sized scratch buffers.
+Create a new Arrays collection with default extraction arrays and empty
+scratch buffers. Buffers are sized lazily on first use; see [`Buffers`](@ref).
 
 """
 mutable struct Arrays <: AbstractArrayCollection
@@ -27,8 +27,8 @@ mutable struct Arrays <: AbstractArrayCollection
     buffers::Buffers
 end
 
-function Arrays(marknum::Int)::Arrays
-    return Arrays(Extraction(), Buffers(marknum))
+function Arrays()::Arrays
+    return Arrays(Extraction(), Buffers())
 end
 
 end # module
