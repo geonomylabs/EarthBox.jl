@@ -63,6 +63,22 @@ function solve_system_io_comm(soe_dir_path::String)::Nothing
         while true
             total_time = time() - start_print_time
             delta_time = time() - last_print_time
+
+            # Shutdown probe: fires whether or not a ready-to-solve file is
+            # present, so the parent can terminate the loop without driving
+            # another solve. Collective: all ranks break together.
+            should_stop = Ref{Bool}(false)
+            if rank == root
+                should_stop[] = peek_termination_flag(soe_dir_path) < 0
+            end
+            MPI.Bcast!(should_stop, root, comm)
+            if should_stop[]
+                if rank == root
+                    print_info("Termination signal received. Stopping loop.", level=2)
+                end
+                break
+            end
+
             ready_for_solver = false
             if rank == root
                 ready_for_solver = has_a_ready_to_solve_file(soe_dir_path)
@@ -198,6 +214,23 @@ function manage_termination_info(soe_dir_path::String)::Int64
     end
     rm(file_path)
     return termination_flag
+end
+
+# Non-destructive read of the termination flag for the outer-loop shutdown
+# probe. Returns 0 if the file is missing or unreadable (e.g. parent is
+# mid-write), so the loop just retries on the next tick. The destructive
+# read+remove still happens via `manage_termination_info` on the per-solve path.
+function peek_termination_flag(soe_dir_path::String)::Int64
+    names = NamesManager.FileAndDirNames()
+    file_path = joinpath(soe_dir_path, names.termination_info_file_name)
+    isfile(file_path) || return 0
+    try
+        return open(file_path, "r") do f
+            read(f, Int64)
+        end
+    catch
+        return 0
+    end
 end
 
 function remove_ready_to_solve_file(soe_dir_path::String)::Nothing
