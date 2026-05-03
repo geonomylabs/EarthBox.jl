@@ -6,6 +6,7 @@ import EarthBox.MPIManager: get_mpi_implementation
 import EarthBox.PrintFuncs: print_info, print_warning
 import EarthBox.ConfigurationManager.SolverConfig: SolverConfigState
 import EarthBox.ConfigurationManager.SolverConfig: InternalMumpsSolver
+import EarthBox.ConfigurationManager.SolverConfig: MumpsFailureInjection
 import LinearAlgebra: norm
 import ..MumpsChecks
 import ..NamesManager
@@ -365,6 +366,9 @@ function execute_mumps_with_timeout_io_comm(
         create_termination_file(soe_dir_path, termination_flag)
         # Create a solver config file to store the solver configuration parameters
         create_solver_config_file(solver_config)
+        # Debug-only: optionally drop a one-shot failure-injection marker for the child to
+        # consume. Must come before the ready file so the child sees the marker when triggered.
+        maybe_create_inject_marker(soe_dir_path, solver_config.failure_injection)
         # Create a solver ready file to signal to the child process that it is time
         # to start solving the system of equations
         create_solver_ready_file(soe_dir_path)
@@ -511,6 +515,7 @@ function clean_up_soe_dir(solver_config::SolverConfigState)::Nothing
     remove_ready_to_solve_file(soe_dir_path)
     remove_solution_flag_file(soe_dir_path)
     remove_error_flag_file(soe_dir_path)
+    remove_inject_failure_file(soe_dir_path)
     return nothing
 end
 
@@ -550,6 +555,47 @@ function remove_error_flag_file(soe_dir_path::String)::Nothing
     file_path = joinpath(soe_dir_path, file_name)
     if isfile(file_path)
         rm(file_path)
+    end
+    return nothing
+end
+
+function get_inject_failure_file_path(soe_dir_path::String)::String
+    names = NamesManager.FileAndDirNames()
+    return joinpath(soe_dir_path, names.inject_failure_file_name)
+end
+
+function remove_inject_failure_file(soe_dir_path::String)::Nothing
+    file_path = get_inject_failure_file_path(soe_dir_path)
+    if isfile(file_path)
+        rm(file_path)
+    end
+    return nothing
+end
+
+# Debug-only: if any of the failure-injection Bools is set, write a one-shot marker file the
+# child will consume on the next solve, and clear the Bool. No-op in production (all Bools
+# default to false).
+function maybe_create_inject_marker(
+    soe_dir_path::String,
+    injection::MumpsFailureInjection,
+)::Nothing
+    mode = ""
+    if injection.inject_internal_error
+        mode = "internal_error"
+        injection.inject_internal_error = false
+    elseif injection.inject_crash
+        mode = "crash"
+        injection.inject_crash = false
+    elseif injection.inject_hang
+        mode = "hang"
+        injection.inject_hang = false
+    end
+    if !isempty(mode)
+        path = get_inject_failure_file_path(soe_dir_path)
+        open(path, "w") do f
+            print(f, mode)
+        end
+        print_warning("DEBUG: injecting MUMPS failure mode '$mode' on next solve.", level=2)
     end
     return nothing
 end

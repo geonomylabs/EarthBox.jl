@@ -18,6 +18,9 @@ MUMPS solver loop.
 - `error_flag_file_name`: Binary file written by the external solver loop when it catches an
     unrecoverable error. Its existence is the signal; the integer payload is reserved for
     future use (currently always 0).
+- `inject_failure_file_name`: Debug-only one-shot marker file written by the parent and
+    consumed by the child to force a chosen failure mode on the next solve. Empty in
+    production. Contents: a mode string (`internal_error`, `crash`, or `hang`).
 - `soe_dir_name`: Directory name where the system of equations and IO communicator files are stored
 - `soe_file_name`: JLD file name containing the system of equations
 """
@@ -26,6 +29,7 @@ Base.@kwdef struct FileAndDirNames
     ready_to_solve_file_name::String = "ready_to_solve_0001.txt"
     solution_flag_file_name::String = "solution_flag_0001.bin"
     error_flag_file_name::String = "error_flag_0001.bin"
+    inject_failure_file_name::String = "inject_failure_0001.txt"
     mumps_solver_config_file_name::String = "mumps_solver_config_0001.txt"
     soe_dir_name::String = "system_of_equations"
     soe_file_name::String = "system_of_equations.jld"

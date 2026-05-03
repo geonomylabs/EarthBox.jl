@@ -18,6 +18,64 @@ Base.@kwdef mutable struct InternalMumpsSolver
 end
 
 """
+    MumpsFailureInjection
+
+Debug-only knobs for forcing the MUMPS solver into known failure modes. Each Bool is
+one-shot: when `true`, the next IO-comm solve fires the corresponding failure mode and the
+Bool is automatically cleared. If more than one is `true`, they fire in field order on
+consecutive solves: `inject_internal_error` first, then `inject_crash`, then `inject_hang`.
+
+# Fields
+- `inject_internal_error::Bool`: Child writes `solution_flag = 0` (simulates a MUMPS-internal
+   error like INFOG(1)=-20). Child stays alive. Parent should NOT call
+   `restart_persistent_solver` on the retry.
+- `inject_crash::Bool`: Child throws an exception; the catch block writes the error flag and
+   the child exits via `MPI.Finalize`. Parent should detect the error flag in ~10 ms, set
+   `child_presumed_dead = true`, and call `restart_persistent_solver` on the retry.
+- `inject_hang::Bool`: Child sleeps forever and writes nothing. Parent hits `pymumps_timeout`,
+   sets `child_presumed_dead = true`, and calls `restart_persistent_solver` on the retry.
+
+All defaults are `false` so this struct is a no-op in production.
+
+# Activating injection failure via the API
+
+Create an EarthBoxState object:
+
+```julia
+eb = EarthBoxState(...)
+```
+
+where ... are the usual EarthBoxState constructor arguments.
+
+Then set the failure injection flags:
+
+```julia
+# Simulate a MUMPS-internal error
+eb.model_manager.config.solver.failure_injection.inject_internal_error = true
+```
+
+or
+
+```julia
+# Simulate a MUMPS crash
+eb.model_manager.config.solver.failure_injection.inject_crash = true
+```
+
+or
+
+```julia
+# Simulate a MUMPS hang
+eb.model_manager.config.solver.failure_injection.inject_hang = true
+```
+
+"""
+Base.@kwdef mutable struct MumpsFailureInjection
+    inject_internal_error::Bool = false
+    inject_crash::Bool          = false
+    inject_hang::Bool           = false
+end
+
+"""
     SolverConfigState
 
 Mutable struct to store solver configuration parameters.
@@ -47,6 +105,8 @@ Mutable struct to store solver configuration parameters.
     `SparseMatrixCSC(L)` and `lu(Ls) \\ R`. Eliminates the ~190 MB-per-call
     dense `L_buffer` allocation. Produces machine-epsilon-equivalent results.
     Default `true`; legacy path fully preserved.
+- `failure_injection::MumpsFailureInjection`: Debug-only knobs for forcing MUMPS failure
+    modes (see `MumpsFailureInjection`). Default is all-`false` (no injection).
 """
 mutable struct SolverConfigState
     use_mumps::Bool
@@ -65,6 +125,7 @@ mutable struct SolverConfigState
     mpi_rank::Int
     pass_large_arrays_via_mpi::Bool
     internal_mumps_solver::InternalMumpsSolver
+    failure_injection::MumpsFailureInjection
     use_optimized_residuals::Bool
     use_optimized_sediment_solver::Bool
 end
@@ -85,6 +146,7 @@ function SolverConfigState(;
     mpi_initialized::Bool = false,
     mpi_rank::Int = 0,
     pass_large_arrays_via_mpi::Bool = false,
+    failure_injection::MumpsFailureInjection = MumpsFailureInjection(),
     use_optimized_residuals::Bool = true,
     use_optimized_sediment_solver::Bool = true
 )
@@ -105,6 +167,7 @@ function SolverConfigState(;
         mpi_rank,
         pass_large_arrays_via_mpi,
         InternalMumpsSolver(use_mumps=use_mumps),
+        failure_injection,
         use_optimized_residuals,
         use_optimized_sediment_solver
     )
