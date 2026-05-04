@@ -324,20 +324,20 @@ function execute_earthbox_script(;
     istart::Int64 = 1,
     iend::Int64 = 1
 )::Nothing
-    command = build_command(
-        model_dir, eb_path, command_type, model_case_name, 
+    cmd, logfile = build_command(
+        model_dir, eb_path, command_type, model_case_name,
         model_logfile_name, model_output_path, istart, iend
         )
     try
-        println(">> Executing: $(command)")
-        result = run(`bash -c "$(command)"`, wait = true)
+        println(">> Executing: $(cmd) > $(logfile)")
+        result = run(pipeline(ignorestatus(cmd), stdout=logfile), wait = true)
         if result.exitcode != 0
             println(">> Command failed with exit code: $(result.exitcode)")
             return
         end
         println(">> Command executed successfully")
     catch e
-        println(">> !!! ERROR !!! An error occurred while executing '$(command)': $(e)")
+        println(">> !!! ERROR !!! An error occurred while executing '$(cmd)': $(e)")
         return
     end
     if command_type == "model" && model_output_path !== nothing
@@ -355,61 +355,68 @@ function build_command(
     model_output_path::Union{String, Nothing},
     istart::Int64,
     iend::Int64
-)::String
+)::Tuple{Cmd, String}
     command_registry = get_command_registry(model_dir, eb_path)
     base_command = get(command_registry, command_type, nothing)
     security_checks(base_command, command_registry, model_logfile_name)
-    
-    model_output_path_part = get_model_output_path_part(model_output_path)
-    case_name_part = get_case_name_part(model_case_name)
-    istart_iend_part = get_istart_iend_part(istart, iend)
-    
+
+    model_output_path_args = get_model_output_path_part(model_output_path)
+    case_name_args = get_case_name_part(model_case_name)
+    istart_iend_args = get_istart_iend_part(istart, iend)
+
     if command_type == "model"
-        command = "$(base_command) $(case_name_part) $(model_output_path_part) > $(model_logfile_name)"
+        cmd = `$base_command $case_name_args $model_output_path_args`
+        logfile = model_logfile_name
     elseif command_type == "marker_plots"
-        command = "$(base_command) $(istart_iend_part) $(case_name_part) $(model_output_path_part) > marker_plots_$(model_logfile_name)"
+        cmd = `$base_command $istart_iend_args $case_name_args $model_output_path_args`
+        logfile = "marker_plots_$(model_logfile_name)"
     elseif command_type == "scalar_plots"
-        command = "$(base_command) $(istart_iend_part) $(case_name_part) $(model_output_path_part) > scalar_plots_$(model_logfile_name)"
+        cmd = `$base_command $istart_iend_args $case_name_args $model_output_path_args`
+        logfile = "scalar_plots_$(model_logfile_name)"
+    else
+        throw(ArgumentError("Unknown command_type: $(command_type)"))
     end
-    return command
+    return cmd, logfile
 end
 
 function get_command_registry(
-    model_dir::String, 
+    model_dir::String,
     eb_path::Union{String, Nothing}
-)::Dict{String, String}
-    if eb_path === nothing
-        # No project path specified, assume EarthBox is installed in a standard Julia location or 
+)::Dict{String, Cmd}
+    julia_base = if eb_path === nothing
+        # No project path specified, assume EarthBox is installed in a standard Julia location or
         # the JULIA_PROJECT environment variable is set equal to the EarthBox project path.
-        eb_part = ""
+        `julia --startup-file=no`
     else
-        eb_part = " --project=$(eb_path)"
+        `julia --project=$eb_path --startup-file=no`
     end
-    command_registry = Dict{String, String}(
-        "model"        => "julia$(eb_part) --startup-file=no $(model_dir)/Model.jl",
-        "marker_plots" => "julia $(eb_part) --startup-file=no $(model_dir)/Plot.jl marker_plots",
-        "scalar_plots" => "julia $(eb_part) --startup-file=no $(model_dir)/Plot.jl scalar_plots",
+    model_jl = joinpath(model_dir, "Model.jl")
+    plot_jl = joinpath(model_dir, "Plot.jl")
+    command_registry = Dict{String, Cmd}(
+        "model"        => `$julia_base $model_jl`,
+        "marker_plots" => `$julia_base $plot_jl marker_plots`,
+        "scalar_plots" => `$julia_base $plot_jl scalar_plots`,
     )
     return command_registry
 end
 
 function security_checks(
-    command::Union{String, Nothing},
-    command_registry::Dict{String, String},
+    command::Union{Cmd, Nothing},
+    command_registry::Dict{String, Cmd},
     model_logfile_name::String
 )::Nothing
     check_command(command, command_registry)
-    
+
     if !isa(model_logfile_name, String)
         throw(ArgumentError("Model log file name must be a string."))
     end
-    
+
     return nothing
 end
 
 function check_command(
-    command::Union{String, Nothing},
-    command_registry::Dict{String, String}
+    command::Union{Cmd, Nothing},
+    command_registry::Dict{String, Cmd}
 )::Nothing
     if command === nothing
         println("Registered commands:")
@@ -418,24 +425,24 @@ function check_command(
         end
         throw(ArgumentError("Command '$(command)' not found in command registry."))
     end
-    
+
     return nothing
 end
 
-function get_case_name_part(model_case_name::String)::String
-    return "case_name=$(model_case_name)"
+function get_case_name_part(model_case_name::String)::Vector{String}
+    return ["case_name=$(model_case_name)"]
 end
 
-function get_model_output_path_part(model_output_path::Union{String, Nothing})::String
+function get_model_output_path_part(model_output_path::Union{String, Nothing})::Vector{String}
     if model_output_path !== nothing
-        return "model_output_path=$(model_output_path)"
+        return ["model_output_path=$(model_output_path)"]
     else
-        return ""
+        return String[]
     end
 end
 
-function get_istart_iend_part(istart::Int64, iend::Int64)::String
-    return "istart=$(istart) iend=$(iend)"
+function get_istart_iend_part(istart::Int64, iend::Int64)::Vector{String}
+    return ["istart=$(istart)", "iend=$(iend)"]
 end
 
 function check_plotter_command(plotter_command::String)::Nothing
@@ -725,14 +732,44 @@ function execute_remote_script_in_background(
     script_name = "Runit.jl"
     script_path = joinpath(model_dir_path, script_name)
     try
-        ssh_command = "ssh $(hostname) 'cd $(model_dir_path) && nohup julia --startup=no $(script_path) case_name=$(model_case_name) $(runit_actions) $(get_istart_iend(istart, iend)) > /dev/null 2>&1 &'"
-        println(">> Executing: $(ssh_command)")
-        run(`bash -c "$(ssh_command)"`, wait = false)
+        remote_command = build_remote_command(
+            model_dir_path, script_path, model_case_name,
+            runit_actions, istart, iend
+        )
+        println(">> Executing: ssh $(hostname) $(remote_command)")
+        run(`ssh $hostname $remote_command`, wait = false)
     catch e
         println(">> !!! ERROR !!! An error occurred: $(e)")
     end
-    
+
     return nothing
+end
+
+function build_remote_command(
+    model_dir_path::String,
+    script_path::String,
+    model_case_name::String,
+    runit_actions::Vector{String},
+    istart::Union{Int64, Nothing},
+    iend::Union{Int64, Nothing}
+)::String
+    # User-supplied paths and case name flow into the remote shell, so they
+    # must be shell-escaped. `runit_actions` and istart/iend tokens are derived
+    # from internal Bool/Int64 values, so the strings are fixed and safe.
+    parts = [
+        "cd ", Base.shell_escape(model_dir_path),
+        " && nohup julia --startup-file=no ", Base.shell_escape(script_path),
+        " case_name=", Base.shell_escape(model_case_name),
+    ]
+    if !isempty(runit_actions)
+        push!(parts, " ", join(runit_actions, " "))
+    end
+    istart_iend_args = get_istart_iend(istart, iend)
+    if !isempty(istart_iend_args)
+        push!(parts, " ", join(istart_iend_args, " "))
+    end
+    push!(parts, " > /dev/null 2>&1 &")
+    return string(parts...)
 end
 
 """
@@ -806,10 +843,14 @@ function execute_local_script_in_background(
     runit_actions = get_runit_actions(run_model, plot_markers, plot_scalars)
     script_name = "Runit.jl"
     script_path = joinpath(model_dir_path, script_name)
+    istart_iend_args = get_istart_iend(istart, iend)
     try
-        local_command = "cd $(model_dir_path) &&  nohup julia --startup=no $(script_path) case_name=$(model_case_name) $(runit_actions) $(get_istart_iend(istart, iend)) > /dev/null 2>&1 &"
-        println(">> Executing: $(local_command)")
-        run(`bash -c "$(local_command)"`, wait = false)
+        cmd = Cmd(
+            `julia --startup-file=no $script_path case_name=$model_case_name $runit_actions $istart_iend_args`,
+            dir = model_dir_path,
+        )
+        println(">> Executing: $(cmd)")
+        run(pipeline(detach(cmd), stdout=devnull, stderr=devnull), wait = false)
     catch e
         println(">> !!! ERROR !!! An error occurred: $(e)")
     end
@@ -820,32 +861,32 @@ function get_runit_actions(
     run_model::Union{Bool, Nothing},
     plot_markers::Union{Bool, Nothing},
     plot_scalars::Union{Bool, Nothing},
-)::String
-    runit_actions = ""
+)::Vector{String}
+    actions = String[]
     if run_model === true
-        runit_actions = "run_model"
+        push!(actions, "run_model")
     end
     if plot_markers === true
-        runit_actions = runit_actions * " " * "plot_markers"
+        push!(actions, "plot_markers")
     end
     if plot_scalars === true
-        runit_actions = runit_actions * " " * "plot_scalars"
+        push!(actions, "plot_scalars")
     end
-    return runit_actions
+    return actions
 end
 
 function get_istart_iend(
     istart::Union{Int64, Nothing},
     iend::Union{Int64, Nothing}
-)::String
-    istart_iend = ""
+)::Vector{String}
+    args = String[]
     if istart !== nothing
-        istart_iend = "istart=$(istart)"
+        push!(args, "istart=$(istart)")
     end
     if iend !== nothing
-        istart_iend = "$(istart_iend) iend=$(iend)"
+        push!(args, "iend=$(iend)")
     end
-    return istart_iend
+    return args
 end
 
 end # module
