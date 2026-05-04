@@ -26,7 +26,6 @@ import .Options: option_names
 import .BenchmarksStruct: Benchmarks
 
 export get_options, option_names, run_benchmarks, run_benchmark
-export couette_flow_viscous_heating
 
 BM_OPTIONS = get_options()
 
