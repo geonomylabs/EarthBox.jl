@@ -1,6 +1,7 @@
 module GetArgs
 
 using TOML
+import EarthBox.PathValidation: validate_safe_output_path
 
 export get_model_output_path_from_cl_args
 
@@ -220,7 +221,7 @@ function get_root_path_from_args()::Union{String, Nothing}
     for arg in ARGS
         if startswith(arg, "root_path=") || startswith(arg, "root_path = ") || startswith(arg, "root_path = ") || startswith(arg, "root_path= ")
             # Remove "root_path=" or "root_path = " prefix and any leading/trailing whitespace
-            return strip(replace(arg, r"^root_path\s*=\s*" => ""))
+            return validate_safe_output_path(strip(replace(arg, r"^root_path\s*=\s*" => "")))
         end
     end
     return nothing
@@ -230,7 +231,7 @@ function get_storage_path_from_args()::Union{String, Nothing}
     for arg in ARGS
         if startswith(arg, "storage_path=") || startswith(arg, "storage_path = ") || startswith(arg, "storage_path = ") || startswith(arg, "storage_path= ")
             # Remove "storage_path=" or "storage_path = " prefix and any leading/trailing whitespace
-            return strip(replace(arg, r"^storage_path\s*=\s*" => ""))
+            return validate_safe_output_path(strip(replace(arg, r"^storage_path\s*=\s*" => "")))
         end
     end
     return nothing
@@ -240,7 +241,7 @@ function get_model_output_path_from_args()::Union{String, Nothing}
     for arg in ARGS
         if startswith(arg, "model_output_path=") || startswith(arg, "model_output_path = ") || startswith(arg, "model_output_path = ") || startswith(arg, "model_output_path= ")
             # Remove "model_output_path=" or "model_output_path = " prefix and any leading/trailing whitespace
-            return strip(replace(arg, r"^model_output_path\s*=\s*" => ""))
+            return validate_safe_output_path(strip(replace(arg, r"^model_output_path\s*=\s*" => "")))
         end
     end
     return nothing
@@ -250,7 +251,7 @@ function get_model_output_path_from_args_strict()::String
     for arg in ARGS
         if startswith(arg, "model_output_path=") || startswith(arg, "model_output_path = ") || startswith(arg, "model_output_path = ") || startswith(arg, "model_output_path= ")
             # Remove "model_output_path=" or "model_output_path = " prefix and any leading/trailing whitespace
-            return strip(replace(arg, r"^model_output_path\s*=\s*" => ""))
+            return validate_safe_output_path(strip(replace(arg, r"^model_output_path\s*=\s*" => "")))
         end
     end
     throw(ArgumentError("Model output path not found in command line arguments"))
