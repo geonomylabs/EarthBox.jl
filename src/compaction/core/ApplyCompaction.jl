@@ -1,6 +1,8 @@
 module ApplyCompaction
 
 import EarthBox.ModelDataContainer: ModelData
+import EarthBox.ModelDataContainer.MarkerContainer.ArrayCollection.CompactionGroup:
+    ensure_compaction_buffers!
 import EarthBox.DataStructures: SedimentTransportParameters
 import EarthBox.EBCopy: copy_array_1d!
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_swarm_opt
@@ -69,6 +71,9 @@ function apply_compaction_model!(
     sediment_and_flow_thickness_initial::Vector{Float64},
     lava_flow_decompaction_parameters::SedimentTransportParameters
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+    marknum = model.markers.parameters.distribution.marknum.value
+    ensure_compaction_buffers!(model.markers.arrays.compaction, marknum)
+
     (
         markers_indices_sedimentary_basin,
         markers_indices_sticky
