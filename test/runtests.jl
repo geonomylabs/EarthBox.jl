@@ -20,6 +20,8 @@ end
         include("tests/aqua_tests.jl")
         include("tests/path_validation_tests.jl")
         include("tests/runtools_tests.jl")
+        include("tests/input_bounds_tests.jl")
+        include("tests/material_reader_tests.jl")
         include("tests/parameter_macros_tests.jl")
         include("tests/parameter_registry_guard_test.jl")
         include("tests/array_macros_tests.jl")
