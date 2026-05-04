@@ -99,4 +99,58 @@ function validate_file_path(path::String;
     return normalized_path
 end
 
+# ----- Output-path safety guard -----
+
+# System directories that EarthBox should never write outputs to. The check is
+# a deny-list rather than an allow-list so legitimate non-/home roots used on
+# HPC/workstation setups (/scratch, /data, /opt, /tmp, /mnt, ...) keep working
+# without configuration. Adding an entry here means absolute paths starting
+# with that prefix are rejected; relative paths are not subject to this check.
+const SYSTEM_DENY_PREFIXES = [
+    "/etc",   "/usr",   "/bin",  "/sbin",
+    "/boot",  "/proc",  "/sys",  "/dev",
+    "/lib",   "/lib64", "/run",  "/root",
+]
+
+"""
+    validate_safe_output_path(path) -> String
+
+Validate a path that EarthBox is about to create or write to. Normalises the
+path, rejects directory-traversal attempts, and refuses absolute paths that
+resolve under common system directories (`/etc`, `/usr`, `/bin`, `/proc`, ...).
+Relative paths and other absolute paths (`/home`, `/mnt`, `/scratch`, `/tmp`,
+`/data`, `/opt`, ...) are accepted unchanged.
+
+This is a defence against typos and obviously-misconfigured output roots, not
+an exhaustive sandbox. Callers that need a strict allow-list should use
+[`validate_path`](@ref) with explicit `allowed_prefixes` instead.
+
+# Throws
+- `ArgumentError` if the path is empty, contains a `..` traversal segment after
+   normalisation, or resolves under a system-only prefix.
+"""
+function validate_safe_output_path(path::AbstractString)::String
+    if isempty(path)
+        throw(ArgumentError("Output path is empty."))
+    end
+    normalized = normpath(String(path))
+
+    if any(==(".."), splitpath(normalized))
+        throw(ArgumentError("Output path contains directory traversal: $(path)"))
+    end
+
+    if isabspath(normalized)
+        for prefix in SYSTEM_DENY_PREFIXES
+            if normalized == prefix || startswith(normalized, prefix * "/")
+                throw(ArgumentError(
+                    "Output path resolves under system directory $(prefix) and " *
+                    "is not allowed for EarthBox output: $(path)"
+                ))
+            end
+        end
+    end
+
+    return normalized
+end
+
 end # module PathValidation

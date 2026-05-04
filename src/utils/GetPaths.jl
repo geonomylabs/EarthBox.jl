@@ -1,6 +1,7 @@
 module GetPaths
 
 import EarthBox.GetArgs: get_model_output_path_from_args, get_storage_path_from_args
+import EarthBox.PathValidation: validate_safe_output_path
 
 """
     get_storage_path(
@@ -36,6 +37,7 @@ function get_storage_path(
         end
         storage_path = joinpath(root_path, "$(model_case_name)_output")
     end
+    storage_path = validate_safe_output_path(storage_path)
     if !isdir(storage_path)
         mkpath(storage_path)
     end
@@ -76,6 +78,7 @@ function get_model_output_path(
         end
         model_output_path = joinpath(root_path, "$(model_case_name)_output")
     end
+    model_output_path = validate_safe_output_path(model_output_path)
     if !isdir(model_output_path)
         mkpath(model_output_path)
     end
@@ -124,6 +127,7 @@ function get_experiment_group_dir_path(
 )
     drive_path = get_drive_path(drive_root_path, drive_base_name, drive_number_id)
     experiment_group_dir_path = joinpath(drive_path, local_group_path_on_drive)
+    experiment_group_dir_path = validate_safe_output_path(experiment_group_dir_path)
     if !isdir(experiment_group_dir_path)
         mkpath(experiment_group_dir_path)
     end

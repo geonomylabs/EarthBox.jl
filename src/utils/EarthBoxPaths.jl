@@ -2,6 +2,7 @@ module EarthBoxPaths
 
 using Printf
 import EarthBox.PrintFuncs: print_info
+import EarthBox.PathValidation: validate_safe_output_path
 
 struct EarthBoxPathNames
     model_input_file::String
@@ -73,6 +74,7 @@ function update_input_paths_dict(
 end
 
 function check_output_dir(paths::EarthBoxPathsState)
+    paths.paths["output_dir"] = validate_safe_output_path(paths.paths["output_dir"])
     if !isdir(paths.paths["output_dir"])
         print_info("Output directory not found. A directory will be created for you.")
         mkpath(paths.paths["output_dir"])

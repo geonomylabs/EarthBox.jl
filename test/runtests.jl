@@ -19,6 +19,7 @@ end
     if RUN_FAST
         include("tests/aqua_tests.jl")
         include("tests/path_validation_tests.jl")
+        include("tests/safe_output_path_tests.jl")
         include("tests/runtools_tests.jl")
         include("tests/input_bounds_tests.jl")
         include("tests/material_reader_tests.jl")
