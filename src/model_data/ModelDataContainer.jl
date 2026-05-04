@@ -66,7 +66,7 @@ import .MaterialContainer: Materials
 
 export ModelData, Grids, Grids3d, Timestep, Geometry, BoundaryConditions,
     Materials, Markers, Interpolation, Melting, Topography, HeatEquation, 
-    StokesContinuity, Gravity, Benchmarks, Conversion, Carbonate, RGAS
+    StokesContinuity, Gravity, Benchmarks, Conversion, Carbonate
 
 """
     ModelData

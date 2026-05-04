@@ -17,6 +17,7 @@ end
 
 @testset "EarthBox.jl" verbose=true begin
     if RUN_FAST
+        include("tests/aqua_tests.jl")
         include("tests/parameter_macros_tests.jl")
         include("tests/parameter_registry_guard_test.jl")
         include("tests/array_macros_tests.jl")
