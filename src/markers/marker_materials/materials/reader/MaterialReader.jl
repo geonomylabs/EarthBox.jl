@@ -61,6 +61,9 @@ function read_material_file(
             material_name = convert(Int16, material_name)
         end
         if !isa_header(material_name)
+            if file_type == "model"
+                validate_material_entry(material_name, raw_parameters_dict)
+            end
             material_parameters_dict = create_parameters_dict(
                 file_type, material_name, raw_parameters_dict, master_parameters)
             # Convert material_name to the correct type for MaterialsDictType
@@ -69,6 +72,59 @@ function read_material_file(
         end
     end
     return materials_dict, length(keys(materials_dict))
+end
+
+const MODEL_MATERIAL_REQUIRED_KEYS = [
+    "mat_name", "mat_type", "mat_domain",
+    "red_fraction", "green_fraction", "blue_fraction",
+]
+
+const MODEL_MATERIAL_RGB_KEYS = ["red_fraction", "green_fraction", "blue_fraction"]
+
+"""
+    validate_material_entry(material_id, raw_parameters_dict)
+
+Structural validation for one material entry parsed from a model materials.yml.
+Checks required keys are present, each parameter follows the
+`[value, units, description]` triplet shape, RGB fractions lie in [0, 1], and
+`mat_name` is a non-empty string. Does not validate that `mat_name`/`mat_type`/
+`mat_domain` reference real entries in the material library — that lookup is
+checked downstream.
+"""
+function validate_material_entry(
+    material_id,
+    raw_parameters_dict::Dict{Any, Any}
+)::Nothing
+    for required_key in MODEL_MATERIAL_REQUIRED_KEYS
+        if !haskey(raw_parameters_dict, required_key)
+            throw(ArgumentError(
+                "Material entry $(material_id) is missing required key: $(required_key)."
+            ))
+        end
+        triplet = raw_parameters_dict[required_key]
+        if !(triplet isa AbstractVector) || length(triplet) != 3
+            throw(ArgumentError(
+                "Material entry $(material_id) field '$(required_key)' must be a " *
+                "[value, units, description] triplet; got $(triplet)."
+            ))
+        end
+    end
+    for rgb_key in MODEL_MATERIAL_RGB_KEYS
+        value = raw_parameters_dict[rgb_key][1]
+        if !(value isa Real) || !isfinite(value) || value < 0 || value > 1
+            throw(ArgumentError(
+                "Material entry $(material_id) field '$(rgb_key)' = $(value) must be " *
+                "a real number in [0, 1]."
+            ))
+        end
+    end
+    mat_name_value = raw_parameters_dict["mat_name"][1]
+    if !(mat_name_value isa AbstractString) || isempty(mat_name_value)
+        throw(ArgumentError(
+            "Material entry $(material_id) field 'mat_name' must be a non-empty string."
+        ))
+    end
+    return nothing
 end
 
 """ Read a YAML file and return a dictionary.

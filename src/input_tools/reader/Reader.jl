@@ -2,6 +2,7 @@ module Reader
 
 import YAML
 import EarthBox.EarthBoxDtypes: ParametersDictType
+import ..InputBounds: validate_value, validate_total_markers
 
 struct InputData
     dfloats::Dict{String, Float64}
@@ -16,12 +17,14 @@ function get_parameters_input_dict(
     if input_file_path !== nothing && isfile(input_file_path)
         model_input_dict = read_yaml_file(input_file_path)
         parameters_input_dict = make_parameters_dict(model_input_dict)
+        validate_parameters_dict(parameters_input_dict)
     end
     return parameters_input_dict
 end
 
+# TODO: This function is dead and build_input_data_structure() does not exist.
 function get_input_data(
-    input_file_path::Union{String, Nothing}, 
+    input_file_path::Union{String, Nothing},
     initialization_params::Union{Dict{String, Union{Float64, Int64}}, Nothing}
 )
     input_data_obj = build_input_data_structure()
@@ -35,6 +38,38 @@ function get_input_data(
         load_parameter_dict(initialization_params, input_data_obj)
     end
     return input_data_obj
+end
+
+"""
+    validate_parameters_dict(parameters_dict)
+
+Apply DoS-prevention bounds checks to every recognised parameter in a
+freshly-parsed YAML model dictionary, plus the total-markers derived check.
+Values are checked as parsed by YAML (Int64 / Float64 / String) — type
+conversion happens later during model construction. Unknown parameter names
+are skipped here; name validation also happens later.
+"""
+function validate_parameters_dict(parameters_dict::Dict{String, Vector{Any}})::Nothing
+    for (param_name, param_list) in parameters_dict
+        if !isempty(param_list)
+            validate_value(param_name, param_list[1])
+        end
+    end
+    xnum = lookup_raw(parameters_dict, "xnum")
+    ynum = lookup_raw(parameters_dict, "ynum")
+    nmcx = lookup_raw(parameters_dict, "nmarkers_cell_x")
+    nmcy = lookup_raw(parameters_dict, "nmarkers_cell_y")
+    if xnum !== nothing && ynum !== nothing && nmcx !== nothing && nmcy !== nothing
+        validate_total_markers(xnum, ynum, nmcx, nmcy)
+    end
+    return nothing
+end
+
+function lookup_raw(parameters_dict::Dict{String, Vector{Any}}, name::String)
+    if haskey(parameters_dict, name) && !isempty(parameters_dict[name])
+        return parameters_dict[name][1]
+    end
+    return nothing
 end
 
 
