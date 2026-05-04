@@ -81,12 +81,12 @@ function Arrays(marknum::Int)::Arrays
         GridMarkerRelationship(marknum),
         Melt(marknum),
         Advection(marknum),
-        Compaction(marknum),
+        Compaction(),
         Solidification(marknum),
         Recycle(marknum),
         Serpentinization(marknum),
         SubgridHeat(marknum),
-        SedimentTransport(marknum),
+        SedimentTransport(),
         Lithostatic(marknum)
     )
 end

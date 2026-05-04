@@ -15,6 +15,8 @@ import EarthBox.ConversionFuncs: meters_per_seconds_to_mm_per_yr
 import EarthBox.Compaction.CompactionTools: calculate_final_thickness_after_burial
 import EarthBox.Compaction.MarkerCompaction: calculate_swarm_indices_for_sediment_and_sticky
 import EarthBox.Compaction.MarkerCompaction: calculate_x_sorted_swarm_indices
+import EarthBox.ModelDataContainer.MarkerContainer.ArrayCollection.CompactionGroup:
+    ensure_compaction_buffers!
 import EarthBox.DataStructures: SedimentTransportParameters
 import EarthBox.Compaction.CompactionCorrection: apply_compaction_correction
 import EarthBox.Compaction.CompactionCorrection: apply_compaction_correction_for_topography_and_markers
@@ -378,7 +380,9 @@ function run_sediment_transport_time_steps!(
         view(drainage_divides_x, 1:ndivides), water_depth_x
     )
     if solver.compaction_correction_type == "variable_property" && !isnothing(model)
-        markers_indices_sedimentary_basin, markers_indices_sticky = 
+        marknum = model.markers.parameters.distribution.marknum.value
+        ensure_compaction_buffers!(model.markers.arrays.compaction, marknum)
+        markers_indices_sedimentary_basin, markers_indices_sticky =
             calculate_swarm_indices_for_sediment_and_sticky(model)
         x_sorted_marker_indices_sticky = calculate_x_sorted_swarm_indices(
             model, markers_indices_sticky)

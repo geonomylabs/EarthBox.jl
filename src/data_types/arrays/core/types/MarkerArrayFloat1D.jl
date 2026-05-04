@@ -25,6 +25,8 @@ Mutable struct representing a 1D float marker array with associated metadata.
 - `units::String`: Physical units of the array values
 - `description::String`: Description of the array's purpose
 - `outform::OutputFormat`: Output formatting specifications
+- `ibackup::Bool`: Whether this array participates in model backup/restore.
+  Set to `false` for scratch buffers whose contents are recomputed each call.
 """
 mutable struct MarkerArrayFloat1DState{T<:AbstractFloat} <: AbstractEarthBoxArray1D
     array::Vector{T}
@@ -32,13 +34,15 @@ mutable struct MarkerArrayFloat1DState{T<:AbstractFloat} <: AbstractEarthBoxArra
     units::String
     description::String
     outform::OutputFormat
+    ibackup::Bool
 end
 
 function MarkerArrayFloat1DState(
     marker_array::Vector{T},
     attr_name::String,
     units::String,
-    description::String
+    description::String;
+    ibackup::Bool=true
 )::MarkerArrayFloat1DState{T} where {T<:AbstractFloat}
     outform = OutputFormat(
         1.0,
@@ -50,7 +54,7 @@ function MarkerArrayFloat1DState(
         attr_name
     )
     return MarkerArrayFloat1DState{T}(
-        marker_array, attr_name, units, description, outform)
+        marker_array, attr_name, units, description, outform, ibackup)
 end
 
 end # module

@@ -19,6 +19,12 @@ phases.
 Buffers are passed as **explicit positional arguments** to the helpers
 (no `Union{T, Nothing}=nothing` keyword), preserving Julia
 specialization on the hot path.
+
+Both buffers are constructed at length 0 and lazily resized to `marknum`
+on the first call to `advect_markers_using_compaction` via
+[`ensure_sediment_transport_buffers!`](@ref). They are flagged with
+`ibackup=false` so the JLD2 backup loader does not try to restore them
+from saved state — they are scratch and re-derived on each advect call.
 """
 module SedimentTransportGroup
 
@@ -42,31 +48,63 @@ advection routines.
 - `marker_displacement_buffer::`[`MarkerArrayFloat1DState`](@ref) Float64
 
 # Constructor
-    SedimentTransport(marknum::Int)
+    SedimentTransport()
 
-## Arguments
-- `marknum::Int`: Number of markers (each buffer is sized to this length).
+The marker-length buffers start empty and are sized on first use by
+[`ensure_sediment_transport_buffers!`](@ref).
 """
 mutable struct SedimentTransport <: AbstractArrayGroup
     marker_displacement_factors_buffer::MarkerArrayFloat1DState{Float64}
     marker_displacement_buffer::MarkerArrayFloat1DState{Float64}
 end
 
-function SedimentTransport(marknum::Int)::SedimentTransport
+function SedimentTransport()::SedimentTransport
     return SedimentTransport(
         MarkerArrayFloat1DState(
-            zeros(Float64, marknum),
+            Float64[],
             ADATA.sediment_transport_marker_displacement_factors_buffer.name,
             ADATA.sediment_transport_marker_displacement_factors_buffer.units,
-            ADATA.sediment_transport_marker_displacement_factors_buffer.description
+            ADATA.sediment_transport_marker_displacement_factors_buffer.description;
+            ibackup=false
         ),
         MarkerArrayFloat1DState(
-            zeros(Float64, marknum),
+            Float64[],
             ADATA.sediment_transport_marker_displacement_buffer.name,
             ADATA.sediment_transport_marker_displacement_buffer.units,
-            ADATA.sediment_transport_marker_displacement_buffer.description
+            ADATA.sediment_transport_marker_displacement_buffer.description;
+            ibackup=false
         )
     )
+end
+
+"""
+    ensure_sediment_transport_buffers!(st::SedimentTransport, marknum::Int)
+
+Idempotently size the marker-length advection scratch buffers to
+`marknum`. Safe to call every advect — does nothing when sizes already
+match. Called at the top of
+`MarkerAdvection.advect_markers_using_compaction`.
+"""
+function ensure_sediment_transport_buffers!(
+    st::SedimentTransport, marknum::Int
+)::Nothing
+    _ensure_buffer!(st.marker_displacement_factors_buffer.array, marknum)
+    _ensure_buffer!(st.marker_displacement_buffer.array, marknum)
+    return nothing
+end
+
+function _ensure_buffer!(buf::Vector{Float64}, target::Int)::Nothing
+    current = length(buf)
+    if current == target
+        return nothing
+    end
+    resize!(buf, target)
+    if target > current
+        @inbounds for i in (current + 1):target
+            buf[i] = 0.0
+        end
+    end
+    return nothing
 end
 
 end # module

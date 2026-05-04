@@ -220,6 +220,13 @@ function get_markers_arrays()::NamedTuple
         # compaction call (no cross-callsite sharing). Production callers
         # extract from model.markers.arrays.compaction.X.array and pass
         # explicitly to the function; the function fills them as needed.
+        #
+        # All nine buffers below are lazily sized: constructed at length 0
+        # by CompactionGroup and resized to marknum on first use via
+        # CompactionGroup.ensure_compaction_buffers!, called at the top of
+        # ApplyCompaction.apply_compaction_model! and inside the
+        # variable_property branch of run_sediment_transport_time_steps!.
+        # All are flagged ibackup=false so JLD2 backup/restore skips them.
         markers_topo_xindex_buffer = ArrayData(
             "None", MarkerArrayInt1DState, "NA",
             "`(marknum)` : Pre-allocated scratch for the topography-grid "
@@ -381,17 +388,21 @@ function get_markers_arrays()::NamedTuple
         sediment_transport_marker_displacement_factors_buffer = ArrayData(
             "None",
             MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for displacement factors "
+            "`(marknum)` : Lazily-sized scratch for displacement factors "
             * "computed by MarkerAdvection.calculate_sediment_compaction_displacement_factors! "
             * "and MarkerAdvection.calculate_sticky_compaction_displacement_factors!. "
+            * "Constructed at length 0 and resized to marknum on first call to "
+            * "advect_markers_using_compaction; ibackup=false. "
             * "Filled with fill!(0.0) at start of each writer call.",
         ),
         sediment_transport_marker_displacement_buffer = ArrayData(
             "m",
             MarkerArrayFloat1DState, "NA",
-            "`(marknum)` : Pre-allocated scratch for marker displacements "
+            "`(marknum)` : Lazily-sized scratch for marker displacements "
             * "computed by MarkerAdvection.calculate_sediment_marker_displacement! "
             * "and MarkerAdvection.calculate_sticky_marker_displacement!. "
+            * "Constructed at length 0 and resized to marknum on first call to "
+            * "advect_markers_using_compaction; ibackup=false. "
             * "Filled with fill!(0.0) at start of each writer call.",
         ),
     )

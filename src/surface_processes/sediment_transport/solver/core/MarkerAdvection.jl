@@ -2,6 +2,8 @@ module MarkerAdvection
 
 using CairoMakie
 import EarthBox.ModelDataContainer: ModelData
+import EarthBox.ModelDataContainer.MarkerContainer.ArrayCollection.SedimentTransportGroup:
+    ensure_sediment_transport_buffers!
 import EarthBox.SedimentWaterInterface: get_depth
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_layer_thickness
 import EarthBox.MathTools: linear_interp_at_x_location
@@ -30,6 +32,9 @@ function advect_markers_using_compaction(
     sediment_thickness_markers_initial::Vector{Float64},
     compaction_displacement_max::Vector{Float64}
 )::Nothing
+    marknum = model.markers.parameters.distribution.marknum.value
+    ensure_sediment_transport_buffers!(model.markers.arrays.sediment_transport, marknum)
+
     sticky_thickness_markers_initial = calculate_sticky_thickness_from_markers(model)
 
     make_debug_plots = false
