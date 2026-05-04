@@ -169,8 +169,6 @@ function run_benchmarks(
     mumps_solver_dict::Union{Dict{Symbol, Vector{Any}}, Nothing} = nothing,
     kwargs...
 )::Benchmarks
-    PRINT_SETTINGS.print_performance = false
-    PRINT_SETTINGS.print_info = false
 
     run_model = get(kwargs, :run_model, true) 
     run_post_processing = get(kwargs, :run_post_processing, true)
@@ -178,7 +176,18 @@ function run_benchmarks(
     old_date_stamp = get(kwargs, :old_date_stamp, nothing)
     make_backup = get(kwargs, :make_backup, false)
     restart_from_backup = get(kwargs, :restart_from_backup, false)
+    mumps_inject_internal_error = get(kwargs, :mumps_inject_internal_error, false)
+    mumps_inject_crash = get(kwargs, :mumps_inject_crash, false)
     output_dir_root = get_output_dir_root(base_path, old_date_stamp=old_date_stamp)
+
+    if mumps_inject_internal_error || mumps_inject_crash
+        PRINT_SETTINGS.print_performance = true
+        PRINT_SETTINGS.print_info = true
+    else
+        PRINT_SETTINGS.print_performance = false
+        PRINT_SETTINGS.print_info = false
+    end
+
     bench = Benchmarks(
         run_model           = run_model,
         run_post_processing = run_post_processing,
@@ -186,8 +195,10 @@ function run_benchmarks(
     )
     run_tests(
         bench, test_dict, mumps_solver_dict;
-        make_backup         = make_backup, 
-        restart_from_backup = restart_from_backup,
+        make_backup                 = make_backup,
+        restart_from_backup         = restart_from_backup,
+        mumps_inject_internal_error = mumps_inject_internal_error,
+        mumps_inject_crash          = mumps_inject_crash,
     )
     return bench
 end
@@ -197,7 +208,9 @@ function run_tests(
     test_dict::OrderedDict{Symbol, Bool},
     mumps_solver_dict::Union{Dict{Symbol, Vector{Any}}, Nothing} = nothing;
     make_backup::Bool = false,
-    restart_from_backup::Bool = false
+    restart_from_backup::Bool = false,
+    mumps_inject_internal_error::Bool = false,
+    mumps_inject_crash::Bool = false,
 )::Nothing
     if isnothing(test_dict)
         error("test_dict is not defined.")
@@ -223,8 +236,10 @@ function run_tests(
                 end
                 run_test_model(
                     bench, String(test_name), use_mumps, nprocs;
-                    make_backup = make_backup,
-                    restart_from_backup = restart_from_backup
+                    make_backup                 = make_backup,
+                    restart_from_backup         = restart_from_backup,
+                    mumps_inject_internal_error = mumps_inject_internal_error,
+                    mumps_inject_crash          = mumps_inject_crash,
                 )
             end
             if bench.run_post_processing
@@ -241,7 +256,9 @@ function run_test_model(
     use_mumps::Bool,
     nprocs::Int;
     make_backup::Bool = false,
-    restart_from_backup::Bool = false
+    restart_from_backup::Bool = false,
+    mumps_inject_internal_error::Bool = false,
+    mumps_inject_crash::Bool = false,
 )::Nothing
     model_dir = joinpath(bench.main_paths["models_path"], test_name)
     ebpaths = EarthBoxPathsState().key_names
@@ -260,6 +277,15 @@ function run_test_model(
         nprocs = nprocs,
         use_internal_mumps = true
     )
+
+    if use_mumps
+        fi = eb.model_manager.config.solver.failure_injection
+        if mumps_inject_internal_error
+            fi.inject_internal_error = true
+        elseif mumps_inject_crash
+            fi.inject_crash = true
+        end
+    end
 
     ModelManager.initialize_model!(eb.model_manager)
     EarthBox.run_time_steps(eb, make_backup = make_backup)

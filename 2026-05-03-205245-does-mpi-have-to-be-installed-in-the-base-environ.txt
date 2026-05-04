@@ -1,0 +1,102 @@
+ ▐▛███▜▌   Claude Code v2.1.126
+▝▜█████▛▘  Opus 4.7 · Claude Max
+  ▘▘ ▝▝    ~/apps/julia/EarthBox
+
+❯ does MPI have to be installed in the base environment in order to use MUMPS   
+
+  Searched for 1 pattern (ctrl+o to expand)
+
+● No. MPI just needs to be in the active project environment, not the
+  base/global one.
+
+  In this repo it already is — Project.toml lists MPI, MPIPreferences, and MUMPS
+   as direct deps, and MUMPS_jll pulls in MPI binaries via JLL artifacts
+  (MPICH_jll, OpenMPI_jll, etc.). So as long as you launch Julia with
+  --project=. (or activate the EarthBox project), MUMPS works without anything
+  installed in @v1.x.
+
+  The only time you'd touch a global install is if you wanted a system MPI (e.g.
+   on an HPC cluster) — and even then the configuration goes through
+  MPIPreferences.use_system_binary() inside the project, written to
+  LocalPreferences.toml, not to the base env.
+
+✻ Churned for 13s
+
+❯ does the README say                                                           
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● You're right to push back — I was wrong. The README does say to install MPI in
+   the base environment.
+
+  From README.md:203 ("Installing MPI in Base Julia Environment") and the note
+  at line 281–283:
+
+  ▎ MPI.jl should also be installed in the base Julia environment ... These MPI 
+  ▎ configuration steps are required for the use of MUMPS.jl with EarthBox.
+
+  So the documented setup is:
+  1. (@v1.12) pkg> add MPI@0.20.22 and MPIPreferences@0.1.11 in the base env
+  2. MPIPreferences.use_jll_binary("OpenMPI_jll")
+  3. MPI.install_mpiexecjl() and put it on PATH
+
+  The practical reason is step 3 — mpiexecjl is generated from the base-env MPI
+  install and needs to be on $PATH to launch MUMPS. My earlier "no" was
+  technically right about MUMPS loading, but wrong about the documented EarthBox
+   workflow. Sorry for the misleading answer.
+
+  Want me to dig into whether the base-env install is strictly required (vs.
+  just convenient for mpiexecjl), or leave the README as the source of truth?
+
+✻ Sautéed for 13s
+
+❯ Then how could an mpi test be desined that would run via CI on github         
+
+  Read 1 file, listed 2 directories (ctrl+o to expand)
+
+● Short version: in CI you don't actually need a "base env" — that's a
+  user-ergonomics step (so mpiexecjl is on $PATH for interactive use). CI can do
+   everything inside the project env.
+
+  Three building blocks:
+
+  1. Pin MPI to the JLL before tests run. Add a step (or a test/setup_mpi.jl
+  invoked in CI) that writes LocalPreferences.toml:
+  using MPIPreferences
+  MPIPreferences.use_jll_binary("OpenMPI_jll"; force=true)
+  Has to run in a separate julia invocation before any process loads MPI, since
+  prefs are read at MPI load time.
+
+  2. For most MUMPS tests: single-rank, in-process. MUMPS works fine with comm
+  size 1, so no launcher needed:
+  using MPI, MUMPS, SparseArrays, Test
+  MPI.Initialized() || MPI.Init()
+  A = sparse([2.0 1; 1 3]); b = [3.0, 4]
+  x = MUMPS.solve(A, b)
+  @test A*x ≈ b
+  Run this as its own Julia subprocess from runtests.jl so MPI.Init/Finalize
+  doesn't contaminate the rest of the suite.
+
+  3. For genuine multi-rank tests: launch via MPI.mpiexec() from Julia — no
+  mpiexecjl on PATH required:
+  using MPI
+  mpiexec() do exe
+      run(`$exe -n 2 $(Base.julia_cmd()) --project=.
+  test/tests/mumps_mpi_worker.jl`)
+  end
+  The worker file does its own MPI.Init(), runs the MUMPS solve, asserts, exits.
+   The parent test just checks the subprocess exit code.
+
+  CI workflow change is minimal — one extra step between julia-buildpkg and
+  julia-runtest:
+  - name: Configure MPI to use OpenMPI_jll
+    run: julia --project=. -e 'using MPIPreferences; 
+  MPIPreferences.use_jll_binary("OpenMPI_jll"; force=true)'
+
+  Then gate the MUMPS tests behind a new group (e.g. EARTHBOX_TEST_GROUP=mumps)
+  so they only run when you want them.
+
+  The README instructions remain correct for humans developing locally — they
+  just don't apply to a fresh CI runner.
+
+✻ Cogitated for 52s
