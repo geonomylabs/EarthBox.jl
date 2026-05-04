@@ -44,6 +44,10 @@ function get_mumps_args_string()::String
         - Set to true to use the MUMPS solver. Default is false.
     - `nprocs::Int = 1`:
         - Number of processors to use if using the MUMPS solver. Default is 1.
+    - `mumps_inject_internal_error::Bool = false`:
+        - Set to true to inject an internal error into the MUMPS solver. Default is false.
+    - `mumps_inject_crash::Bool = false`:
+        - Set to true to inject a crash into the MUMPS solver. Default is false.
     """
 end
 
@@ -67,6 +71,8 @@ function get_keyword_args_string()::String
            model restart functionality. Default is false.
     - `restart_from_backup::Bool`:
         - Set to true to restart from a backup file. Default is false.
+    - `verbose_output::Bool`:
+        - Set to true to print verbose output. Default is false.
     
     # Returns
     - Nothing
