@@ -179,8 +179,9 @@ function run_benchmarks(
     mumps_inject_internal_error = get(kwargs, :mumps_inject_internal_error, false)
     mumps_inject_crash = get(kwargs, :mumps_inject_crash, false)
     output_dir_root = get_output_dir_root(base_path, old_date_stamp=old_date_stamp)
+    verbose_output = get(kwargs, :verbose_output, false)
 
-    if mumps_inject_internal_error || mumps_inject_crash
+    if mumps_inject_internal_error || mumps_inject_crash || verbose_output
         PRINT_SETTINGS.print_performance = true
         PRINT_SETTINGS.print_info = true
     else
