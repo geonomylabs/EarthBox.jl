@@ -105,12 +105,10 @@ using EarthBox.InputTools.InputBounds: validate_value, validate_total_markers,
     end
 
     @testset "real example model.yml files pass validation" begin
-        for example in [
-            "examples/models/sandbox_extension/model.yml",
-            "examples/models/slab_retreat/model.yml",
-            "examples/models/sandbox_shortening/model.yml",
-        ]
-            result = EarthBox.InputTools.Reader.get_parameters_input_dict(example)
+        examples_root = joinpath(@__DIR__, "..", "..", "examples", "models")
+        for example_dir in ["sandbox_extension", "slab_retreat", "sandbox_shortening"]
+            path = joinpath(examples_root, example_dir, "model.yml")
+            result = EarthBox.InputTools.Reader.get_parameters_input_dict(path)
             @test result !== nothing
             @test length(result) > 0
         end

@@ -77,12 +77,10 @@ import EarthBox.Markers.MarkerMaterials.MaterialsContainer.MaterialReader:
     end
 
     @testset "real example materials.yml passes" begin
-        for example in [
-            "examples/models/sandbox_extension/materials.yml",
-            "examples/models/slab_retreat/materials.yml",
-            "examples/models/sandbox_shortening/materials.yml",
-        ]
-            materials_dict, nmats = read_materials_input(example)
+        examples_root = joinpath(@__DIR__, "..", "..", "examples", "models")
+        for example_dir in ["sandbox_extension", "slab_retreat", "sandbox_shortening"]
+            path = joinpath(examples_root, example_dir, "materials.yml")
+            materials_dict, nmats = read_materials_input(path)
             @test nmats > 0
             # mat_name should be propagated as the first parameter on every entry.
             for (matid, params) in materials_dict
