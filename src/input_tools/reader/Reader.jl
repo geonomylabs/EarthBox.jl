@@ -22,24 +22,6 @@ function get_parameters_input_dict(
     return parameters_input_dict
 end
 
-# TODO: This function is dead and build_input_data_structure() does not exist.
-function get_input_data(
-    input_file_path::Union{String, Nothing},
-    initialization_params::Union{Dict{String, Union{Float64, Int64}}, Nothing}
-)
-    input_data_obj = build_input_data_structure()
-    initialize_input_data_structure(input_data_obj)
-
-    if input_file_path !== nothing && isfile(input_file_path)
-        load_input_file_parameters_into_input_data_structure(
-            input_file_path, input_data_obj)
-    end
-    if initialization_params !== nothing
-        load_parameter_dict(initialization_params, input_data_obj)
-    end
-    return input_data_obj
-end
-
 """
     validate_parameters_dict(parameters_dict)
 
