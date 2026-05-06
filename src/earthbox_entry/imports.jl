@@ -13,7 +13,6 @@ import .ConfigurationManager.OutputConfig: MarkerOutputKeys
 import .EarthBoxDtypes: ParametersDictType, MaterialsDictType, MaterialDictType
 import .ParameterRegistry: get_eb_parameters
 # Utilities
-import .PrintFuncs: print_info
 import .PrintFuncs: print_warning, print_info, @timeit_memit, PRINT_SETTINGS
 import .SysTools: get_username
 import .GetModels: get_models
