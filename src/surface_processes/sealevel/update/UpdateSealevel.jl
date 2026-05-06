@@ -84,7 +84,13 @@ below the sticky-rock interface, the relative base level is positive.
 
 The y-location of sea level is related to the relative base level by:
 
-    y_sealevel = y_topo_left_edge + relative_base_level
+    y_sealevel = y_min + relative_base_level
+
+where y_min is the y-coordinate of the top of the model domain and 
+relative_base_level is the top of the reference lithosphere in meters calculated 
+by assuming isostatic equilibrium between the model domain (using average pressure) 
+and the reference lithosphere.
+
 """
 function calculate_relative_base_level_using_average_pressure(
     model::ModelData;

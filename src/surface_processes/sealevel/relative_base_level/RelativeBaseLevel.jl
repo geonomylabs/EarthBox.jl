@@ -82,12 +82,44 @@ end
     If 0, use the three-layer analytical model.
 
 # Returns
-- `relative_base_level`: Location of base level relative to basement of model column in 
-  meters.
+- `relative_base_level`: Location of base level relative to the top of the model in meters.
 - `gridy_ref`: Reference grid y coordinates
 - `temp_gridy_ref`: Reference temperature grid
 - `density_gridy_ref`: Reference density grid
 - `pressure_gridy_ref`: Reference pressure grid
+
+# Background
+
+        model        reference     reference
+        column       column        column
+                     before        after
+                     isostatic     isostatic
+                     adjustment    adjustment
+        ______________________________________________________________ y = 0
+air     | a  a |     | c  c |     | a  a |      |
+        |______|     | c  c |     |______|      |__ relative base level (Br)
+crust   | c  c |     | c  c |     | c  c |          This represents global sea level at
+        | c  c |     |______|     | c  c |          the top of the reference lithosphere.
+        | c  c |     | m  m |     | c  c |
+        |______|     | m  m |     |______|
+mantle  | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        | m  m |     | m  m |     | m  m |
+        |______|     |______|     | m  m |_____
+         Pavg        Pref         | m  m |  Br 
+                                  |______|_____
+
+    Br = (Pavg - Pmod) / (density asthenosphere*g - density air*g)
+    
+    If there is no base level shift, then the sea level in model coordinates is:
+    
+       y_sealevel = Br
+
 """
 function calculate_isostatic_relative_base_level_average_pressure(
     model_column_thickness_meters::Float64,
