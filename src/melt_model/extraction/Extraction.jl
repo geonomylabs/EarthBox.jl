@@ -52,6 +52,7 @@ struct ValidInputNames
     fractionation_threshold_limit::Symbol
     maximum_shallow_injection_depth::Symbol
     extraction_fraction::Symbol
+    magma_volume_adjustment_factor::Symbol
     iuse_melt_compaction::Symbol
 end
 
@@ -96,6 +97,8 @@ Initialize melt extraction model parameters.
     - $(PDATA.maximum_shallow_injection_depth.description)
 - `$(PDATA.extraction_fraction.name)::Float64`
     - $(PDATA.extraction_fraction.description)
+- `$(PDATA.magma_volume_adjustment_factor.name)::Float64`
+    - $(PDATA.magma_volume_adjustment_factor.description)
 - `$(PDATA.iuse_melt_compaction.name)::Int64`
     - $(PDATA.iuse_melt_compaction.description)
 """
@@ -241,6 +244,7 @@ function extract_melt_in_drainage_basins!(
     iuse_extrusion = model.melting.parameters.extrusion.iuse_extrusion.value
     iuse_eruption_interval = model.melting.parameters.extrusion.iuse_eruption_interval.value
     extraction_fraction = model.melting.parameters.extraction.extraction_fraction.value
+    magma_volume_adjustment_factor = model.melting.parameters.extraction.magma_volume_adjustment_factor.value
     characteristic_injection_width = model.melting.parameters.extraction.characteristic_injection_width.value
     magma_height_limit = model.melting.parameters.extraction.magma_height_limit.value
 
@@ -273,8 +277,9 @@ function extract_melt_in_drainage_basins!(
         model, mantle_melting_mat_ids,
         xstart=0.0, xend=model.grids.parameters.geometry.xmax.value
         )
+    total_melt_volume_check_marker_units *= magma_volume_adjustment_factor
 
-    characteristic_magmatic_crust_height = 
+    characteristic_magmatic_crust_height =
         calculate_characteristic_new_crust_height(model, total_melt_volume_check_marker_units)
 
     model.melting.parameters.extrusion.characteristic_magmatic_crust_height.value = 
@@ -294,6 +299,7 @@ function extract_melt_in_drainage_basins!(
 
         melt_volume_mantle_marker_units = MeltVolumetrics.calculate_melt_volume(
             model, mantle_melting_mat_ids, xstart=xstart, xend=xend)
+        melt_volume_mantle_marker_units *= magma_volume_adjustment_factor
 
         total_melt_volume_sum_marker_units += melt_volume_mantle_marker_units
 
@@ -372,14 +378,14 @@ function extract_melt_in_drainage_basins!(
         print_info = true
         if print_info
             print_extraction_info(
-                i, timesum_myr, nmarkers_partial_melt, 
+                i, timesum_myr, nmarkers_partial_melt,
                 melt_volume_mantle_marker_units,
                 nmarkers_magma_mantle, melt_volume_residual_marker_units,
                 nmarkers_volcanics, extrusion_volume_m3,
                 xstart, xend, characteristic_injection_width, injection_width,
                 xshallow_partial_melt_avg,
                 magma_production_rate_m3_yr, avg_marker_volume_m3,
-                melt_compaction_rate_max)
+                melt_compaction_rate_max, magma_volume_adjustment_factor)
         end
     end
 
@@ -497,12 +503,18 @@ function print_extraction_info(
     xshallow_partial_melt_avg::Float64,
     magma_production_rate_m3_yr::Float64,
     avg_marker_volume_m3::Float64,
-    melt_compaction_rate_max::Float64
+    melt_compaction_rate_max::Float64,
+    magma_volume_adjustment_factor::Float64
 )
     msg = @sprintf(
         "Melt extraction info for drainage basin: %d", i
     )
     print_melt_extraction_info(msg, level=2)
+    msg = @sprintf(
+        "magma volume adjustment factor (3D focusing): %.3f timesum (Myr): %.2f",
+        magma_volume_adjustment_factor, timesum_myr
+    )
+    print_melt_extraction_info(msg, level=3)
     msg = @sprintf(
         "xstart, xend: %.2f %.2f timesum (Myr): %.2f", 
         xstart, xend, timesum_myr

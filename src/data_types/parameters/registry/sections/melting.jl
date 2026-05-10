@@ -206,10 +206,24 @@ function get_melting_parameters()::NamedTuple
             *"extract_partial_melt_and_make_magma_body for details."
             ),
         extraction_fraction = ParameterFloat(
-            1.0, "fraction", 
+            1.0, "fraction",
             "Fraction of extracted melt that is extracted from the partially "
             *"molten zone. The remaining melt is left in the partially molten "
             *"zone and refertalizes the mantle."
+            ),
+        magma_volume_adjustment_factor = ParameterFloat(
+            1.0, "None",
+            "Multiplicative factor applied to the in-plane mantle melt volume "
+            *"to account for 3D melt focusing onto the 2D model section. The "
+            *"factor scales the source melt volume before extraction, so it "
+            *"propagates through to (a) the per-basin and domain-wide melt "
+            *"volume diagnostics, (b) the characteristic magmatic crust height "
+            *"that controls the extrusion volume factor ramp, (c) the number of "
+            *"mantle markers converted to magma, and therefore (d) both intrusion "
+            *"and extrusion volumes. A value of 1.0 disables the correction. "
+            *"For values >1.0 the marker count requested may exceed the in-plane "
+            *"partially molten pool; in that case marker conversion self-caps "
+            *"because find_shallowest returns -999 once the pool is exhausted."
             ),
         smoothing_radius_fractionation = ParameterFloat(
             10000.0, "m", 
