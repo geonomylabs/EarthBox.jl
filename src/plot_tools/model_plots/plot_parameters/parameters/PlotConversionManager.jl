@@ -90,6 +90,7 @@ function convert_velocity_array_units(
     velocity_array::Matrix{Float64}
 )::Matrix{Float64}
     conversion_func = get_conversion_func_velocity(plot_conversions, start_units)
+    plot_conversions.plot_units.active_units = plot_conversions.plot_units.velocity_units
     velocity_array = apply_conversion_factor(conversion_func, velocity_array)
     return velocity_array
 end

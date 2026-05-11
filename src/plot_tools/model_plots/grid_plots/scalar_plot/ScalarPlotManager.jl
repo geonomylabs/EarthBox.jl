@@ -111,6 +111,8 @@ end
 function sync_scalar_plot_with_velocity_plot!(scalar_plot::ScalarPlot)
     scalar_plot.parameters.time.plot_time = scalar_plot.velocity_plot.parameters.time.plot_time
     scalar_plot.parameters.time.plot_time_units = scalar_plot.velocity_plot.parameters.time.plot_time_units
+    scalar_plot.parameters.conversion.plot_units.active_units =
+        scalar_plot.velocity_plot.parameters.conversion.plot_units.active_units
     return nothing
 end
 
