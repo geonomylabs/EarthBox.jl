@@ -7,7 +7,7 @@ Description of the 2D Staggered Grid
 
         j   1            2            3             4           5            6
 
-          xstp_vy       xstpc2       xstpc3       xstpc4       xstpc5       xstpc6
+          xstp(1)       xstpc2       xstpc3       xstpc4       xstpc5       xstpc6
      |............|............|............|............|............|............|
                 xstp_b        xstp2        xstp3        xstp4        xstp5        xstp6
             |............|............|............|............|............|............|
