@@ -123,6 +123,8 @@ function run_lava_flow_model(
         sediment_and_flow_thickness_initial_resolved,
         residual_lava_thickness_subaerial,
         residual_laval_thickness_submarine,
+        characteristic_flow_length_subaerial,
+        characteristic_flow_length_submarine,
         y_sealevel,
         lava_flow_decompaction_parameters,
         use_random_eruption_location,
@@ -234,6 +236,8 @@ function get_or_init_lava_flow_solver!(
     sediment_and_flow_thickness_initial::Vector{Float64},
     residual_lava_thickness_subaerial::Float64,
     residual_laval_thickness_submarine::Float64,
+    characteristic_flow_length_subaerial::Float64,
+    characteristic_flow_length_submarine::Float64,
     y_sealevel::Float64,
     lava_flow_decompaction_parameters::SedimentTransportParameters,
     use_random_eruption_location::Bool,
@@ -250,6 +254,8 @@ function get_or_init_lava_flow_solver!(
         # set by `reset!` inside the basin loop; we leave those untouched.)
         cached.residual_lava_thickness_subaerial   = residual_lava_thickness_subaerial
         cached.residual_laval_thickness_submarine  = residual_laval_thickness_submarine
+        cached.characteristic_flow_length_subaerial = characteristic_flow_length_subaerial
+        cached.characteristic_flow_length_submarine = characteristic_flow_length_submarine
         cached.y_sealevel                          = y_sealevel
         cached.lava_flow_decompaction_parameters   = lava_flow_decompaction_parameters
         cached.use_random_eruption_location        = use_random_eruption_location
@@ -273,6 +279,8 @@ function get_or_init_lava_flow_solver!(
         residual_laval_thickness_submarine,
         y_sealevel,
         lava_flow_decompaction_parameters;
+        characteristic_flow_length_subaerial=characteristic_flow_length_subaerial,
+        characteristic_flow_length_submarine=characteristic_flow_length_submarine,
         use_random_eruption_location=use_random_eruption_location,
         use_normal_eruption_location=use_normal_eruption_location,
         use_compaction_correction=use_compaction_correction,

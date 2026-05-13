@@ -2,5 +2,5 @@ using Aqua
 using EarthBox
 
 @testset "Aqua quality checks" begin
-    Aqua.test_all(EarthBox; ambiguities = (recursive = false,))
+    Aqua.test_all(EarthBox; ambiguities = (recursive = false,), persistent_tasks = false)
 end

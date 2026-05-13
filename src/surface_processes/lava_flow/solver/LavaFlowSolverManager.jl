@@ -35,6 +35,8 @@ mutable struct LavaFlowSolver
     number_of_flows_per_model_time_step::Int
     residual_lava_thickness_subaerial::Float64
     residual_laval_thickness_submarine::Float64
+    characteristic_flow_length_subaerial::Float64
+    characteristic_flow_length_submarine::Float64
     y_sealevel::Float64
     lava_flow_decompaction_parameters::SedimentTransportParameters
     use_random_eruption_location::Bool
@@ -55,6 +57,8 @@ function LavaFlowSolver(
     residual_laval_thickness_submarine::Float64,
     y_sealevel::Float64,
     lava_flow_decompaction_parameters::SedimentTransportParameters;
+    characteristic_flow_length_subaerial::Float64=0.0,
+    characteristic_flow_length_submarine::Float64=0.0,
     use_random_eruption_location::Bool=false,
     use_normal_eruption_location::Bool=false,
     use_compaction_correction::Bool=false,
@@ -88,6 +92,8 @@ function LavaFlowSolver(
         number_of_flows_per_model_time_step,
         residual_lava_thickness_subaerial,
         residual_laval_thickness_submarine,
+        characteristic_flow_length_subaerial,
+        characteristic_flow_length_submarine,
         y_sealevel,
         lava_flow_decompaction_parameters,
         use_random_eruption_location,
@@ -221,7 +227,9 @@ function extrude_magma_at_surface(
     # lava_flow_loop! modifies solver.topo_gridy, so we snapshot it for compaction.
     copy_array_1d!(solver.topo_gridy, solver.topo_gridy_initial)
 
-    eruption_location_out_of_bounds = lava_flow_loop!(solver)
+    use_volume_loop = false
+    eruption_location_out_of_bounds = use_volume_loop ?
+        lava_flow_loop_volume!(solver) : lava_flow_loop!(solver)
 
     total_lava_thickness = solver.total_lava_thickness
 
@@ -358,6 +366,109 @@ function lava_flow_loop!(solver::LavaFlowSolver)::Bool
                 maximum(solver.flow_thickness)
             )
         end
+    end
+
+    return eruption_location_out_of_bounds
+end
+
+""" Volume-driven variant of `lava_flow_loop!`.
+
+    Re-evaluates the per-flow target volume each iteration so the
+    characteristic flow length tracks the live eruption style (subaerial
+    vs submarine) the same way `residual_lava_thickness` already does.
+    Iterates until `total_extrusion_volume` is exhausted; uses
+    `number_of_flows_per_model_time_step` (the pre-loop forecast) only as
+    a safety-cap reference.
+
+    Requires both `characteristic_flow_length_subaerial` and
+    `characteristic_flow_length_submarine` to be set > 0 on the solver
+    (otherwise per-flow target volume is zero and the loop cannot make
+    progress).
+"""
+function lava_flow_loop_volume!(solver::LavaFlowSolver)::Bool
+    if solver.characteristic_flow_length_subaerial <= 0.0 ||
+       solver.characteristic_flow_length_submarine <= 0.0
+        error("lava_flow_loop_volume! requires characteristic_flow_length_subaerial " *
+              "and characteristic_flow_length_submarine to be > 0; got " *
+              "$(solver.characteristic_flow_length_subaerial) and " *
+              "$(solver.characteristic_flow_length_submarine)")
+    end
+
+    xmin = solver.topo_gridx[1]
+    xmax = solver.topo_gridx[end]
+
+    fill!(solver.total_lava_thickness, 0.0)
+
+    eruption_location_out_of_bounds = false
+    volume_remaining = solver.total_extrusion_volume
+    safety_cap = 10 * max(1, solver.number_of_flows_per_model_time_step)
+    mm = 0
+
+    while volume_remaining > 0.0 && mm < safety_cap
+        mm += 1
+        (
+            eruption_location_x,
+            eruption_location_out_of_bounds
+        ) = calculate_eruption_x_location(
+                solver.eruption_location_x_min, solver.width_eruption_domain,
+                solver.use_random_eruption_location, solver.use_normal_eruption_location,
+                eruption_location_out_of_bounds, solver.topo_gridx
+            )
+
+        # `eruption_location_out_of_bounds` is a static config issue (basin
+        # min < domain min), not random — so a while-loop would spin forever
+        # if we kept iterating. Break out and signal the caller.
+        if eruption_location_out_of_bounds
+            break
+        end
+
+        (
+            eruption_stype,
+            residual_lava_thickness,
+            eruption_location_y
+        ) = determine_eruption_style(
+                solver.topo_gridx, solver.topo_gridy, eruption_location_x,
+                solver.y_sealevel, solver.residual_lava_thickness_subaerial,
+                solver.residual_laval_thickness_submarine
+            )
+
+        flow_length = eruption_stype == "submarine" ?
+            solver.characteristic_flow_length_submarine :
+            solver.characteristic_flow_length_subaerial
+        target_volume = flow_length * residual_lava_thickness
+        flow_volume = min(target_volume, volume_remaining)
+
+        fill!(solver.flow_thickness, 0.0)
+        if xmin < eruption_location_x < xmax
+            make_flow!(
+                solver.topo_gridx, solver.topo_gridy, solver.flow_thickness,
+                solver.topo_gridx_decimated, solver.topo_gridy_decimated,
+                solver.flow_thickness_decimated,
+                solver.lava_thickness_old, solver.sorted_indices, solver.distances_scratch,
+                flow_volume, residual_lava_thickness, eruption_location_x;
+                decimation_factor=solver.decimation_factor, tolerance=1e-4, nmax=1000,
+                use_single_pulse=false
+            )
+        end
+
+        update_topography_with_flow_thickness(solver.topo_gridy, solver.flow_thickness)
+        update_total_lava_thickness_compacted(
+            solver.total_lava_thickness, solver.flow_thickness)
+
+        volume_remaining -= flow_volume
+
+        print_info = false
+        if print_info
+            print_flow_info(
+                mm, eruption_location_x, eruption_location_y, solver.y_sealevel,
+                eruption_stype, residual_lava_thickness, flow_volume,
+                maximum(solver.flow_thickness)
+            )
+        end
+    end
+
+    if mm >= safety_cap && volume_remaining > 0.0
+        @warn "lava_flow_loop_volume! hit safety cap" safety_cap volume_remaining forecast_flow_count=solver.number_of_flows_per_model_time_step
     end
 
     return eruption_location_out_of_bounds
