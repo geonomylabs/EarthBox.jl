@@ -67,7 +67,7 @@ struct GridData
     ynum::Int64
     xstpavg::Float64
     ystpavg::Float64
-    hshift_to_vxR::Float64
+    hshift_to_vxR::Int64
     xstp::Vector{Float64}
     ystp::Vector{Float64}
     xstpc::Vector{Float64}

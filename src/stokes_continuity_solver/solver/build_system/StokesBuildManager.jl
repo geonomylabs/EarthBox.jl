@@ -663,8 +663,8 @@ function build_system_of_equations(model::ModelData)::SystemVectors
     xnum = build_data.grid.xnum
     ynum = build_data.grid.ynum
     inz = 1
-    for i in 1:(ynum-1)
-        for j in 1:(xnum-1)
+    @inbounds for j in 1:(xnum-1)
+        for i in 1:(ynum-1)
             cell_indices = CellIndices(i, j, ynum)
             inz = apply_stencils(inz, cell_indices, build_data)
         end
