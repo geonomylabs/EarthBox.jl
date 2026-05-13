@@ -65,6 +65,8 @@ ModelDataContainer.MarkerContainer.ArrayCollection.Advection
 
 ModelDataContainer.MarkerContainer.ArrayCollection.Compaction
 
+ModelDataContainer.MarkerContainer.ArrayCollection.CompactionGroup.ensure_compaction_buffers!
+
 ModelDataContainer.MarkerContainer.ArrayCollection.Solidification
 
 ModelDataContainer.MarkerContainer.ArrayCollection.Recycle
@@ -74,6 +76,8 @@ ModelDataContainer.MarkerContainer.ArrayCollection.Serpentinization
 ModelDataContainer.MarkerContainer.ArrayCollection.SubgridHeat
 
 ModelDataContainer.MarkerContainer.ArrayCollection.SedimentTransport
+
+ModelDataContainer.MarkerContainer.ArrayCollection.SedimentTransportGroup.ensure_sediment_transport_buffers!
 
 ModelDataContainer.MarkerContainer.ArrayCollection.Lithostatic
 ```
