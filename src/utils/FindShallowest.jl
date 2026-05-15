@@ -160,6 +160,10 @@ end
 
 """ Calculate index and depth of the shallowest marker.
 
+Assumes `marker_indices_mantle_injection_domain[1:nmarkers_injection_domain]`
+is sorted ascending by `marker_y`. The first entry passing the xrange + matid
+filter is therefore the shallowest, and the loop breaks immediately.
+
 # Returns
 - imarker_shallow::Int
     - Index of shallowest marker.
@@ -180,15 +184,13 @@ function find_shallowest_marker_in_mantle_injection_domain(
     yshallow = 1e32
     for i in 1:nmarkers_injection_domain
         imarker = marker_indices_mantle_injection_domain[i]
-        x_marker = marker_x[imarker]
+        @inbounds x_marker = marker_x[imarker]
         if xmin <= x_marker <= xmax
-            matid = marker_matid[imarker]
+            @inbounds matid = marker_matid[imarker]
             if matid in mat_ids
-                y_marker = marker_y[imarker]
-                if y_marker < yshallow
-                    yshallow = y_marker
-                    imarker_shallow = imarker
-                end
+                @inbounds yshallow = marker_y[imarker]
+                imarker_shallow = imarker
+                break
             end
         end
     end

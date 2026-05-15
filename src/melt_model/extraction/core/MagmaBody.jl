@@ -128,20 +128,32 @@ function extract_partial_melt_and_make_magma_body(
     t1 = time()
     xshallow_partial_melt_avg = 0.0
     yshallow_partial_melt_avg = 0.0
+
+    # Cache the partial-melt anchor across iterations. It only changes when
+    # transform_marker_to_magma is applied to the anchor itself (typical in
+    # iuse_shallow_mantle_injection = 0 mode, rare in mode 1 where the
+    # converted marker is normally a different mantle marker selected via
+    # the injection column).
+    imarker_anchor = -999
+    yshallow_anchor = 1e32
+    anchor_stale = true
+
     for _i in 1:nmarkers_magma_mantle
-        # Get index and depth of the shallowest partially molten mantle marker
-        # for the current drainage basin. Since the shallowest partially molten
-        # markers are converted to magma they will be skipped in the next
-        # iteration (if iuse_shallow_mantle_injection = 0).
-        imarker_shallow, yshallow =
-            FindShallowest.find_shallowest_partially_molten_mantle_marker_opt(
-                marker_matid,
-                marker_y,
-                mantle_emplacement_mat_ids,
-                layer_counts,
-                layer_offsets,
-                layered_partial_melt_indices
-            )
+        if anchor_stale
+            imarker_anchor, yshallow_anchor =
+                FindShallowest.find_shallowest_partially_molten_mantle_marker_opt(
+                    marker_matid,
+                    marker_y,
+                    mantle_emplacement_mat_ids,
+                    layer_counts,
+                    layer_offsets,
+                    layered_partial_melt_indices
+                )
+            anchor_stale = false
+        end
+
+        imarker_shallow = imarker_anchor
+        yshallow        = yshallow_anchor
 
         xshallow_partial_melt = marker_x[imarker_shallow]
         xshallow_partial_melt_avg += xshallow_partial_melt
@@ -151,21 +163,11 @@ function extract_partial_melt_and_make_magma_body(
             icount_iter = 0
             imarker_mantle_shallow = -999
             while imarker_mantle_shallow == -999 && icount_iter < number_of_injection_subdomains
-                # Find the shallowest mantle marker in the injection domain. The
-                # injection domain is a column of the model centered on the
-                # shallowest partially molten mantle marker in the current
-                # drainage basin with a width equal to the injection width. Only
-                # markers with indices in the marker_mantle injection search
-                # domain array are searched for efficiency. The search domain
-                # has a width equal to the injection width times a user
-                # specified factor (e.g. factor = 3). This eliminates the need
-                # to search the entire mantle domain for the shallowest mantle
-                # marker.
                 (
-                    imarker_mantle_shallow, 
-                    _yshallow_mantle, 
+                    imarker_mantle_shallow,
+                    _yshallow_mantle,
                     mantle_injection_search_xmin,
-                    mantle_injection_search_xmax, 
+                    mantle_injection_search_xmax,
                     _sub_domain_index
                 ) = FindShallowest.find_shallowest_mantle_marker_random_opt(
                         marker_x,
@@ -194,6 +196,9 @@ function extract_partial_melt_and_make_magma_body(
         # Transform the shallowest marker to magma (either partially molten or
         # mantle depending on iuse_shallow_mantle_injection).
         if imarker_shallow != -999
+            if imarker_shallow == imarker_anchor
+                anchor_stale = true
+            end
             transform_marker_to_magma(model, imarker_shallow, age_ma, matid_magma)
         end
     end
@@ -313,6 +318,17 @@ function calculate_marker_indices_mantle_search_domain!(
         end
     end
     nmarkers_injection_domain = icount
+
+    # Sort the packed prefix by marker_y ascending so
+    # FindShallowest.find_shallowest_marker_in_mantle_injection_domain can
+    # early-break on the first xrange+matid match. Stable algorithm preserves
+    # insertion-order tie-breaking, keeping results bit-identical to the
+    # pre-sort linear-min behavior on tied y values.
+    if nmarkers_injection_domain > 1
+        sort!(view(marker_indices_tmp, 1:nmarkers_injection_domain);
+              by = imarker -> marker_y[imarker],
+              alg = Base.Sort.DEFAULT_STABLE)
+    end
 
     return (
         nmarkers_injection_domain,
