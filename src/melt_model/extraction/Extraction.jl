@@ -296,9 +296,11 @@ function extract_melt_in_drainage_basins!(
 
         # Update the packed list of partially molten marker indices in the
         # pre-allocated buffer for the current drainage basin.
+        # took 0.18 s fo > 100 million markers
         nmarkers_partial_melt = PartialMeltIndices.update_partial_melt_marker_indices!(
             model, xstart=xstart, xend=xend)
 
+        # took 0.32 s for > 100 million markers
         melt_volume_mantle_marker_units = MeltVolumetrics.calculate_melt_volume(
             model, mantle_melting_mat_ids, xstart=xstart, xend=xend)
         melt_volume_mantle_marker_units *= magma_volume_adjustment_factor
@@ -323,6 +325,7 @@ function extract_melt_in_drainage_basins!(
             MeltVolumetrics.calculate_residual_melt_volume(
                 melt_volume_mantle_marker_units, nmarkers_magma_mantle)
 
+        # took 0.28 s for > 100 million markers
         nmarkers_volcanics = Volcanism.calculate_number_of_volcanic_markers(
             model,
             nmarkers_magma_mantle,
@@ -344,6 +347,7 @@ function extract_melt_in_drainage_basins!(
             nmarkers_magma_mantle
             )
 
+        # took 13.0 s for > 100 million markers (this is the most time-consuming step)
         (
             xshallow_partial_melt_avg, yshallow_partial_melt_avg
         ) = MagmaBody.extract_partial_melt_and_make_magma_body(
