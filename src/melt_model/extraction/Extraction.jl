@@ -347,7 +347,7 @@ function extract_melt_in_drainage_basins!(
             nmarkers_magma_mantle
             )
 
-        # took 13.0 s for > 100 million markers (this is the most time-consuming step)
+        # loop took < 1 s for > 100 million markers
         (
             xshallow_partial_melt_avg, yshallow_partial_melt_avg
         ) = MagmaBody.extract_partial_melt_and_make_magma_body(
