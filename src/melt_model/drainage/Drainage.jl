@@ -3,6 +3,7 @@ module Drainage
 import EarthBox.PrintFuncs: print_info, print_warning
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
+import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt_sorted
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
 import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
 
@@ -11,6 +12,24 @@ function calculate_melt_drainage_divides!(
 )::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
     topo_gridx = model.topography.arrays.gridt.array[1, :]
     partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain(model, topo_gridx)
+    divides_x = calculate_drainage_divides(topo_gridx, partial_melt_gridy)
+    update_drainage_info(model, divides_x)
+    return topo_gridx, partial_melt_gridy, divides_x
+end
+
+""" Sorted-x equivalent of `calculate_melt_drainage_divides!`.
+
+Identical inputs, outputs, and side effects as the original; only the call to
+`calculate_top_of_mantle_partial_melt_domain` is swapped for its `_sorted`
+variant, which uses sorted-x binary-search bracketing instead of a linear
+x-range scan over filtered markers.
+"""
+function calculate_melt_drainage_divides_sorted!(
+    model::ModelData
+)::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}}
+    topo_gridx = model.topography.arrays.gridt.array[1, :]
+    partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain_sorted(
+        model, topo_gridx)
     divides_x = calculate_drainage_divides(topo_gridx, partial_melt_gridy)
     update_drainage_info(model, divides_x)
     return topo_gridx, partial_melt_gridy, divides_x
@@ -148,6 +167,47 @@ function calculate_top_of_mantle_partial_melt_domain(
             minimum(top_mantle_partial_melt), " ", maximum(top_mantle_partial_melt)
         )
     end
+
+    return top_mantle_partial_melt
+end
+
+""" Sorted-x equivalent of `calculate_top_of_mantle_partial_melt_domain`.
+
+Identical inputs and outputs as the original; the only difference is that the
+underlying layer scan uses `calculate_top_and_bottom_of_layer_opt_sorted`,
+which brackets the marker x-range per grid column via binary search instead
+of linearly scanning every filtered marker.
+"""
+function calculate_top_of_mantle_partial_melt_domain_sorted(
+    model::ModelData,
+    topo_gridx::Vector{Float64}
+)::Vector{Float64}
+    smoothing_radius = model.melting.parameters.extraction.smoothing_radius_drainage.value
+    ysize = model.grids.parameters.geometry.ysize.value
+
+    marker_x = model.markers.arrays.location.marker_x.array
+    marker_y = model.markers.arrays.location.marker_y.array
+    marker_matid = model.markers.arrays.material.marker_matid.array
+
+    matid_types = model.materials.dicts.matid_types
+    matids_mantle_partial_melt = matid_types["UltramaficMantlePartiallyMolten"]
+
+    dx_grid = topo_gridx[2] - topo_gridx[1]
+
+    mxstep = model.markers.parameters.distribution.mxstep.value
+    marker_search_factor = model.topography.parameters.topo_grid.marker_search_factor.value
+    search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
+
+    (
+        top_mantle_partial_melt, _bottom_mantle_partial_melt
+    ) = calculate_top_and_bottom_of_layer_opt_sorted(
+        matids_mantle_partial_melt, marker_matid, marker_x, marker_y,
+        topo_gridx, search_radius; use_smoothing=false
+    )
+    set_zero_values_to_model_base(top_mantle_partial_melt, ysize)
+
+    nsmooth = floor(Int, smoothing_radius / dx_grid)
+    top_mantle_partial_melt = smooth_surface(top_mantle_partial_melt; nsmooth=nsmooth)
 
     return top_mantle_partial_melt
 end

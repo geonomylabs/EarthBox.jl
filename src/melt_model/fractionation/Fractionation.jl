@@ -7,10 +7,12 @@ import EarthBox.ConversionFuncs: seconds_to_years
 import EarthBox.SurfaceProcesses: calculate_age_ma
 import EarthBox.MathTools: linear_interp_at_x_location, linear_interp_bisection
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
+import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt_sorted
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_search_radius
 import EarthBox.ModelStructureManager.SmoothSurface: smooth_surface
 import ..Extraction.MagmaBody: transform_marker_to_magma
 import ..Drainage: calculate_top_of_mantle_partial_melt_domain
+import ..Drainage: calculate_top_of_mantle_partial_melt_domain_sorted
 
 """ Call loop function to make fractionated gabbroic magma.
 
@@ -38,8 +40,11 @@ function make_fractionated_gabbroic_magma!(
     matid_layered_gabbroic_magma = matid_types["ExtractedLayeredGabbroicMagma"][1]
 
     if matid_gabbroic_magma != -1 && matid_layered_gabbroic_magma != -1
-        topo_gridx, topo_gridy, oceanic_moho_gridy, partial_melt_gridy = 
-            make_fractionated_gabbroic_magma_loop(
+        # To revert to the unoptimized path, swap `_sorted` -> the original
+        # `make_fractionated_gabbroic_magma_loop` (both implementations live
+        # in this file).
+        topo_gridx, topo_gridy, oceanic_moho_gridy, partial_melt_gridy =
+            make_fractionated_gabbroic_magma_loop_sorted(
                 model, matid_gabbroic_magma, matid_layered_gabbroic_magma,
                 fractionation_threshold_distance
             )
@@ -126,6 +131,62 @@ function make_fractionated_gabbroic_magma_loop(
     return topo_gridx, topo_gridy, moho_gridy, partial_melt_gridy
 end
 
+""" Sorted-x equivalent of `make_fractionated_gabbroic_magma_loop`.
+
+Identical inputs, outputs, and side effects as the original. The only
+behavioral difference is that the two expensive surface calculations
+(`calculate_oceanic_moho_sorted` and
+`calculate_top_of_mantle_partial_melt_domain_sorted`) use sorted-x
+binary-search bracketing instead of linear x-range scans. The final marker
+transformation loop is byte-identical to the original.
+"""
+function make_fractionated_gabbroic_magma_loop_sorted(
+    model::ModelData,
+    matid_gabbroic_magma::Int16,
+    matid_layered_gabbroic_magma::Int16,
+    fractionation_threshold_distance::Float64
+)::Tuple{Vector{Float64}, Vector{Float64}, Vector{Float64}, Vector{Float64}}
+    gridt = model.topography.arrays.gridt.array
+
+    topo_gridx = gridt[1, :]
+    topo_gridy = gridt[2, :]
+
+    marker_x = model.markers.arrays.location.marker_x.array
+    marker_y = model.markers.arrays.location.marker_y.array
+    marker_matid = model.markers.arrays.material.marker_matid.array
+
+    age_ma = calculate_age_ma(model)
+    nsmooth = calculate_nsmooth(model)
+
+    moho_gridy = calculate_oceanic_moho_sorted(
+        model, topo_gridx, topo_gridy, nsmooth=nsmooth)
+
+    use_partial_melt_limit = true
+    if use_partial_melt_limit
+        partial_melt_gridy = calculate_top_of_mantle_partial_melt_domain_sorted(
+            model, topo_gridx)
+        moho_gridy .= min.(moho_gridy, partial_melt_gridy)
+    end
+
+    nmarkers = length(marker_x)
+    Threads.@threads for imarker in 1:nmarkers
+        @inbounds matid = marker_matid[imarker]
+        if matid == matid_gabbroic_magma
+            @inbounds begin
+                x_marker = marker_x[imarker]
+                y_marker = marker_y[imarker]
+            end
+            y_moho = linear_interp_bisection(topo_gridx, moho_gridy, x_marker)
+            dist_to_moho = abs(y_marker - y_moho)
+            if dist_to_moho < fractionation_threshold_distance
+                transform_marker_to_magma(
+                    model, imarker, age_ma, matid_layered_gabbroic_magma)
+            end
+        end
+    end
+    return topo_gridx, topo_gridy, moho_gridy, partial_melt_gridy
+end
+
 function calculate_nsmooth(model::ModelData)
     smoothing_radius = 
         model.melting.parameters.extraction.smoothing_radius_fractionation.value
@@ -151,6 +212,34 @@ function calculate_oceanic_moho(
         model.topography.parameters.topo_grid.marker_search_factor.value
     search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
     _top_oc, bottom_oc = calculate_top_and_bottom_of_layer_opt(
+        matids_oc, marker_matid, marker_x,
+        marker_y, topo_gridx, search_radius, use_smoothing=false
+    )
+    set_zero_values_to_topoy(bottom_oc, topo_gridy)
+    return smooth_surface(bottom_oc, nsmooth=nsmooth)
+end
+
+""" Sorted-x equivalent of `calculate_oceanic_moho`.
+
+Identical to `calculate_oceanic_moho` except it routes through
+`calculate_top_and_bottom_of_layer_opt_sorted` instead of
+`calculate_top_and_bottom_of_layer_opt`.
+"""
+function calculate_oceanic_moho_sorted(
+    model::ModelData,
+    topo_gridx::Vector{Float64},
+    topo_gridy::Vector{Float64};
+    nsmooth::Int=20
+)
+    marker_x = model.markers.arrays.location.marker_x.array
+    marker_y = model.markers.arrays.location.marker_y.array
+    marker_matid = model.markers.arrays.material.marker_matid.array
+    matids_oc = get_matids_oceanic_crust(model)
+    mxstep = model.markers.parameters.distribution.mxstep.value
+    marker_search_factor =
+        model.topography.parameters.topo_grid.marker_search_factor.value
+    search_radius = calculate_search_radius(mxstep, topo_gridx, marker_search_factor)
+    _top_oc, bottom_oc = calculate_top_and_bottom_of_layer_opt_sorted(
         matids_oc, marker_matid, marker_x,
         marker_y, topo_gridx, search_radius, use_smoothing=false
     )

@@ -149,8 +149,10 @@ function update_melt_drainage_divides!(
 
     if iuse_melting == 1 && iuse_extraction == 1
         @timeit_memit "Finished calculating melt drainage divides" begin
-            topo_gridx, partial_melt_gridy, divides_x = 
-                Drainage.calculate_melt_drainage_divides!(model)
+            # To revert to the unoptimized path, swap `_sorted!` -> the
+            # original `Drainage.calculate_melt_drainage_divides!`.
+            topo_gridx, partial_melt_gridy, divides_x =
+                Drainage.calculate_melt_drainage_divides_sorted!(model)
         end
         if iuse_eruption_interval == 1
             @timeit_memit "Finished redistributing extrusion volumes to new drainage basins" begin

@@ -196,6 +196,82 @@ function filter_markers_outside_of_layer(
     return marker_indices_layer
 end
 
+""" Bitmask-backed equivalent of `filter_markers_outside_of_layer`.
+
+Builds a small Bool lookup table indexed by matid, replacing the per-marker
+linear `mid in material_ids_of_layer` check (O(K) per marker) with an O(1)
+table lookup. Output is identical (same indices, same ascending order).
+"""
+function filter_markers_outside_of_layer_bitmask(
+    marker_matid::Vector{Int16},
+    material_ids_of_layer::Vector{Int16}
+)::Vector{Int64}
+    if isempty(material_ids_of_layer)
+        return Int64[]
+    end
+    marknum = length(marker_matid)
+    maxid = Int(maximum(material_ids_of_layer))
+    is_layer = fill(false, maxid)
+    @inbounds for mid in material_ids_of_layer
+        m = Int(mid)
+        if m > 0
+            is_layer[m] = true
+        end
+    end
+
+    icount = 0
+    @inbounds for imarker in 1:marknum
+        mid = Int(marker_matid[imarker])
+        if 0 < mid <= maxid && is_layer[mid]
+            icount += 1
+        end
+    end
+
+    marker_indices_layer = Vector{Int64}(undef, icount)
+    idx = 0
+    @inbounds for imarker in 1:marknum
+        mid = Int(marker_matid[imarker])
+        if 0 < mid <= maxid && is_layer[mid]
+            idx += 1
+            marker_indices_layer[idx] = imarker
+        end
+    end
+
+    return marker_indices_layer
+end
+
+""" Sorted-x equivalent of `calculate_top_and_bottom_of_layer_opt`.
+
+Same inputs, same outputs as the original. Instead of scanning every filtered
+marker per grid column with a linear x-range test, this variant:
+  1. filters markers by matid via `filter_markers_outside_of_layer_bitmask`,
+  2. sorts the filtered indices by `marker_x`, and
+  3. delegates the per-column min/max search to
+     `calculate_top_and_bottom_of_swarm_opt`, which uses binary search to
+     bracket the relevant marker range.
+
+This collapses the per-column inner loop from O(marknum_layer) to O(window),
+where window is the count of markers within `search_radius` of the column.
+"""
+function calculate_top_and_bottom_of_layer_opt_sorted(
+    material_ids_of_layer::Vector{Int16},
+    marker_matid::Vector{Int16},
+    marker_x::Vector{Float64},
+    marker_y::Vector{Float64},
+    gridx::Vector{Float64},
+    search_radius::Float64;
+    use_smoothing::Bool=true,
+    nsmooth::Int=2
+)::Tuple{Vector{Float64}, Vector{Float64}}
+    marker_indices_layer = filter_markers_outside_of_layer_bitmask(
+        marker_matid, material_ids_of_layer)
+    sort!(marker_indices_layer, by = i -> @inbounds marker_x[i])
+    return calculate_top_and_bottom_of_swarm_opt(
+        marker_indices_layer, marker_x, marker_y, gridx, search_radius;
+        use_smoothing=use_smoothing, nsmooth=nsmooth
+    )
+end
+
 """ Find the shallowest and deepest y-coordinates of a material layer.
 
 The material layer is a collection of material ids (material_ids).
