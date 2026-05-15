@@ -168,7 +168,9 @@ function run_loop!(model_manager::ModelManagerState)::Nothing
     print_initial_sealevel(model)
     print_info("Initial time step counter: $_ntimestep_initial", level=2)
     SurfaceProcesses.reset_marker_compaction_properties!(model)
-    initialize_next_eruption_time!(model)
+    if !model_manager.restart_from_backup
+        initialize_next_eruption_time!(model)
+    end
     inside_flags = GridFuncs.get_marker_inside_flags(model)
     
     print_info(
