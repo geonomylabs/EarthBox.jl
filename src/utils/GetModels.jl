@@ -47,12 +47,12 @@ function get_models(; target_dir::Union{String, Nothing} = nothing)
     end
     
     # Construct path to models directory within the package
-    models_source_dir = joinpath(earthbox_pkg_dir, "models")
+    models_source_dir = joinpath(earthbox_pkg_dir, "examples", "models")
     
     # Check if source models directory exists
     if !isdir(models_source_dir)
         error("Models directory not found at: $(models_source_dir). " *
-              "Please check your EarthBox installation.")
+              "Expected examples/models under the EarthBox package root.")
     end
     
     # Determine target directory
