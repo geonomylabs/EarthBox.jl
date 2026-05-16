@@ -2,9 +2,11 @@ module ExtractableMeltfrac
 
 import EarthBox.Markers.MarkerMaterials.MaterialsContainer: Materials
 import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_mantle_melting_matids
+import EarthBox.Markers.MarkerMaterials.GetMaterialIDs: get_mantle_and_gabbroic_melting_matids
 import ...PlotMarkerArraysManager: PlotMarkerArrays
 import ....PlotParametersManager: PlotParameters
 import ....PlotDtypes: AxesType
+import .....ColorMaps: make_discontinuous_colormap_from_input_cmap
 import ...FilterPlot: FilterPlotData
 import ...FilterPlot: add_contour_description!
 import ...FilterPlot: plot_filtered_marker_scalars_based_on_minimum
@@ -26,7 +28,8 @@ function plot_filtered_extractable_meltfrac(
     parameters::PlotParameters,
     marker_arrays::PlotMarkerArrays,
     materials::Materials,
-    axes::AxesType
+    axes::AxesType;
+    use_gabbro_melting::Bool = false
 )::Nothing
     plot_marker_scalars = parameters.marker_plot_params.plot_extractable_meltfrac
     plot_contours = parameters.marker_plot_params.plot_extractable_meltfrac_contours
@@ -42,7 +45,19 @@ function plot_filtered_extractable_meltfrac(
 
     cmap_name = parameters.marker_plot_params.meltfrac_cmap
 
-    matids_to_keep = get_mantle_melting_matids(materials)
+    if parameters.marker_plot_params.use_discontinuous_colormap_meltfrac
+        custom_cmap = make_discontinuous_colormap_from_input_cmap(
+            meltfrac_min, meltfrac_max, contour_interval, cmap_name)
+        cmap_name = "None"
+    else
+        custom_cmap = nothing
+    end
+
+    if use_gabbro_melting
+        matids_to_keep = get_mantle_and_gabbroic_melting_matids(materials)
+    else
+        matids_to_keep = get_mantle_melting_matids(materials)
+    end
     
     filter_plot_data = FilterPlotData(
         parameters=parameters,
@@ -55,7 +70,7 @@ function plot_filtered_extractable_meltfrac(
         plot_contours=plot_contours,
         label=label,
         cmap_name=cmap_name,
-        custom_cmap=nothing,
+        custom_cmap=custom_cmap,
         contour_type="meltfrac",
         matids_to_keep=matids_to_keep
     )

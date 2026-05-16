@@ -46,8 +46,12 @@ function plot_marker_scalars(
     Density.plot_filtered_mantle_density(parameters, marker_arrays, materials, axes)
     Meltfrac.plot_filtered_meltfrac(parameters, marker_arrays, materials, axes,
         use_gabbro_melting=parameters.marker_plot_params.plot_meltfrac_for_gabbro)
-    ExtractedMeltfrac.plot_filtered_extracted_meltfrac(parameters, marker_arrays, materials, axes)
-    ExtractableMeltfrac.plot_filtered_extractable_meltfrac(parameters, marker_arrays, materials, axes)
+    ExtractedMeltfrac.plot_filtered_extracted_meltfrac(
+        parameters, marker_arrays, materials, axes,
+        use_gabbro_melting=parameters.marker_plot_params.plot_meltfrac_for_gabbro)
+    ExtractableMeltfrac.plot_filtered_extractable_meltfrac(
+        parameters, marker_arrays, materials, axes,
+        use_gabbro_melting=parameters.marker_plot_params.plot_meltfrac_for_gabbro)
     return nothing
 end
 
