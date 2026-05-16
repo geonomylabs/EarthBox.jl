@@ -65,6 +65,15 @@ The remaining part is calculated subtracting the subgrid stress from the
 viscoelastic stress computing using the updated Stokes solution:
 
 dstress_remaining_grid = dstress_viscoelastic_grid - dstress_subgrid_grid
+
+Notes:
+
+For a the high resolution run of sdr_spreading with > 100 M markers:
+- The time taken to update the subgrid stress is 2.21 s for the shear stress and
+  2.36 s for the normal stress.
+- The time taken to calculate the remaining stress change is 0.002 s.
+- The time taken to calculate the bilinear average is 0.0005 s.
+
 """
 function update_subgrid_stress!(
     model::ModelData,
