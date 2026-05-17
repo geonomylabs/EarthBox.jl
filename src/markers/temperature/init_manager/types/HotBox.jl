@@ -15,7 +15,7 @@ function initialize!(model::ModelData)
     ysize = model.grids.parameters.geometry.ysize.value
 
     temperature_box = celsius_to_kelvin(1530.0) # Kelvin, original was 1976.0 Kelvin
-    xmin_box = 125_000.0
+    xmin_box = 55_000.0
     ymin_box = 30_000.0
     width_box = 40_000.0
     mxnum = model.markers.parameters.distribution.mxnum.value
