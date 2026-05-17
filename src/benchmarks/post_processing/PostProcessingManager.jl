@@ -17,6 +17,7 @@ include("numerical/PlasticityBenchmarkK10.jl")
 include("analytical/SimpleSedimentationManager.jl")
 include("numerical/box_convection/BoxConvectionManager.jl")
 include("numerical/seafloor_spreading/SeafloorSpreadingManager.jl")
+include("numerical/hot_box_melting/HotBoxMeltingManager.jl")
 
 import .ChannelFlowNonNewtonianManager
 import .ChannelFlowVariableConductivityManager
@@ -217,6 +218,16 @@ function post_proc_func(
     (
         result, result_msg
     ) = SeafloorSpreadingManager.compare_numerical_to_empirical(bench)
+    return result, result_msg
+end
+
+function post_proc_func(
+    bench::Benchmarks,
+    ::Val{option_names.hot_box_melting}
+)::Tuple{Vector{Union{String, Float64}}, String}
+    (
+        result, result_msg
+    ) = HotBoxMeltingManager.compare_numerical_to_numerical(bench)
     return result, result_msg
 end
 

@@ -23,7 +23,8 @@ const option_ids = Dict{Symbol, Int}(
     :viscoelastic_extension_inflow_and_outflow_along_sides => 15,
     :viscoelastic_contraction => 16,
     :viscoelastic_contraction_asymmetric => 17,
-    :simple_sedimentation => 18
+    :simple_sedimentation => 18,
+    :hot_box_melting => 19
 )
 
 const option_names = make_option_names(option_ids)
@@ -283,6 +284,26 @@ function get_options()::OrderedDict{Int, OptionState}
                     *"The Stokes-continuity and heat equation are not solved. "
                     *"This benchmark tests the codes ability to model sedimentation and compaction "
                     *"against a known analytical solution. "
+                ),
+                time_steps=[5],
+                y_index=-1
+            ),
+        option_ids[option_names.hot_box_melting] =>
+            OptionState(
+                option_name=string(option_names.hot_box_melting),
+                description=(
+                    "Hot box melt-extraction regression test. A 150 km x 100 km box "
+                    *"with a hot lower boundary drives decompression melting, melt "
+                    *"extraction, gabbroic fractionation, shallow-mantle injection and "
+                    *"basaltic extrusion. The benchmark exercises the full melt "
+                    *"extraction/extrusion pipeline (`MeltModel`, `MeltExtractionModel`, "
+                    *"`MeltExtrusionModel`) and is sensitive to changes in any of those "
+                    *"stages. At output step 5 the total number of markers in the three "
+                    *"solidified product materials -- solidified layered gabbro (matid "
+                    *"10), solidified gabbro (matid 7) and solidified basalt (matid 14) "
+                    *"-- is compared against reference counts captured from a known-good "
+                    *"run, with a 2% relative-error tolerance on each. No plotting is "
+                    *"produced; the test only sums marker totals."
                 ),
                 time_steps=[5],
                 y_index=-1

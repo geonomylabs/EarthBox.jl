@@ -75,4 +75,17 @@ using Test
         @test status_str == "Success"
         @test max_relative_error_percentage < relative_error_limit_percentage
     end
+
+    @testset "Hot Box Melting" begin
+        (
+            status_str,
+            max_relative_error_percentage,
+            relative_error_limit_percentage
+        ) = BenchmarksManager.run_benchmark(
+            :hot_box_melting; delete_output=delete_output
+        )
+        @test status_str == "Success"
+        @test max_relative_error_percentage < relative_error_limit_percentage
+    end
+    
 end
