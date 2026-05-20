@@ -406,6 +406,8 @@ function make_strength_profile_plot_twin(
         "Friction Angle (Damaged): $(friction_angles[2]) degrees\n" *
         "Surface Heat Flow: $(round(surface_heat_flow, digits=2)) mW/m^2"
     )
+
+    println(text_str)
     
     CairoMakie.text!(ax1, text_str, position=(0.02, 0.02), 
           fontsize=8, align=(:left, :bottom))
