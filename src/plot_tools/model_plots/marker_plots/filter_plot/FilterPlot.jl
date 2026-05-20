@@ -32,6 +32,7 @@ mutable struct FilterPlotData
     matids_to_keep::Vector{Int16}
     number_format::String
     rightside_up::Bool
+    alternating_colors::Union{Nothing, Tuple{NTuple{3, Float64}, NTuple{3, Float64}}}
 
     function FilterPlotData(;
         parameters::Union{PlotParameters, Nothing} = nothing,
@@ -49,13 +50,14 @@ mutable struct FilterPlotData
         discontinuous::Union{Bool, Nothing} = nothing,
         matids_to_keep::Vector{Int16} = Int16[],
         number_format::String = "%6.2f",
-        rightside_up::Bool = true
+        rightside_up::Bool = true,
+        alternating_colors::Union{Nothing, Tuple{NTuple{3, Float64}, NTuple{3, Float64}}} = nothing
     )
         return new(
             parameters, marker_arrays, marker_scalar_array, min_and_max,
             contour_interval, axes, plot_marker_scalars, plot_contours,
             label, cmap_name, custom_cmap, contour_type, discontinuous,
-            matids_to_keep, number_format, rightside_up
+            matids_to_keep, number_format, rightside_up, alternating_colors
         )
     end
 end
@@ -241,7 +243,10 @@ function make_filter_plots(
             colorbar_labels_fontsize=colorbar_labels_fontsize,
             colorbar_ticks_fontsize=colorbar_ticks_fontsize,
             plot_dimensions=PlotViewManager.get_active_dimensions(parameters.view),
-            apply_domain_filter=true
+            apply_domain_filter=true,
+            alternating_colors=filter_plot_data.alternating_colors,
+            alternating_contour=filter_plot_data.contour_interval,
+            alternating_min=scalar_min
         )
         update_plot_counter!(parameters)
     end

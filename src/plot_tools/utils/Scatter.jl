@@ -77,7 +77,10 @@ function plot_scatter(
     colorbar_ticks_fontsize::Int = 6,
     decimation_factor::Int = 1,
     plot_dimensions::Tuple{Float64, Float64, Float64, Float64} = (0.0, 1e39, 0.0, 1e39),
-    apply_domain_filter::Bool = false
+    apply_domain_filter::Bool = false,
+    alternating_colors::Union{Nothing, Tuple{NTuple{3, Float64}, NTuple{3, Float64}}} = nothing,
+    alternating_contour::Float64 = 1.0,
+    alternating_min::Float64 = 0.0
 )::Nothing
 
     # Use custom colormap if provided, otherwise use default
@@ -101,19 +104,46 @@ function plot_scatter(
             x_array, y_array, color_array, plot_dimensions)
     end
 
-    scatter_plot = CairoMakie.scatter!(
-        axes, 
-        x_array, 
-        y_array, 
-        color=color_array, 
-        colormap=cmap, 
-        markersize=marker_size,
-        marker=:circle,
-        strokewidth=0.0,
-        strokecolor=:black,
-        colorrange=(min_value, max_value),
-        rasterize=true
-    )
+    if isnothing(alternating_colors)
+        scatter_plot = CairoMakie.scatter!(
+            axes,
+            x_array,
+            y_array,
+            color=color_array,
+            colormap=cmap,
+            markersize=marker_size,
+            marker=:circle,
+            strokewidth=0.0,
+            strokecolor=:black,
+            colorrange=(min_value, max_value),
+            rasterize=true
+        )
+    else
+        # Assign the two alternating shades per marker by the parity of the
+        # value's contour band. Routing a fine alternating categorical colormap
+        # through `colormap` + `colorrange` is unreliable: CairoMakie resamples
+        # the categorical map into its own lookup table and aliases the
+        # alternation, collapsing distinct values onto a single shade. Choosing
+        # the shade per marker reproduces the intended banding exactly.
+        c1 = CairoMakie.RGB(alternating_colors[1]...)
+        c2 = CairoMakie.RGB(alternating_colors[2]...)
+        band_width = alternating_contour > 0.0 ? alternating_contour : 1.0
+        marker_colors = [
+            iseven(floor(Int, (value - alternating_min) / band_width)) ? c1 : c2
+            for value in color_array
+        ]
+        scatter_plot = CairoMakie.scatter!(
+            axes,
+            x_array,
+            y_array,
+            color=marker_colors,
+            markersize=marker_size,
+            marker=:circle,
+            strokewidth=0.0,
+            strokecolor=:black,
+            rasterize=true
+        )
+    end
 
     fig = axes.parent
     n_rows = length(fig.layout.rowsizes)
@@ -128,6 +158,14 @@ function plot_scatter(
         color_bar = CairoMakie.Colorbar(fig[n_rows, order_number];
             colormap=compact_cmap,
             limits=(0.5, Float64(n_visible) + 0.5)
+        )
+    elseif !isnothing(alternating_colors)
+        # Marker colors were assigned directly (the plot carries no scalar
+        # colormap), so build the legend from the categorical alternating
+        # colormap over the value range instead of from the scatter plot.
+        color_bar = CairoMakie.Colorbar(fig[n_rows, order_number];
+            colormap=cmap,
+            limits=(min_value, max_value)
         )
     else
         color_bar = CairoMakie.Colorbar(fig[n_rows, order_number], scatter_plot)

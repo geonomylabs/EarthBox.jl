@@ -87,12 +87,16 @@ function plot_filtered_volcanics_age(
     matids_to_keep = Vector{Int16}(undef, 1)
     matids_to_keep[1] = get_solidified_basalt_material_id(materials)
 
+    alternating_colors = nothing
     if use_alternating_colormap_volcanics
+        color1 = (1.0, 0.855, 0.725)
+        color2 = (1.0, 0.498, 0.314)
         custom_cmap = make_alternating_colormap(
-            age_min, age_max, contour_interval,
-            (1.0, 0.855, 0.725), (1.0, 0.498, 0.314)
-        )
+            age_min, age_max, contour_interval, color1, color2)
         cmap_name = "None"
+        # Drives per-marker shade selection in `plot_scatter`; the categorical
+        # `custom_cmap` is retained only for the colorbar legend.
+        alternating_colors = (color1, color2)
     else
         custom_cmap = make_discontinuous_colormap_from_input_cmap(
             age_min, age_max, contour_interval, cmap_name)
@@ -111,7 +115,8 @@ function plot_filtered_volcanics_age(
         label=label,
         cmap_name=cmap_name,
         custom_cmap=custom_cmap,
-        matids_to_keep=matids_to_keep
+        matids_to_keep=matids_to_keep,
+        alternating_colors=alternating_colors
     )
 
     add_contour_description!(filter_plot_data)
@@ -146,12 +151,16 @@ function plot_filtered_intrusive_age(
 
     matids_to_keep = get_gabbro_ids_array(materials)
 
+    alternating_colors = nothing
     if use_alternating_colormap_intrusive
+        color1 = (0.8, 0.8, 0.8)
+        color2 = (0.4, 0.4, 0.4)
         custom_cmap = make_alternating_colormap(
-            age_min, age_max, contour_interval,
-            (0.8, 0.8, 0.8), (0.4, 0.4, 0.4)
-        )
+            age_min, age_max, contour_interval, color1, color2)
         cmap_name = "None"
+        # Drives per-marker shade selection in `plot_scatter`; the categorical
+        # `custom_cmap` is retained only for the colorbar legend.
+        alternating_colors = (color1, color2)
     else
         custom_cmap = make_discontinuous_colormap_from_input_cmap(
             age_min, age_max, contour_interval, cmap_name)
@@ -170,7 +179,8 @@ function plot_filtered_intrusive_age(
         label=label,
         cmap_name=cmap_name,
         custom_cmap=custom_cmap,
-        matids_to_keep=matids_to_keep
+        matids_to_keep=matids_to_keep,
+        alternating_colors=alternating_colors
     )
 
     add_contour_description!(filter_plot_data)
