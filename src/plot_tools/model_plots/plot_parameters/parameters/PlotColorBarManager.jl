@@ -9,6 +9,7 @@ Base.@kwdef mutable struct PlotColorBar <: AbstractPlotParameterGroup
     color_map::Union{String, Symbol} = "None"
     minimum_value::Float64 = 0.0
     maximum_value::Float64 = 0.0
+    use_discontinuous_colormap::Bool = false
 end
 
 function PlotColorBar(plot_dict::PlotDictType)
@@ -19,6 +20,7 @@ function PlotColorBar(plot_dict::PlotDictType)
         color_map=get(params, "color_map", "None"),
         minimum_value=get(params, "minimum_value", 0.0),
         maximum_value=get(params, "maximum_value", 0.0),
+        use_discontinuous_colormap=get(params, "use_discontinuous_colormap", false),
     )
 end
 

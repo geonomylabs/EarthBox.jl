@@ -278,6 +278,7 @@ function get_model_plots_2d(;
         istart                     = istart,
         iplot_contour_labels       = get(kwargs, :iplot_contour_labels, 1),
         color_map                  = get(kwargs, :color_map, "bwr"),
+        use_discontinuous_colormap = get(kwargs, :use_discontinuous_colormap, false),
         figure_dpi                 = get(kwargs, :figure_dpi, 150.0),
         figsize                    = figsize,
         use_data_aspect            = false,

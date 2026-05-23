@@ -4,6 +4,7 @@ general_parameters:
   istart: [0, ' initial time step to plot']
   iplot_contour_labels: [1, ' 0 = off; 1 = plot contour labels']
   color_map: [bwr, ' ']
+  use_discontinuous_colormap: [false, ' true = band the scalar colormap at the contour interval']
   figure_dpi: [150.0, ' dots per inch for figure']
   figsize: [[6.0 , 4.0], 'Figure size']
   aspect_ratio: [1.0, ' aspect ratio']

@@ -12,6 +12,7 @@ import ...PlotParametersManager: PlotConversionManager
 import ...PlotParametersManager: PlotTimeManager
 import ...PlotParametersManager: PlotContoursManager
 import ...PlotParametersManager: PlotColorBarManager
+import ....ColorMaps: make_discontinuous_colormap_from_input_cmap
 import ...PlotTools
 import ..PlotScalarArraysManager
 import ..PlotScalarArraysManager: PlotScalarArrays
@@ -269,6 +270,10 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
     if color_map isa String
         color_map = Symbol(color_map)
     end
+    # When requested, replace the continuous colormap with a banded (categorical) one whose
+    # band edges line up with the single contour interval. The colorbar inherits this map via
+    # colorplot=hm_plot, and its ticks already follow the labeled-contour cadence (V2).
+    heatmap_color_map = get_heatmap_color_map(scalar_plot, color_map)
     # Note that with grid_scalar(i,j), i is in y-direction and j is in x-direction but
     # heatmap! expects gridx to be associated with the i-index and gridy to be associated
     # with the j-index. So a transpose is needed.
@@ -277,7 +282,7 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
     #catch
         #print_warning("CairoMakie heatmap failed with interpolate=true probably because of irregular grid, trying interpolate=false", level=1)
     hm_plot = eb_heatmap(
-        axes_xy, gridx, gridy, grid_scalar, color_map, scalar_plot, false
+        axes_xy, gridx, gridy, grid_scalar, heatmap_color_map, scalar_plot, false
     )
     #end
 
@@ -327,6 +332,23 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
         fig, axes_xy, scalar_plot.parameters, scalar_plot.scalar_name, 
         units=units, extension=extension
         )
+end
+
+# Resolve the colormap actually drawn by the heatmap. If discontinuous shading is requested
+# (and a positive contour interval exists), return a categorical cgrad banded at the single
+# contour interval; otherwise return the continuous colormap unchanged.
+function get_heatmap_color_map(scalar_plot::ScalarPlot, color_map)
+    color_bar = scalar_plot.parameters.color_bar
+    contour_interval = scalar_plot.parameters.contours.contour_interval
+    if color_bar.use_discontinuous_colormap && contour_interval > 0.0
+        return make_discontinuous_colormap_from_input_cmap(
+            color_bar.minimum_value,
+            color_bar.maximum_value,
+            contour_interval,
+            color_map,
+        )
+    end
+    return color_map
 end
 
 function eb_heatmap(
