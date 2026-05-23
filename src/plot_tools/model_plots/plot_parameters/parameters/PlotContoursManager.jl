@@ -14,6 +14,7 @@ Base.@kwdef mutable struct PlotContours <: AbstractPlotParameterGroup
     V::Vector{Float64} = [0.0]
     V2::Vector{Float64} = [0.0]
     linewidths::Vector{Float64} = [1.0]
+    contour_line_width::Float64 = 0.5
     contour_description::String = ""
     iplot_contour_labels::Int = 0
     xy_location_contour_legend::Tuple{Float64, Float64} = (0.0, 0.0)
@@ -29,6 +30,7 @@ function PlotContours(plot_dict::PlotDictType)::PlotContours
         V = [0.0],
         V2 = [0.0],
         linewidths = [1.0],
+        contour_line_width = 0.5,
         contour_description = "",
         iplot_contour_labels = plot_params["iplot_contour_labels"],
         xy_location_contour_legend = plot_params["xy_location_contour_legend"]
@@ -97,8 +99,12 @@ function update_linewidths!(
     contours::PlotContours,
     value_min::Float64,
     value_max::Float64,
-    contour_line_width::Float64=0.5
+    contour_line_width::Float64=contours.contour_line_width
 )::Nothing
+    # All contour lines are drawn at this single width (see plot_contours!). The scalar plot
+    # path leaves this defaulted to the value already set from the per-plot parameter group;
+    # the marker plot path passes marker_plot_params.contour_line_width explicitly.
+    contours.contour_line_width = contour_line_width
     contours.linewidths = get_linewidth_for_contour_lines(
         value_min, value_max, contours.contour_interval, contour_line_width, contours.excluded_vals)
     return nothing
@@ -184,7 +190,7 @@ function plot_contours!(
                     grid_scalar',
                     levels=[level],
                     color=color,
-                    linewidth=contours.linewidths[1],
+                    linewidth=contours.contour_line_width,
                     labels=label_flag,
                     labelsize=labelsize,
                     labelformatter=create_formatter(number_format)

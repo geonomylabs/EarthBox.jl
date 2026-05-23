@@ -48,6 +48,7 @@ thermal_conductivity_plot:
   minimum_value: [1, ' minimum value']
   maximum_value: [16, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 density_plot:
   iplot: [0, ' 0 = off; 1 = plot temperature (C)']
@@ -56,6 +57,7 @@ density_plot:
   minimum_value: [2700.0, ' minimum value']
   maximum_value: [3300.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 temperature_plot:
   iplot: [0, ' 0 = off; 1 = plot temperature (C)']
@@ -64,6 +66,7 @@ temperature_plot:
   minimum_value: [0.0, ' minimum value']
   maximum_value: [1300.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 viscosity_plot:
   iplot: [0, ' 0 = off; 1 = plot viscosity (log10(Pas)) (basic nodes)']
@@ -72,6 +75,7 @@ viscosity_plot:
   minimum_value: [19.0, ' minimum value']
   maximum_value: [25.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 strain_rate_plot:
   iplot: [0, ' 0 = off; 1 = plot strain rate (log10(1/s))']
@@ -80,6 +84,7 @@ strain_rate_plot:
   minimum_value: [-18.0, ' minimum value']
   maximum_value: [-13.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 pressure_plot:
   iplot: [0, ' 0 = off; 1 = plot pressure (GPa)']
@@ -88,6 +93,7 @@ pressure_plot:
   minimum_value: [0.0, ' minimum value']
   maximum_value: [10.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 normal_stress_plot:
   iplot: [0, ' 0 = off; 1 = plot stress (normal)']
@@ -96,6 +102,7 @@ normal_stress_plot:
   minimum_value: [-100.0, ' minimum value']
   maximum_value: [100.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 shear_stress_plot:
   iplot: [0, ' 0 = off; 1 = plot shear stress']
@@ -104,6 +111,7 @@ shear_stress_plot:
   minimum_value: [-100.0, ' minimum value']
   maximum_value: [100.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 shear_plastic_failure_plot:
   iplot: [0, ' 0 = off; 1 = plot plastic yielding flag (basic nodes)']
@@ -112,6 +120,7 @@ shear_plastic_failure_plot:
   minimum_value: [0.0, ' minimum value']
   maximum_value: [1.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 normal_plastic_failure_plot:
   iplot: [0, ' 0 = off; 1 = plot plastic yielding flag (normal nodes)']
@@ -120,6 +129,7 @@ normal_plastic_failure_plot:
   minimum_value: [0.0, ' minimum value']
   maximum_value: [1.0, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 velocity_plot:
   iplot: [0, ' 0 = off; 1 = make velocity plots']
@@ -129,6 +139,7 @@ velocity_plot:
   minimum_value: [-0.5, ' minimum value']
   maximum_value: [0.5, ' maximum value']
   iplot_contours: [0, ' 0 = off; 1 = plot contour']
+  contour_line_width: [0.5, ' width of all contour lines']
   grid_plot_type: [gouraud, ' gouraud = no mesh; auto = plot mesh']
 marker_plot:
   # General marker plot parameters

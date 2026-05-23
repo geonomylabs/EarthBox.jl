@@ -304,6 +304,8 @@ Plot a scalar array for all time Steps.
     - Plot contours.
 - `grid_plot_type::String="nomesh"`:
     - Grid plot type: "nomesh" or "mesh"
+- `contour_line_width::Float64=0.5`:
+    - Width of all contour lines.
 
 # Valid Scalar Names
 - `$(ScalarNames().temperature)`
@@ -330,7 +332,8 @@ function plot_scalars(
     maximum_value::Float64=100.0,
     excluded_value::Float64=-1e38,
     plot_contours::Bool=false,
-    grid_plot_type::String="nomesh"
+    grid_plot_type::String="nomesh",
+    contour_line_width::Float64=0.5
 )::Nothing
     plot_parameters = get_plot_parameters_dict(
         contour_interval,
@@ -338,7 +341,8 @@ function plot_scalars(
         maximum_value,
         excluded_value,
         plot_contours,
-        grid_plot_type
+        grid_plot_type,
+        contour_line_width
     )
 
     if isnothing(model)
@@ -360,7 +364,8 @@ function get_plot_parameters_dict(
     maximum_value::Float64,
     excluded_value::Float64,
     plot_contours::Bool,
-    grid_plot_type::String
+    grid_plot_type::String,
+    contour_line_width::Float64=0.5
 )::PlotParametersType
     return Dict(
         "contour_interval" => contour_interval,
@@ -368,7 +373,8 @@ function get_plot_parameters_dict(
         "maximum_value" => maximum_value,
         "excluded_value" => excluded_value,
         "iplot_contours" => get_integer_flag(plot_contours),
-        "grid_plot_type" => grid_plot_type
+        "grid_plot_type" => grid_plot_type,
+        "contour_line_width" => contour_line_width
     )
 end
 

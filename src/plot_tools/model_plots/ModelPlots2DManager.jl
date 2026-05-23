@@ -410,7 +410,8 @@ function plot_scalars(;
         minimum_value    = get(kwargs, :minimum_value, minimum_value_default),
         maximum_value    = get(kwargs, :maximum_value, maximum_value_default),
         plot_contours    = get(kwargs, :plot_contours, plot_contours_default),
-        grid_plot_type   = get(kwargs, :grid_plot_type, grid_plot_type_default)
+        grid_plot_type   = get(kwargs, :grid_plot_type, grid_plot_type_default),
+        contour_line_width = get(kwargs, :contour_line_width, 0.5)
     )
     
 end
