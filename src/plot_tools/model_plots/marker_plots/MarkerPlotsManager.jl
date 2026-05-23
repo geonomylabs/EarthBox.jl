@@ -49,6 +49,7 @@ import .MarkerColormapManager: MarkerColorMap
 import .PlotTopoArraysManager: PlotTopoArrays
 import .DataNames: MarkerDataNames
 import .JLDData: get_jld_marker_data, get_jld_topo_filename, get_jld_field_filename
+import .JLDData: make_jld_marker_filename
 import .GetModelData: get_model_marker_data
 import .MarkerPlotFuncs: plot_marker_scalars, plot_temperature_contours
 import .MarkerPlotFuncs: plot_topo, plot_base_level, plot_mesh
@@ -310,11 +311,22 @@ function plot_markers(
     # If model is not defined then use exported model output
     else
         for ioutput in marker_plots.time_stepping.steps
+            if !marker_output_file_exists(marker_plots, ioutput)
+                @warn "Skipping marker plot ($plot_type): no output file for time step $ioutput"
+                continue
+            end
             println(">> Working on marker plot at time step $ioutput")
             call_marker_plot_method!(marker_plots, plot_type, ioutput, model)
         end
     end
     return nothing
+end
+
+""" Return true if the marker output file for `ioutput` exists on disk. Used to
+skip time steps whose output was never written instead of crashing on read. """
+function marker_output_file_exists(marker_plots::MarkerPlots, ioutput::Int64)::Bool
+    mainpath = marker_plots.parameters.paths.mainpath
+    return isfile(make_jld_marker_filename(mainpath, ioutput))
 end
 
 """ 

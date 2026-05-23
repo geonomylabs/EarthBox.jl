@@ -11,6 +11,7 @@ include("velocity_plot/VelocityPlotManager.jl")
 include("scalar_plot/ScalarPlotManager.jl")
 
 import EarthBox.ModelDataContainer: ModelData
+import EarthBox.JLDTools: intstr
 import ..PlotDtypes: PlotDictType, PlotParametersType
 import ..PlotDict: ScalarPlotParameterGroupNames
 import .ScalarNamesManager: ScalarNames, get_list as get_scalar_names_list, 
@@ -384,9 +385,20 @@ function plot_output_scalars(
     plot_parameters::PlotParametersType
 )::Nothing
     for ioutput in grid_plots.time_stepping.steps
+        if !field_output_file_exists(grid_plots, ioutput)
+            @warn "Skipping scalar plot for $scalar_name: no output file for time step $ioutput"
+            continue
+        end
         make_scalar_plot(grid_plots, scalar_name, plot_parameters, ioutput=ioutput)
     end
     return nothing
+end
+
+""" Return true if the field output file for `ioutput` exists on disk. Used to
+skip time steps whose output was never written instead of crashing on read. """
+function field_output_file_exists(grid_plots::GridPlots, ioutput::Int64)::Bool
+    mainpath = grid_plots.temperature_plot.parameters.paths.mainpath
+    return isfile(joinpath(mainpath, "fields_$(intstr(ioutput)).jld"))
 end
 
 function get_integer_flag(option::Union{Bool, Nothing})::Union{Int64, Nothing}
@@ -459,6 +471,10 @@ function plot_velocity(
 )::Nothing
     println("Working on plots for velocity")
     for ioutput in grid_plots.time_stepping.steps
+        if !field_output_file_exists(grid_plots, ioutput)
+            @warn "Skipping velocity plot: no output file for time step $ioutput"
+            continue
+        end
         make_vector_plot(
             grid_plots,
             ioutput,
