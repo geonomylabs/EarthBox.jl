@@ -49,9 +49,12 @@ function plot_colorbar!(
     vertical::Bool=true,
     colorplot=nothing,
     axis_for_height::Union{Nothing, CairoMakie.Axis}=nothing,
+    ticks::Union{Nothing, Vector{Float64}}=nothing,
 )::Nothing
     @assert irow >= 1 && icol >= 1 "irow and icol must be greater than or equal to 1"
     pretty_label = label_pretty_filter(label)
+    # Only pass `ticks` to Colorbar when supplied; otherwise let Makie auto-pick.
+    tick_kw = ticks === nothing ? (;) : (; ticks=ticks)
     # With DataAspect(), match inner plot height. Use a fixed Relative — Observable lifts
     # cause a layout ↔ colorbar feedback loop (StackOverflowError).
     height_frac = nothing
@@ -65,6 +68,7 @@ function plot_colorbar!(
                 label=pretty_label,
                 height=height_frac,
                 tellheight=false,
+                tick_kw...,
             )
         else
             CairoMakie.Colorbar(
@@ -74,17 +78,19 @@ function plot_colorbar!(
                 label=pretty_label,
                 height=height_frac,
                 tellheight=false,
+                tick_kw...,
             )
         end
     elseif colorplot === nothing
         CairoMakie.Colorbar(
-            fig[irow, icol],
+            fig[irow, icol];
             colormap=color_map,
             limits=limits,
             label=pretty_label,
+            tick_kw...,
         )
     else
-        CairoMakie.Colorbar(fig[irow, icol], colorplot; label=pretty_label)
+        CairoMakie.Colorbar(fig[irow, icol], colorplot; label=pretty_label, tick_kw...)
     end
     return nothing
 end

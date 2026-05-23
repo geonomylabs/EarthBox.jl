@@ -318,6 +318,7 @@ function make_2dscalar_plot(scalar_plot::ScalarPlot)
         label=active_units,
         colorplot=hm_plot,
         axis_for_height=axes_xy,
+        ticks=colorbar_ticks_from_contours(scalar_plot.parameters.contours),
     )
 
     units = scalar_plot.parameters.conversion.plot_units.active_units
@@ -346,9 +347,21 @@ end
 
 function get_clims(scalar_plot::ScalarPlot)::Tuple{Float64, Float64}
     return (
-        scalar_plot.parameters.color_bar.minimum_value, 
+        scalar_plot.parameters.color_bar.minimum_value,
         scalar_plot.parameters.color_bar.maximum_value
     )
+end
+
+# Colorbar ticks reuse the labeled-contour cadence (V2 = 2x contour interval), which is
+# already populated by update_contour_levels! before the plot is drawn. Returning nothing
+# falls back to Makie's automatic tick locator.
+function colorbar_ticks_from_contours(
+    contours::PlotContoursManager.PlotContours
+)::Union{Nothing, Vector{Float64}}
+    if contours.contour_interval > 0.0 && length(contours.V2) >= 2
+        return contours.V2
+    end
+    return nothing
 end
 
 function get_node_coordinates(
