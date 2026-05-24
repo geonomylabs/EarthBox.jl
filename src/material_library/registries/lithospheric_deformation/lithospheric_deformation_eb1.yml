@@ -2,8 +2,9 @@ description: |
   
   Summary
   - Mantle flow laws from HK03.
-  - Base case crustal flow strength from GT95 and R06 (no scaling factor)
-  - Moderate plastic yield strength (20/10; 0/0.1)
+  - Base case crustal flow strength ()wet upper and lower crust) from GT95 and R06 (no scaling factor)
+  - Wet oceanic crust
+  - Plastic yield strength consistent with Bos and Spiers (2002).
   - Moderate radiogenic heat production (1.8e-6/0.5e-6)
   
   Upper Crustal Rheology (Moderate Strength))
@@ -16,6 +17,14 @@ description: |
   Wet anorthite dislocation creep flow law parameters from Rybacki et al. (2006) using a water 
   fugacity of 500 MPa based on fit to Figure 8b at 30 km. No scaling factor is applied to 
   pre-exponential factor.
+
+  Oceanic Crust Rheology
+  ======================
+  Wet anorthite dislocation creep flow law parameters from Rybacki et al. (2006) using a water 
+  fugacity of 500 MPa based on fit to Figure 8b at 30 km. No scaling factor is applied to 
+  pre-exponential factor. If a dry anorthite rheology is desired, the following parameters should 
+  be used instead: stress_exponent = 3, pre-exponential (tensor invariant) = 2.26e13 1/s/MPa^n, 
+  activation energy = 641 kJ/mol, activation_volume = 24 cm^3/mol (J/MPa/mol).
 
   Mantle Rheology
   ===============
@@ -44,6 +53,12 @@ description: |
   =============================
   - upper crust: 1.8 microW/m^3
   - lower crust: 0.5 microW/m^3
+
+  Tensor Invariant Pre-Exponential Corrections
+  ============================================
+  The pre-exponential factors for dislocation creep obtained from uniaxial compression experiments
+  are converted into a tensor invariant form using the following equation: 0.5*3^((n+1)/2) where n is 
+  the stress exponent (Ranalli, 1987, p. 78, eq. 4.25).
   
   References:
   - Escartin, J., Hirth, G., Evans, B., Strength of slightly serpentinized peridotites: Implications for the tectonics of oceanic lithosphere. Geology, 29, 1023-1026.
@@ -56,6 +71,7 @@ description: |
   - Liao, J., Gerya, T., Influence of lithospheric mantle stratification on craton extension: Insight from two-dimensional thermo-mechanical modeling. Tectonophysics, 631, 50-64.
   - Naliboff, J. B., Buiter, S. H., Peron-Pinvidic, G., Osmundsen, P. T. and Tetreault, J. (2017). Complex Fault interaction controls continental rifting. Nature Communications, 8, 1-10.
   - Theunissen, T., Huismans, R. S., Lu, G., Riel, N. (2022). Relative continent-mid-oceanic ridge elevation: A reference case for isostasy. Earth-Science Reviews, 233, 1-27.
+  - Ranalli, G. (1987). Rheology of the Earth. Allen and Unwin.
   - Rybacki, E., Gottschalk, M.,Wirth, R., Dresen, G., (2006). Influence of water fugacity on the strength of synthetic anorthite aggregates. JGR, 111, B03203.
   - Stopler, E. et al. (1981). Melt Segregation from partially molten source regions: the importance of melt density and source region size. JGR, 86, 6261-6271.
   - Schwartz, S., Allemand, P., Guillot, S., Numerical model of the effect of serpentinites on the exhumation of eclogite rocks: insights from the Monviso ophiolitic massif (Western Alps), Tectonophysics, 342, 193-206.
