@@ -34,6 +34,7 @@ end
         include("tests/half_space_cooling_tests.jl")
         include("tests/serpentinization_tests.jl")
         include("tests/melt_drainage_divides_tests.jl")
+        include("tests/extrusion_volume_redistribution_tests.jl")
         include("tests/melt_model_tests.jl")
         include("tests/sediment_transport_tests.jl")
         include("tests/lava_flow_tests.jl")

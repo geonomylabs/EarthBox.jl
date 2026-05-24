@@ -1,6 +1,6 @@
 module Drainage
 
-import EarthBox.PrintFuncs: print_info, print_warning
+import EarthBox.PrintFuncs: print_info
 import EarthBox.ModelDataContainer: ModelData
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt
 import EarthBox.ModelStructureManager.TopAndBottom: calculate_top_and_bottom_of_layer_opt_sorted
@@ -287,6 +287,65 @@ function calculate_drainage_divides(
     return divides_x
 end
 
+""" Redistribute accumulated extrusion volumes from an old set of drainage
+basins to a new set, conserving total volume.
+
+Each old basin's volume is assigned to exactly ONE new basin: the new basin
+that contains the old basin's midpoint. New basins tile the model domain
+contiguously and share exact boundaries, so a midpoint that lands on a shared
+boundary is resolved with a half-open rule `[xstart, xend)` — i.e. it is
+assigned to the basin on the right. (The previous inclusive-both-ends test
+`xstart <= xmid_o <= xend` matched both neighbouring basins for such a midpoint
+and added the volume twice, doubling it.) If a midpoint falls outside every new
+basin — e.g. the new basins do not tile the domain — its volume is assigned to
+the nearest basin so the total is still conserved.
+
+Operates on the first `ndrainage_basin` / `ndrainage_basin_o` entries of the
+arrays. `extrusion_volumes` is fully zeroed and then filled; it must be a
+distinct array from `extrusion_volumes_o` (the old volumes).
+"""
+function redistribute_extrusion_volumes!(
+    extrusion_volumes::Vector{Float64},
+    extrusion_volumes_o::Vector{Float64},
+    xstart_drainage::Vector{Float64},
+    xend_drainage::Vector{Float64},
+    xstart_drainage_o::Vector{Float64},
+    xend_drainage_o::Vector{Float64},
+    ndrainage_basin::Int,
+    ndrainage_basin_o::Int
+)::Nothing
+    fill!(extrusion_volumes, 0.0)
+    for j in 1:ndrainage_basin_o
+        xmid_o = (xstart_drainage_o[j] + xend_drainage_o[j]) / 2
+        inew = 0
+        for i in 1:ndrainage_basin
+            xstart = xstart_drainage[i]
+            xend = xend_drainage[i]
+            # Half-open [xstart, xend) assigns a boundary midpoint to the basin
+            # on the right; the last basin also owns the domain's right edge.
+            if (xstart <= xmid_o < xend) || (i == ndrainage_basin && xmid_o <= xend)
+                inew = i
+                break
+            end
+        end
+        if inew == 0
+            # Midpoint outside every new basin: assign to the nearest basin so
+            # no volume is lost.
+            best_distance = Inf
+            for i in 1:ndrainage_basin
+                xmid = (xstart_drainage[i] + xend_drainage[i]) / 2
+                distance = abs(xmid_o - xmid)
+                if distance < best_distance
+                    best_distance = distance
+                    inew = i
+                end
+            end
+        end
+        extrusion_volumes[inew] += extrusion_volumes_o[j]
+    end
+    return nothing
+end
+
 function redistribute_extrusion_volumes_to_new_drainage_basins!(model::ModelData)::Nothing
     ndrainage_basin_o = model.melting.parameters.extraction.ndrainage_basin_old.value
     ndrainage_basin = model.melting.parameters.extraction.ndrainage_basin.value
@@ -302,47 +361,26 @@ function redistribute_extrusion_volumes_to_new_drainage_basins!(model::ModelData
     # Calculate current total extrusion volume from all drainage basins
     total_extrusion_volume_current = sum(extrusion_volumes)
 
-    # Zero out the extrusion volumes
-    nvalues = length(extrusion_volumes)
-    for idrainage_basin in 1:nvalues
-        extrusion_volumes[idrainage_basin] = 0.0
-    end
-
-    # Check if midpoint of old drainage basin is within a new drainage basin
-    # If yes, add the extrusion volume to the new drainage basin
-    for i in 1:ndrainage_basin
-        xstart = xstart_drainage[i]
-        xend = xend_drainage[i]
-        for j in 1:ndrainage_basin_o
-            xstart_o = xstart_drainage_o[j]
-            xend_o = xend_drainage_o[j]
-            xmid_o = (xstart_o + xend_o) / 2
-            if xstart <= xmid_o <= xend
-                extrusion_volumes[i] += extrusion_volumes_o[j]
-            end
-        end
-    end
+    redistribute_extrusion_volumes!(
+        extrusion_volumes, extrusion_volumes_o,
+        xstart_drainage, xend_drainage,
+        xstart_drainage_o, xend_drainage_o,
+        ndrainage_basin, ndrainage_basin_o
+    )
 
     # Calculate new total extrusion volume from all drainage basins
     total_extrusion_volume_redistributed = sum(extrusion_volumes)
 
-    # Check if total extrusion volume is conserved
+    # Conservation is guaranteed by construction; this is a loud, non-fatal
+    # guard against future regressions (uses @warn so it is never suppressed by
+    # PRINT_SETTINGS, unlike the EarthBox print helpers).
     if !isapprox(total_extrusion_volume_current, total_extrusion_volume_redistributed)
-        print_warning(
-            "Total extrusion volume is not conserved after " *
-            "redistributing extrusion volumes to new drainage basins.", level=2
-        )
-        print_warning(
-            "Total extrusion volume before redistribution: $(total_extrusion_volume_current)",
-            level=2
-        )
-        print_warning(
-            "Total extrusion volume after redistribution: $(total_extrusion_volume_redistributed)",
-            level=2
-        )
-        print_warning(
-            "Difference in total extrusion volume: $(total_extrusion_volume_current - total_extrusion_volume_redistributed)",
-            level=2
+        @warn(
+            "Total extrusion volume is not conserved after redistributing " *
+            "extrusion volumes to new drainage basins.",
+            total_extrusion_volume_current,
+            total_extrusion_volume_redistributed,
+            difference = total_extrusion_volume_current - total_extrusion_volume_redistributed,
         )
     else
         print_info(
