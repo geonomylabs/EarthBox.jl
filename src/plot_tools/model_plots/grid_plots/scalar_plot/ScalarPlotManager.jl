@@ -360,6 +360,8 @@ function eb_heatmap(
         colormap=color_map,
         colorrange=get_clims(scalar_plot),
         interpolate=interpolate, # This does not work with irregular grids
+        rasterize=true, # Matches marker plots: keeps vector output small, especially
+                        # for irregular grids where heatmap! falls back to per-cell polygons
     )
 end
 
