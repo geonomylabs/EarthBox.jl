@@ -501,6 +501,20 @@ function assign_compaction_yindex_to_markers!(
                 break
             end
         end
+        # The compaction mesh hangs from the topography chain, which is a
+        # smoothed/interpolated surface that can sit slightly below the
+        # shallowest sediment marker. Such a marker lands above cell 1's top
+        # and the loop above leaves it at yindex = -1, giving it zero
+        # compaction displacement. Frozen, it pins the detected sediment-swarm
+        # top so max_sticky_displacement collapses to ~0 and the overlying
+        # (soon-volcanic) markers never follow the column's subsidence under a
+        # new lava load, opening a marker-free void at the volcanic/sediment
+        # contact. Clamp such above-top markers into the top cell so they
+        # subside with the column.
+        if compaction_yindex == -1 && y_marker < compaction_array[xindex, 1, 1]
+            compaction_yindex = 1
+            unit_distance = 1.0
+        end
         markers_compaction_yindex[imarker] = compaction_yindex
         markers_unit_distance_from_cell_top[imarker] = unit_distance
     end
